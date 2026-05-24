@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Importar Datos a Supabase - Casa Leo</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #080c10;
+      color: #e6edf3;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 40px 20px;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 30px;
+    }
+    h1 {
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+    .subtitle {
+      color: #8b949e;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+    .upload-area {
+      background: #161b22;
+      border: 2px dashed #30363d;
+      border-radius: 8px;
+      padding: 40px;
+      text-align: center;
+      margin-bottom: 20px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .upload-area:hover {
+      border-color: #f97316;
+      background: #161b2255;
+    }
+    .upload-area.dragover {
+      border-color: #f97316;
+      background: #f9731620;
+    }
+    .upload-area input {
+      display: none;
+    }
+    .file-info {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 15px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .file-info.show { display: block; }
+    .file-name {
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 5px;
+    }
+    .file-size {
+      font-size: 12px;
+      color: #8b949e;
+    }
+    .config {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 20px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .config.show { display: block; }
+    .config-group {
+      margin-bottom: 15px;
+    }
+    .config-group label {
+      display: block;
+      color: #8b949e;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+    .config-group input {
+      width: 100%;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 4px;
+      color: #e6edf3;
+      padding: 8px 12px;
+      font-family: monospace;
+      font-size: 12px;
+    }
+    .status {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 15px;
+      margin-bottom: 20px;
+      font-family: monospace;
+      font-size: 13px;
+      min-height: 100px;
+      overflow-y: auto;
+      max-height: 300px;
+      display: none;
+    }
+    .status.show { display: block; }
+    .status-item {
+      padding: 5px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .status-item.loading::before { content: '⏳'; animation: spin .8s linear infinite; }
+    .status-item.success::before { content: '✅'; }
+    .status-item.error::before { content: '❌'; color: #ef4444; }
+    .status-item.info::before { content: 'ℹ️'; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .btn {
+      background: #f97316;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      transition: 0.2s;
+    }
+    .btn:hover { background: #ea580c; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-secondary {
+      background: var(--s3);
+      color: #e6edf3;
+      border: 1px solid #30363d;
+      margin-top: 10px;
+    }
+    .btn-secondary:hover { border-color: #444c56; }
+    .summary {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 15px;
+      display: none;
+    }
+    .summary.show { display: block; }
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 0;
+      border-bottom: 1px solid #30363d;
+      font-size: 13px;
+    }
+    .summary-item:last-child { border-bottom: none; }
+    .text-success { color: #22c55e; }
+    .text-error { color: #ef4444; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>🔨 Casa Leo</h1>
+  <div class="subtitle">Importar datos desde backup JSON</div>
+  
+  <div class="upload-area" id="uploadArea" onclick="document.getElementById('jsonFile').click()">
+    <div style="font-size: 32px; margin-bottom: 10px;">📁</div>
+    <div style="font-weight: 600; margin-bottom: 5px;">Arrastra o haz clic para seleccionar</div>
+    <div style="font-size: 12px; color: #8b949e;">Archivo JSON de backup de Casa Leo</div>
+    <input type="file" id="jsonFile" accept=".json" onchange="handleFileSelect(event)"/>
+  </div>
+  
+  <div class="file-info" id="fileInfo">
+    <div class="file-name" id="fileName"></div>
+    <div class="file-size" id="fileSize"></div>
+  </div>
+  
+  <div class="config" id="config">
+    <div class="config-group">
+      <label>URL de Supabase</label>
+      <input type="text" id="sbUrl" placeholder="https://xxxxx.supabase.co" value="https://unbvutpxilsszdwtcuvq.supabase.co"/>
+    </div>
+    <div class="config-group">
+      <label>API Key de Supabase</label>
+      <input type="text" id="sbKey" placeholder="sb_publishable_xxxxx" value="sb_publishable_svGnaOsBazxcphzdKLqhtw_QqW5xK4U"/>
+    </div>
+  </div>
+  
+  <button class="btn" id="importBtn" onclick="startImport()" style="display: none;">
+    📤 Importar Datos
+  </button>
+  
+  <div class="status" id="status"></div>
+  
+  <div class="summary" id="summary"></div>
+</div>
+
+<script>
+let selectedData = null;
+
+const uploadArea = document.getElementById('uploadArea');
+uploadArea.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  uploadArea.classList.add('dragover');
+});
+uploadArea.addEventListener('dragleave', () => {
+  uploadArea.classList.remove('dragover');
+});
+uploadArea.addEventListener('drop', (e) => {
+  e.preventDefault();
+  uploadArea.classList.remove('dragover');
+  const files = e.dataTransfer.files;
+  if (files.length) handleFile(files[0]);
+});
+
+function handleFileSelect(event) {
+  const files = event.target.files;
+  if (files.length) handleFile(files[0]);
+}
+
+function handleFile(file) {
+  if (!file.name.endsWith('.json')) {
+    alert('Por favor selecciona un archivo JSON válido');
+    return;
+  }
+  
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      selectedData = JSON.parse(e.target.result);
+      document.getElementById('fileName').textContent = '📄 ' + file.name;
+      document.getElementById('fileSize').textContent = (file.size / 1024).toFixed(2) + ' KB';
+      document.getElementById('fileInfo').classList.add('show');
+      document.getElementById('config').classList.add('show');
+      document.getElementById('importBtn').style.display = 'block';
+    } catch (err) {
+      alert('Error al parsear JSON: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function log(message, type = 'info') {
+  const statusDiv = document.getElementById('status');
+  if (!statusDiv.classList.contains('show')) {
+    statusDiv.classList.add('show');
+  }
+  const item = document.createElement('div');
+  item.className = `status-item ${type}`;
+  item.textContent = message;
+  statusDiv.appendChild(item);
+  statusDiv.scrollTop = statusDiv.scrollHeight;
+}
+
+async function startImport() {
+  if (!selectedData) {
+    alert('Selecciona un archivo JSON primero');
+    return;
+  }
+  
+  const btn = document.getElementById('importBtn');
+  btn.disabled = true;
+  
+  document.getElementById('status').innerHTML = '';
+  document.getElementById('summary').innerHTML = '';
+  document.getElementById('summary').classList.remove('show');
+  
+  const SB_URL = document.getElementById('sbUrl').value.trim();
+  const SB_KEY = document.getElementById('sbKey').value.trim();
+  
+  if (!SB_URL || !SB_KEY) {
+    log('Configura URL y API Key de Supabase', 'error');
+    btn.disabled = false;
+    return;
+  }
+  
+  const HEADERS = {
+    'Content-Type': 'application/json',
+    'apikey': SB_KEY,
+    'Authorization': 'Bearer ' + SB_KEY,
+    'Prefer': 'return=representation'
+  };
+  
+  const tables = Object.keys(selectedData);
+  const results = {};
+  
+  for (const table of tables) {
+    const rows = selectedData[table] || [];
+    if (rows.length === 0) {
+      log(`${table}: 0 registros (vacío)`, 'info');
+      results[table] = 0;
+      continue;
+    }
+    
+    log(`Importando ${table}...`, 'loading');
+    
+    try {
+      for (const row of rows) {
+        // Elimina el ID para que Supabase genere uno nuevo
+        const dataToInsert = { ...row };
+        delete dataToInsert.id;
+        
+        const r = await fetch(`${SB_URL}/rest/v1/${table}`, {
+          method: 'POST',
+          headers: HEADERS,
+          body: JSON.stringify(dataToInsert)
+        });
+        
+        if (!r.ok) {
+          const error = await r.text();
+          log(`${table}: Error HTTP ${r.status}`, 'error');
+          console.error(error);
+          break;
+        }
+      }
+      
+      log(`${table}: ${rows.length} registros importados`, 'success');
+      results[table] = rows.length;
+    } catch (e) {
+      log(`${table}: ${e.message}`, 'error');
+      results[table] = 0;
+    }
+  }
+  
+  // Mostrar resumen
+  const summaryDiv = document.getElementById('summary');
+  let summaryHtml = '<div style="font-weight: 600; margin-bottom: 10px;">📊 Resumen de Importación</div>';
+  let totalRecords = 0;
+  
+  for (const [table, count] of Object.entries(results)) {
+    summaryHtml += `<div class="summary-item"><span>${table}</span><span class="text-success">${count}</span></div>`;
+    totalRecords += count;
+  }
+  
+  summaryHtml += `<div class="summary-item" style="border-bottom: none; font-weight: 600; margin-top: 10px; padding-top: 10px; border-top: 1px solid #30363d;"><span>TOTAL</span><span class="text-success">${totalRecords}</span></div>`;
+  
+  summaryDiv.innerHTML = summaryHtml;
+  summaryDiv.classList.add('show');
+  
+  log('✅ Importación completada', 'success');
+  btn.disabled = false;
+}
+</script>
+
+</body>
+</html>
