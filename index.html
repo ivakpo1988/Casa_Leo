@@ -238,77 +238,19 @@ tbody tr:hover td:last-child{background:var(--s3)}
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:var(--s3);border-radius:3px}
-
-/* CHART */
-.chart-wrap{position:relative;height:180px;display:flex;align-items:flex-end;gap:4px;padding:0 4px}
-.chart-bar{flex:1;border-radius:4px 4px 0 0;min-width:18px;position:relative;cursor:pointer;transition:.15s}
-.chart-bar:hover{filter:brightness(1.2)}
-.chart-bar-label{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--muted);white-space:nowrap}
-.chart-bar-val{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--text);white-space:nowrap;font-family:var(--mono)}
-.chart-container{padding-bottom:24px;padding-top:24px}
-
-/* AGENDA */
-.agenda-day{background:var(--s2);border:1px solid var(--border);border-radius:var(--r2);padding:10px 12px;margin-bottom:8px}
-.agenda-day-hdr{font-weight:700;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
-.turno-row{display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:5px;background:var(--s3);margin-bottom:4px;font-size:12px}
-.turno-hour{font-family:var(--mono);font-size:11px;color:var(--orange);min-width:42px}
-.turno-name{flex:1;font-weight:600}
-.turno-tag{font-size:10px;color:var(--muted)}
-
-/* ML */
-.ml-badge{background:#ffe600;color:#333;border-radius:4px;font-size:10px;font-weight:700;padding:2px 7px}
-
-/* GASTOS */
-.gasto-tipo-compra{color:var(--red)}
-.gasto-tipo-servicio{color:var(--blue)}
-.gasto-tipo-otro{color:var(--muted)}
-
-/* BUSQUEDA GLOBAL */
-#global-search-wrap{position:relative;flex:1;max-width:320px}
-#global-search{background:var(--s2);border:1px solid var(--border);border-radius:var(--r2);padding:6px 12px 6px 32px;color:var(--text);outline:none;width:100%;font-size:13px;transition:.12s}
-#global-search:focus{border-color:var(--orange)}
-#global-search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);width:14px;height:14px;pointer-events:none}
-#global-results{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--s1);border:1px solid var(--border);border-radius:var(--r);z-index:200;max-height:320px;overflow-y:auto;display:none}
-#global-results.open{display:block}
-.gr-item{padding:9px 13px;cursor:pointer;border-bottom:1px solid var(--border);font-size:12px;display:flex;align-items:center;gap:10px}
-.gr-item:hover{background:var(--s2)}
-.gr-item:last-child{border-bottom:none}
-.gr-tag{font-size:10px;padding:1px 6px;border-radius:3px;background:var(--s3);color:var(--muted)}
-
-/* NOTIF BADGE */
-#notif-btn{position:relative;background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:4px 8px;border-radius:6px}
-#notif-btn:hover{background:var(--s3);color:var(--text)}
-#notif-count{position:absolute;top:0;right:0;background:var(--red);color:#fff;font-size:9px;font-weight:700;border-radius:8px;padding:1px 5px;min-width:16px;text-align:center;display:none}
-#notif-panel{position:absolute;top:50px;right:10px;width:300px;background:var(--s1);border:1px solid var(--border);border-radius:var(--r);z-index:300;display:none;box-shadow:0 8px 24px rgba(0,0,0,.5)}
-#notif-panel.open{display:block}
-.notif-item{padding:10px 14px;border-bottom:1px solid var(--border);font-size:12px;display:flex;gap:8px;align-items:flex-start}
-.notif-item:last-child{border-bottom:none}
-.notif-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:3px}
-.notif-dot.red{background:var(--red)}
-.notif-dot.yellow{background:var(--yellow)}
-.notif-dot.blue{background:var(--blue)}
-
-/* TABS inside panel */
-.inner-tabs{display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:0}
-.itab{padding:7px 14px;border:none;background:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
-.itab.active{color:var(--orange);border-bottom-color:var(--orange)}
-
-/* HISTORIAL CLIENTE */
-.cli-hist-block{background:var(--s3);border-radius:var(--r2);padding:10px 13px;margin-bottom:8px}
-.cli-hist-label{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:5px}
 </style>
 </head>
 <body>
 
 <div id="loading">
   <div class="spinner"></div>
-  <p id="loading-msg">Cargando Casa Leo…</p>
+  <p>Conectando con Supabase…</p>
 </div>
 
 <div id="sidebar">
   <div class="logo">
     <div class="logo-icon">🔨</div>
-    <div><div class="logo-text">Casa Leo</div><div class="logo-sub" id="sync-label">Cargando…</div></div>
+    <div><div class="logo-text">Casa Leo</div><div class="logo-sub">Supabase</div></div>
   </div>
   <nav>
     <div class="nav-group">
@@ -369,33 +311,6 @@ tbody tr:hover td:last-child{background:var(--s3)}
         <span>Energía Renovable</span>
       </button>
     </div>
-    <div class="nav-group">
-      <div class="nav-label">Canales de Venta</div>
-      <button class="nav-item" onclick="go('mercadolibre')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18l-2 9H5L3 3z"/><circle cx="9" cy="20" r="1"/><circle cx="17" cy="20" r="1"/><path d="M5 12l1 5h12l1-5"/></svg>
-        <span>Mercado Libre</span>
-        <span class="nav-badge" id="nb-ml">0</span>
-      </button>
-    </div>
-    <div class="nav-group">
-      <div class="nav-label">Finanzas</div>
-      <button class="nav-item" onclick="go('gastos')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-        <span>Gastos</span>
-      </button>
-      <button class="nav-item" onclick="go('reportes')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        <span>Reportes</span>
-      </button>
-    </div>
-    <div class="nav-group">
-      <div class="nav-label">Agenda</div>
-      <button class="nav-item" onclick="go('agenda')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        <span>Agenda / Turnos</span>
-        <span class="nav-badge" id="nb-agenda">0</span>
-      </button>
-    </div>
   </nav>
   <div class="sidebar-footer">
     <div class="user-row">
@@ -408,14 +323,7 @@ tbody tr:hover td:last-child{background:var(--s3)}
 <div id="main">
   <div id="topbar">
     <div class="topbar-title" id="topbar-title">Panel</div>
-    <div id="global-search-wrap" style="display:flex;align-items:center;position:relative;flex:1;max-width:300px;margin:0 12px">
-      <svg id="global-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-      <input id="global-search" placeholder="Buscar clientes, productos, tickets…" oninput="globalSearch(this.value)" onblur="setTimeout(function(){document.getElementById('global-results').classList.remove('open')},200)"/>
-      <div id="global-results"></div>
-    </div>
-    <div class="topbar-right" style="position:relative">
-      <button id="notif-btn" onclick="toggleNotifPanel()" title="Notificaciones">🔔<span id="notif-count"></span></button>
-      <div id="notif-panel"><div style="padding:10px 14px;font-weight:700;font-size:12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">🔔 Alertas <button onclick="toggleNotifPanel()" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer">✕</button></div><div id="notif-list"></div></div>
+    <div class="topbar-right">
       <div id="sync-dot" class="sync-dot" title="Conectado a Supabase"></div>
       <div id="clock"></div>
     </div>
@@ -438,10 +346,6 @@ tbody tr:hover td:last-child{background:var(--s3)}
       <div class="dash-grid">
         <div class="panel"><div class="panel-title">🕒 <span>Últimas Ventas</span></div><div id="dash-recent"></div></div>
         <div class="panel"><div class="panel-title">🔧 <span>Alquileres Activos</span></div><div id="dash-alq"></div></div>
-      </div>
-      <div class="dash-grid">
-        <div class="panel"><div class="panel-title">🧯 <span>Venc. Matafuegos Próximos</span></div><div id="dash-mat-venc"></div></div>
-        <div class="panel"><div class="panel-title">📡 <span>Servicios DirecTV Pendientes</span></div><div id="dash-dtv-pend"></div></div>
       </div>
     </div>
 
@@ -512,27 +416,18 @@ tbody tr:hover td:last-child{background:var(--s3)}
     <div class="section" id="tab-caja">
       <div class="ph">
         <div><div class="ph-title">Caja del Día</div><div class="ph-sub" id="caja-fecha"></div></div>
-        <div class="ph-actions">
-          <button class="btn btn-ghost btn-sm" onclick="renderCaja()">🔄 Actualizar</button>
-          <button class="btn btn-ghost btn-sm" onclick="printCaja()">🖨️ Imprimir</button>
-        </div>
-      </div>
-      <div id="caja-total-banner" style="display:none;background:linear-gradient(135deg,var(--ora-glow),var(--grn-glow));border:1px solid var(--orange);border-radius:var(--r);padding:14px 20px;margin-bottom:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-        <div>
-          <div style="color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em">💼 Total Consolidado del Día</div>
-          <div id="caja-total-val" style="font-family:var(--mono);font-size:28px;font-weight:700;color:var(--orange)">$0.00</div>
-        </div>
-        <div id="caja-total-desglose" style="font-size:11px;color:var(--muted);text-align:right;line-height:1.8"></div>
+        <div class="ph-actions"><button class="btn btn-ghost btn-sm" onclick="renderCaja()">🔄 Actualizar</button></div>
       </div>
       <div class="caja-grid" id="caja-stats"></div>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>#</th><th>Hora</th><th>Cliente</th><th>Items / Detalle</th><th>Tipo</th><th>Total</th><th></th></tr></thead>
+          <thead><tr><th>#</th><th>Hora</th><th>Cliente</th><th>Items</th><th>Método</th><th>Total</th><th></th></tr></thead>
           <tbody id="caja-tbody"></tbody>
         </table>
-        <div id="caja-empty" class="empty-row">No hay movimientos hoy.</div>
+        <div id="caja-empty" class="empty-row">No hay ventas hoy.</div>
       </div>
     </div>
+
     <div class="section" id="tab-historial">
       <div class="ph">
         <div><div class="ph-title">Historial de Ventas</div></div>
@@ -690,112 +585,6 @@ tbody tr:hover td:last-child{background:var(--s3)}
         </table>
         <div id="renovable-empty" class="empty-row">No hay cotizaciones registradas.</div>
       </div>
-    </div>
-
-
-    <!-- MERCADO LIBRE -->
-    <div class="section" id="tab-mercadolibre">
-      <div class="ph">
-        <div><div class="ph-title">🛒 Mercado Libre</div><div class="ph-sub">Ventas por ML — descuenta del stock automáticamente</div></div>
-        <div class="ph-actions">
-          <button class="btn btn-ghost btn-sm" onclick="renderML()">🔄 Actualizar</button>
-          <button class="btn btn-primary btn-sm" onclick="openMLModal()">➕ Nueva Venta ML</button>
-        </div>
-      </div>
-      <div class="stat-grid" id="ml-stats"></div>
-      <div class="fbar">
-        <div class="search-box" style="flex:1">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-          <input placeholder="Buscar por producto o comprador…" id="ml-search" oninput="renderML()"/>
-        </div>
-        <select class="fi" id="ml-estado" onchange="renderML()">
-          <option value="">Todos los estados</option>
-          <option>Pagado</option><option>Enviado</option><option>Entregado</option><option>Cancelado</option>
-        </select>
-      </div>
-      <div class="tbl-wrap">
-        <table>
-          <thead><tr><th>Fecha</th><th>Producto</th><th>Comprador</th><th>Qty</th><th>Precio ML</th><th>Comisión</th><th>Neto</th><th>Envío</th><th>Estado</th><th></th></tr></thead>
-          <tbody id="ml-tbody"></tbody>
-        </table>
-        <div id="ml-empty" class="empty-row">Sin ventas de Mercado Libre.</div>
-      </div>
-    </div>
-
-    <!-- GASTOS -->
-    <div class="section" id="tab-gastos">
-      <div class="ph">
-        <div><div class="ph-title">💸 Gastos del Negocio</div><div class="ph-sub">Seguimiento de egresos y costos operativos</div></div>
-        <div class="ph-actions">
-          <button class="btn btn-primary btn-sm" onclick="openGastoModal()">➕ Registrar Gasto</button>
-        </div>
-      </div>
-      <div class="stat-grid" id="gastos-stats"></div>
-      <div class="fbar">
-        <input type="month" class="fi" id="gastos-mes" oninput="renderGastos()"/>
-        <select class="fi" id="gastos-cat" onchange="renderGastos()">
-          <option value="">Todas las categorías</option>
-          <option>Compras de mercadería</option><option>Servicios (luz, gas, internet)</option><option>Alquiler local</option><option>Sueldos</option><option>Transporte / flete</option><option>Herramientas</option><option>Varios</option>
-        </select>
-      </div>
-      <div class="tbl-wrap">
-        <table>
-          <thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Proveedor</th><th>Método</th><th>Monto</th><th></th></tr></thead>
-          <tbody id="gastos-tbody"></tbody>
-        </table>
-        <div id="gastos-empty" class="empty-row">Sin gastos registrados.</div>
-      </div>
-    </div>
-
-    <!-- REPORTES -->
-    <div class="section" id="tab-reportes">
-      <div class="ph">
-        <div><div class="ph-title">📊 Reportes</div><div class="ph-sub">Análisis de rendimiento del negocio</div></div>
-        <div class="ph-actions">
-          <select class="fi" id="rep-periodo" onchange="renderReportes()">
-            <option value="7">Últimos 7 días</option>
-            <option value="30" selected>Últimos 30 días</option>
-            <option value="90">Últimos 90 días</option>
-          </select>
-        </div>
-      </div>
-      <div class="stat-grid" id="rep-stats"></div>
-      <div class="dash-grid">
-        <div class="panel"><div class="panel-title">📈 <span>Ventas por Día</span></div><div class="chart-container"><div class="chart-wrap" id="rep-chart-ventas"></div></div></div>
-        <div class="panel"><div class="panel-title">🏷️ <span>Ingresos por Rubro</span></div><div id="rep-rubros"></div></div>
-      </div>
-      <div class="dash-grid">
-        <div class="panel"><div class="panel-title">🏆 <span>Top 10 Productos</span></div><div id="rep-top-prod"></div></div>
-        <div class="panel"><div class="panel-title">👥 <span>Top Clientes</span></div><div id="rep-top-cli"></div></div>
-      </div>
-      <div class="dash-grid">
-        <div class="panel"><div class="panel-title">💳 <span>Ventas por Método de Pago</span></div><div id="rep-metodos"></div></div>
-        <div class="panel"><div class="panel-title">💸 <span>Rentabilidad (Ingresos vs Gastos)</span></div><div id="rep-rentabilidad"></div></div>
-      </div>
-    </div>
-
-    <!-- AGENDA -->
-    <div class="section" id="tab-agenda">
-      <div class="ph">
-        <div><div class="ph-title">📅 Agenda / Turnos</div><div class="ph-sub">Trabajos programados y recordatorios</div></div>
-        <div class="ph-actions">
-          <button class="btn btn-ghost btn-sm" onclick="renderAgenda()">🔄 Actualizar</button>
-          <button class="btn btn-primary btn-sm" onclick="openTurnoModal()">➕ Nuevo Turno</button>
-        </div>
-      </div>
-      <div class="fbar">
-        <select class="fi" id="agenda-vista" onchange="renderAgenda()">
-          <option value="semana">Esta semana</option>
-          <option value="proximos">Próximos 14 días</option>
-          <option value="todos">Todos</option>
-        </select>
-        <select class="fi" id="agenda-tipo" onchange="renderAgenda()">
-          <option value="">Todos los tipos</option>
-          <option>Matafuego</option><option>DirecTV</option><option>Alquiler</option><option>Renovable</option><option>Reunión</option><option>Otro</option>
-        </select>
-      </div>
-      <div id="agenda-body"></div>
-      <div id="agenda-empty" class="empty-row" style="display:none">Sin turnos programados.</div>
     </div>
 
   </div>
@@ -999,24 +788,10 @@ tbody tr:hover td:last-child{background:var(--s3)}
 
 <script>
 // ══════════════════════════════════════════
-// ══════════════════════════════════════════
 // SUPABASE CONFIG
 // ══════════════════════════════════════════
 var SB_URL = 'https://unbvutpxilsszdwtcuvq.supabase.co';
 var SB_KEY = 'sb_publishable_svGnaOsBazxcphzdKLqhtw_QqW5xK4U';
-// IMPORTANTE: Si tenés la clave anon (empieza con eyJ...) reemplazá SB_KEY arriba.
-// La app funciona 100% offline con localStorage aunque Supabase no responda.
-
-var SB_ONLINE = false; // se detecta automáticamente
-
-// Polyfill AbortSignal.timeout para navegadores viejos
-if(!AbortSignal.timeout){
-  AbortSignal.timeout = function(ms){
-    var ctrl = new AbortController();
-    setTimeout(function(){ ctrl.abort(); }, ms);
-    return ctrl.signal;
-  };
-}
 
 var HEADERS = {
   'Content-Type': 'application/json',
@@ -1025,87 +800,27 @@ var HEADERS = {
   'Prefer': 'return=representation'
 };
 
-// ── LOCAL STORAGE HELPERS ──
-var LS_TABLES = ['productos','ventas','movimientos','clientes','proveedores','maquinas','alquileres','directv','matafuegos','renovables_cotizaciones','ml_ventas','gastos','turnos'];
-
-function lsGet(table){ try{return JSON.parse(localStorage.getItem('casaleo_'+table)||'[]');}catch(e){return[];} }
-function lsSet(table, rows){ try{localStorage.setItem('casaleo_'+table, JSON.stringify(rows));}catch(e){} }
-function lsDel(table, id){ var rows=lsGet(table).filter(function(r){return r.id!==id;}); lsSet(table,rows); }
-function lsPatch(table, id, data){ var rows=lsGet(table); var i=rows.findIndex(function(r){return r.id===id;}); if(i>=0){rows[i]={...rows[i],...data};} lsSet(table,rows); return rows[i]||data; }
-function lsInsert(table, data){
-  var rows=lsGet(table);
-  if(!data.id) data.id='local_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
-  rows.unshift(data);
-  lsSet(table,rows);
-  return [data];
-}
-
-// ── API helpers con fallback automático ──
+// ── API helper ──
 async function sbGet(table, params) {
   params = params || '';
-  try {
-    var r = await fetch(SB_URL + '/rest/v1/' + table + '?order=id.desc' + (params ? '&' + params : ''), {headers: HEADERS, signal: AbortSignal.timeout(5000)});
-    if (!r.ok) throw new Error('HTTP '+r.status);
-    var data = await r.json();
-    SB_ONLINE = true;
-    lsSet(table, data); // cache local
-    return data;
-  } catch(e) {
-    SB_ONLINE = false;
-    return lsGet(table); // fallback local
-  }
+  var r = await fetch(SB_URL + '/rest/v1/' + table + '?order=id.desc' + (params ? '&' + params : ''), {headers: HEADERS});
+  if (!r.ok) { var e = await r.text(); throw new Error(e); }
+  return r.json();
 }
-
 async function sbInsert(table, data) {
-  try {
-    var r = await fetch(SB_URL + '/rest/v1/' + table, {method:'POST', headers: HEADERS, body: JSON.stringify(data), signal: AbortSignal.timeout(5000)});
-    if (!r.ok) throw new Error('HTTP '+r.status);
-    var res = await r.json();
-    SB_ONLINE = true;
-    return Array.isArray(res)?res:[res];
-  } catch(e) {
-    SB_ONLINE = false;
-    return lsInsert(table, data);
-  }
+  var r = await fetch(SB_URL + '/rest/v1/' + table, {method:'POST', headers: HEADERS, body: JSON.stringify(data)});
+  if (!r.ok) { var e = await r.text(); throw new Error(e); }
+  return r.json();
 }
-
-async function sbPost(table, data) { return sbInsert(table, data); }
-
 async function sbUpdate(table, id, data) {
-  lsPatch(table, id, data);
-  try {
-    var r = await fetch(SB_URL + '/rest/v1/' + table + '?id=eq.' + id, {method:'PATCH', headers: HEADERS, body: JSON.stringify(data), signal: AbortSignal.timeout(5000)});
-    if (!r.ok) throw new Error('HTTP '+r.status);
-    SB_ONLINE = true;
-    return r.json();
-  } catch(e) {
-    SB_ONLINE = false;
-    return data;
-  }
+  var r = await fetch(SB_URL + '/rest/v1/' + table + '?id=eq.' + id, {method:'PATCH', headers: HEADERS, body: JSON.stringify(data)});
+  if (!r.ok) { var e = await r.text(); throw new Error(e); }
+  return r.json();
 }
-
-// alias usado en distintas partes del código
-async function sbPatch(table, id, data) { return sbUpdate(table, id, data); }
-
 async function sbDelete(table, id) {
-  lsDel(table, id);
-  try {
-    var r = await fetch(SB_URL + '/rest/v1/' + table + '?id=eq.' + id, {method:'DELETE', headers: HEADERS, signal: AbortSignal.timeout(5000)});
-    SB_ONLINE = r.ok;
-  } catch(e) { SB_ONLINE = false; }
+  var r = await fetch(SB_URL + '/rest/v1/' + table + '?id=eq.' + id, {method:'DELETE', headers: HEADERS});
+  if (!r.ok) { var e = await r.text(); throw new Error(e); }
   return true;
-}
-
-function updateSyncStatus(){
-  var dot = document.getElementById('sync-dot');
-  var logo = document.querySelector('.logo-sub');
-  if(SB_ONLINE){
-    if(dot) dot.className='sync-dot';
-    if(logo) logo.textContent='En línea ✅';
-  } else {
-    if(dot) dot.className='sync-dot error';
-    if(logo) logo.textContent='Modo offline 💾';
-  }
 }
 
 async function uploadStorageImage(bucket, dataUrl, prefix) {
@@ -1323,8 +1038,8 @@ document.querySelectorAll('.overlay').forEach(function(o){
 function updateClock(){ var d=new Date(); document.getElementById('clock').textContent=p2(d.getHours())+':'+p2(d.getMinutes())+':'+p2(d.getSeconds()); }
 setInterval(updateClock,1000); updateClock();
 
-var tabTitles={dashboard:'Panel',ventas:'Nueva Venta',caja:'Caja del Día',historial:'Historial de Ventas',stock:'Control de Stock',movimientos:'Movimientos',clientes:'Clientes',proveedores:'Proveedores',alquileres:'Alquileres',directv:'DirecTV',matafuegos:'Gestión de Matafuegos',renovable:'Energía Renovable',mercadolibre:'Mercado Libre',gastos:'Gastos del Negocio',reportes:'Reportes',agenda:'Agenda / Turnos'};
-var tabMap={dashboard:0,ventas:1,caja:2,historial:3,stock:4,movimientos:5,clientes:6,proveedores:7,alquileres:8,directv:9,matafuegos:10,renovable:11,mercadolibre:12,gastos:13,reportes:14,agenda:15};
+var tabTitles={dashboard:'Panel',ventas:'Nueva Venta',caja:'Caja del Día',historial:'Historial de Ventas',stock:'Control de Stock',movimientos:'Movimientos',clientes:'Clientes',proveedores:'Proveedores',alquileres:'Alquileres',directv:'DirecTV',matafuegos:'Gestión de Matafuegos',renovable:'Energía Renovable'};
+var tabMap={dashboard:0,ventas:1,caja:2,historial:3,stock:4,movimientos:5,clientes:6,proveedores:7,alquileres:8,directv:9,matafuegos:10,renovable:11};
 
 function go(tab){
   document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active');});
@@ -1332,7 +1047,7 @@ function go(tab){
   var s=document.getElementById('tab-'+tab); if(s) s.classList.add('active');
   document.getElementById('topbar-title').textContent=tabTitles[tab]||tab;
   document.querySelectorAll('.nav-item')[tabMap[tab]].classList.add('active');
-  var renders={dashboard:renderDash,ventas:initVentas,caja:renderCaja,historial:function(){document.getElementById('hist-fecha').value=todayStr();renderHistorial();},stock:renderStock,movimientos:renderMovimientos,clientes:renderClientes,proveedores:renderProveedores,alquileres:renderAlquileres,directv:renderDtv,matafuegos:renderMatafuegos,renovable:renderRenovables,mercadolibre:renderML,gastos:renderGastos,reportes:renderReportes,agenda:renderAgenda};
+  var renders={dashboard:renderDash,ventas:initVentas,caja:renderCaja,historial:function(){document.getElementById('hist-fecha').value=todayStr();renderHistorial();},stock:renderStock,movimientos:renderMovimientos,clientes:renderClientes,proveedores:renderProveedores,alquileres:renderAlquileres,directv:renderDtv,matafuegos:renderMatafuegos,renovable:renderRenovables};
   if(renders[tab]) renders[tab]();
 }
 
@@ -1341,36 +1056,37 @@ function go(tab){
 // ══════════════════════════════════════════
 async function loadAll(){
   setSyncing(true);
-  // Carga offline-first: sbGet devuelve localStorage si Supabase no responde
-  var results = await Promise.all([
-    sbGet('productos'),
-    sbGet('ventas'),
-    sbGet('movimientos'),
-    sbGet('clientes'),
-    sbGet('proveedores'),
-    sbGet('maquinas'),
-    sbGet('alquileres'),
-    sbGet('directv')
-  ]);
-  DB.productos=results[0]; DB.ventas=results[1]; DB.movimientos=results[2];
-  DB.clientes=results[3]; DB.proveedores=results[4]; DB.maquinas=results[5];
-  DB.alquileres=results[6]; DB.directv=results[7];
+  try {
+    var results = await Promise.all([
+      sbGet('productos'),
+      sbGet('ventas'),
+      sbGet('movimientos'),
+      sbGet('clientes'),
+      sbGet('proveedores'),
+      sbGet('maquinas'),
+      sbGet('alquileres'),
+      sbGet('directv')
+    ]);
+    DB.productos=results[0]; DB.ventas=results[1]; DB.movimientos=results[2];
+    DB.clientes=results[3]; DB.proveedores=results[4]; DB.maquinas=results[5];
+    DB.alquileres=results[6]; DB.directv=results[7];
+    
+    // Carga segura de nuevas tablas (por si aún no las creaste en Supabase)
+    try { DB.matafuegos = await sbGet('matafuegos'); } catch(e) { DB.matafuegos = []; }
+    try { DB.renovables = mergeLocalRows(await sbGet('renovables_cotizaciones'), 'renovables_local'); } catch(e) { DB.renovables = mergeLocalRows([], 'renovables_local'); }
 
-  DB.matafuegos = await sbGet('matafuegos');
-  DB.renovables = mergeLocalRows(await sbGet('renovables_cotizaciones'), 'renovables_local');
-  DB.ml_ventas  = await sbGet('ml_ventas');
-  DB.gastos     = await sbGet('gastos');
-  DB.turnos     = await sbGet('turnos');
+    setSyncing(null);
+    renderDash();
+    document.getElementById('loading').style.display='none';
 
-  updateSyncStatus();
-  setSyncing(null);
-  updateNotifications();
-  updateBadges();
-  renderDash();
-  document.getElementById('loading').style.display='none';
-
-  // seed si está vacío (primera vez)
-  if(!DB.productos.length) await seedData();
+    // seed if empty
+    if(!DB.productos.length) await seedData();
+  } catch(e) {
+    setSyncing(false);
+    document.getElementById('loading').style.display='none';
+    toast('Error conectando: '+e.message,'err');
+    console.error(e);
+  }
 }
 
 // ══════════════════════════════════════════
@@ -1445,20 +1161,8 @@ function renderDash(){
   var deuda=(DB.clientes.reduce(function(s,c){return s+(c.deuda_cc||0);},0))+(DB.proveedores.reduce(function(s,p){return s+(p.deuda||0);},0));
   var alqAct=DB.alquileres.filter(function(a){return a.estado==='Activo';});
 
-  // Totales de otros rubros del dia para el panel
-  var matHoy=DB.matafuegos.filter(function(x){return x.fecha===today;});
-  var totalMatHoy=matHoy.reduce(function(s,x){var ex=matExtra(x);return s+(parseFloat(ex.monto)||0);},0);
-  var alqHoy=DB.alquileres.filter(function(x){return x.salida===today;});
-  var totalAlqHoy=alqHoy.reduce(function(s,x){return s+(parseFloat(x.total)||0);},0);
-  var renHoy=DB.renovables.filter(function(x){return x.fecha===today;});
-  var totalRenHoy=renHoy.reduce(function(s,x){return s+(parseFloat(x.monto)||0);},0);
-  var dtvHoy=DB.directv.filter(function(x){return x.fecha===today;});
-  var totalDtvHoy=dtvHoy.reduce(function(s,x){return s+(parseFloat(x.monto)||0);},0);
-  var totalConsolidado=totalDia+totalMatHoy+totalAlqHoy+totalRenHoy+totalDtvHoy;
-
   document.getElementById('dash-stats').innerHTML=
-    sc('Total Consolidado','orange',fmt(totalConsolidado),'Todos los rubros hoy','💼')+
-    sc('Ventas Hoy','green',fmt(totalDia),tv.length+' transacciones','🛒')+
+    sc('Ventas Hoy','orange',fmt(totalDia),tv.length+' transacciones','💰')+
     sc('Ganancia Hoy','green',fmt(ganDia),'Margen bruto','📈')+
     sc('Stock Bajo','red',low.length,'Bajo mínimo','⚠️')+
     sc('Alquileres','blue',alqAct.length,'Activos','🔧')+
@@ -1489,25 +1193,6 @@ function renderDash(){
     var over=a.devol<today;
     return '<div class="top-row"><div><div style="font-size:12px;font-weight:600">'+esc(a.maq_nombre)+'</div><div style="color:var(--muted);font-size:10px">'+esc(a.cliente_nombre)+' · dev. <span style="'+(over?'color:var(--red)':'')+'">'+(over?'⚠️ ':'')+a.devol+'</span></div></div><span class="badge badge-orange">Activo</span></div>';
   }).join('')||'<div style="color:var(--muted);font-size:12px">Sin alquileres activos.</div>';
-
-  // Panel Vencimientos Matafuegos (próximos 30 días)
-  var hoy30=new Date(); hoy30.setDate(hoy30.getDate()+30);
-  var hoy30s=hoy30.toISOString().slice(0,10);
-  var matVenc=(DB.matafuegos||[]).filter(function(x){return x.prox_venc&&x.prox_venc>=today&&x.prox_venc<=hoy30s;}).sort(function(a,b){return a.prox_venc>b.prox_venc?1:-1;}).slice(0,6);
-  var matVencEl=document.getElementById('dash-mat-venc');
-  if(matVencEl) matVencEl.innerHTML=matVenc.map(function(x){
-    var dias=Math.round((new Date(x.prox_venc)-new Date(today))/(86400000));
-    var color=dias<=7?'var(--red)':dias<=15?'var(--yellow)':'var(--muted)';
-    return '<div class="top-row"><div><div style="font-size:12px;font-weight:600">'+esc(x.cliente_nombre||'—')+'</div><div style="color:var(--muted);font-size:10px">'+esc(x.tipo||'—')+'</div></div><span style="font-family:var(--mono);font-size:11px;color:'+color+'">'+x.prox_venc+' ('+dias+'d)</span></div>';
-  }).join('')||'<div style="color:var(--muted);font-size:12px">✅ Sin vencimientos próximos.</div>';
-
-  // Panel DirecTV Pendientes
-  var dtvPend=(DB.directv||[]).filter(function(x){return x.estado==='Pendiente';}).slice(0,6);
-  var dtvPendEl=document.getElementById('dash-dtv-pend');
-  if(dtvPendEl) dtvPendEl.innerHTML=dtvPend.map(function(x){
-    return '<div class="top-row"><div><div style="font-size:12px;font-weight:600">'+esc(x.cliente_nombre||'—')+'</div><div style="color:var(--muted);font-size:10px">'+esc(x.tipo||'—')+(x.tecnico?' · '+esc(x.tecnico):'')+'</div></div><span class="badge badge-yellow">Pendiente</span></div>';
-  }).join('')||'<div style="color:var(--muted);font-size:12px">✅ Sin servicios pendientes.</div>';
-
 }
 function sc(l,c,v,s,i){ return '<div class="stat-card '+c+'"><div class="sc-icon">'+i+'</div><div class="sc-label">'+l+'</div><div class="sc-val '+c+'">'+v+'</div><div class="sc-sub">'+s+'</div></div>'; }
 
@@ -1633,23 +1318,6 @@ function showTicket(v){
 }
 
 // ══════════════════════════════════════════
-// IMPRIMIR CAJA
-// ══════════════════════════════════════════
-function printCaja(){
-  var content=document.getElementById('caja-total-banner').outerHTML+
-    '<br>'+document.getElementById('caja-stats').outerHTML+
-    '<br><table border="1" cellpadding="6" cellspacing="0" style="width:100%;border-collapse:collapse;font-family:monospace;font-size:12px">'+
-    document.querySelector('#tab-caja table thead').outerHTML+
-    '<tbody>'+document.getElementById('caja-tbody').innerHTML+'</tbody></table>';
-  var w=window.open('','_blank','width=900,height=700');
-  w.document.write('<html><head><title>Caja del Día - Casa Leo</title><style>body{font-family:Arial,sans-serif;padding:20px;color:#000}table{width:100%;border-collapse:collapse}th,td{padding:6px 10px;border:1px solid #ccc;text-align:left}th{background:#f0f0f0}.stat-card{display:inline-block;border:1px solid #ccc;border-radius:6px;padding:10px 14px;margin:4px;min-width:140px}.sc-label{font-size:10px;color:#666;text-transform:uppercase}.sc-val{font-size:20px;font-weight:700}.sc-sub{font-size:10px;color:#888}.badge{font-size:10px;padding:2px 6px;border-radius:3px;background:#eee;font-weight:700}.caja-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}</style></head><body>');
-  w.document.write('<h2>🔨 Casa Leo — Caja del Día ('+document.getElementById('caja-fecha').textContent+')</h2>');
-  w.document.write(content);
-  w.document.write('</body></html>');
-  w.document.close(); w.print();
-}
-
-// ══════════════════════════════════════════
 // CAJA
 // ══════════════════════════════════════════
 function renderCaja(){
@@ -1680,20 +1348,6 @@ function renderCaja(){
   var dtv=DB.directv.filter(function(x){return x.fecha===today;});
   var totalDtv=dtv.reduce(function(s,x){return s+(parseFloat(x.monto)||0);},0);
 
-  // Banner total consolidado
-  var totalConsolidado=total+totalMat+totalAlq+totalRen+totalDtv;
-  var banner=document.getElementById('caja-total-banner');
-  if(totalConsolidado>0){
-    banner.style.display='flex';
-    document.getElementById('caja-total-val').textContent=fmt(totalConsolidado);
-    document.getElementById('caja-total-desglose').innerHTML=
-      (total?'💰 Ventas: '+fmt(total)+'<br>':'')+
-      (totalMat?'🧯 Matafuegos: '+fmt(totalMat)+'<br>':'')+
-      (totalAlq?'🔧 Alquileres: '+fmt(totalAlq)+'<br>':'')+
-      (totalRen?'☀️ Renovable: '+fmt(totalRen)+'<br>':'')+
-      (totalDtv?'📡 DirecTV: '+fmt(totalDtv):'');
-  } else { banner.style.display='none'; }
-
   document.getElementById('caja-stats').innerHTML=
     sc('Total Ventas','orange',fmt(total),v.length+' ventas','💰')+
     sc('Efectivo','green',fmt(por['Efectivo']||0),'','💵')+
@@ -1709,13 +1363,7 @@ function renderCaja(){
   // Filas de ventas
   v.forEach(function(x){
     var cn=x.cliente_id?(DB.clientes.find(function(c){return c.id===x.cliente_id;})||{nombre:'—'}).nombre:'Consumidor final';
-    var xj=JSON.stringify(x).replace(/'/g,"&#39;");
-    tb.innerHTML+='<tr><td style="font-family:var(--mono);color:var(--muted);font-size:11px">#'+esc(x.ticket)+'</td><td>'+x.hora+'</td><td>'+esc(cn)+'</td><td>'+(Array.isArray(x.items)?x.items.length:0)+' items</td><td><span class="badge '+(x.metodo==='Efectivo'?'badge-green':x.metodo==='Transferencia'?'badge-blue':'badge-yellow')+'">'+x.metodo+'</span></td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(x.total)+'</td>'
-      +'<td style="white-space:nowrap">'
-      +'<button class="btn btn-ghost btn-xs" onclick=\'showTicket('+xj+')\'  title="Ver ticket">🧾</button> '
-      +'<button class="btn btn-ghost btn-xs" onclick=\'openEditVenta('+xj+')\'  title="Editar">✏️</button> '
-      +'<button class="btn btn-danger btn-xs" onclick=\'delVenta(\"'+x.id+'\")\'  title="Eliminar">🗑</button>'
-      +'</td></tr>';
+    tb.innerHTML+='<tr><td style="font-family:var(--mono);color:var(--muted);font-size:11px">#'+esc(x.ticket)+'</td><td>'+x.hora+'</td><td>'+esc(cn)+'</td><td>'+(Array.isArray(x.items)?x.items.length:0)+' items</td><td><span class="badge '+(x.metodo==='Efectivo'?'badge-green':x.metodo==='Transferencia'?'badge-blue':'badge-yellow')+'">'+x.metodo+'</span></td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(x.total)+'</td><td><button class="btn btn-ghost btn-xs" onclick=\'showTicket('+JSON.stringify(x).replace(/'/g,"&#39;")+')\'">🧾</button></td></tr>';
   });
 
   // Separador + filas de Matafuegos
@@ -1769,13 +1417,7 @@ function renderHistorial(){
   var tb=document.getElementById('hist-tbody'); tb.innerHTML='';
   filtered.forEach(function(v){
     var cn=v.cliente_id?(DB.clientes.find(function(c){return c.id===v.cliente_id;})||{nombre:'—'}).nombre:'Consumidor final';
-    var vj=JSON.stringify(v).replace(/'/g,"&#39;");
-    tb.innerHTML+='<tr><td style="font-family:var(--mono);color:var(--orange)">#'+esc(v.ticket)+'</td><td style="color:var(--muted);font-size:11px">'+v.fecha+' '+v.hora+'</td><td>'+esc(cn)+'</td><td>'+(Array.isArray(v.items)?v.items.length:0)+'</td><td><span class="badge '+(v.metodo==='Efectivo'?'badge-green':v.metodo==='Transferencia'?'badge-blue':'badge-yellow')+'">'+v.metodo+'</span></td><td>'+(v.desc_pct?'<span class="badge badge-red">-'+v.desc_pct+'%</span>':'<span style="color:var(--dim)">—</span>')+'</td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(v.total)+'</td>'
-      +'<td style="white-space:nowrap">'
-      +'<button class="btn btn-ghost btn-xs" onclick=\'showTicket('+vj+')\'  title="Ver ticket">🧾</button> '
-      +'<button class="btn btn-ghost btn-xs" onclick=\'openEditVenta('+vj+')\'  title="Editar venta">✏️</button> '
-      +'<button class="btn btn-danger btn-xs" onclick=\'delVenta(\"'+v.id+'\")\'  title="Eliminar venta">🗑</button>'
-      +'</td></tr>';
+    tb.innerHTML+='<tr><td style="font-family:var(--mono);color:var(--orange)">#'+esc(v.ticket)+'</td><td style="color:var(--muted);font-size:11px">'+v.fecha+' '+v.hora+'</td><td>'+esc(cn)+'</td><td>'+(Array.isArray(v.items)?v.items.length:0)+'</td><td><span class="badge '+(v.metodo==='Efectivo'?'badge-green':v.metodo==='Transferencia'?'badge-blue':'badge-yellow')+'">'+v.metodo+'</span></td><td>'+(v.desc_pct?'<span class="badge badge-red">-'+v.desc_pct+'%</span>':'<span style="color:var(--dim)">—</span>')+'</td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(v.total)+'</td><td><button class="btn btn-ghost btn-xs" onclick=\'showTicket('+JSON.stringify(v).replace(/'/g,"&#39;")+')\'">🧾</button></td></tr>';
   });
   document.getElementById('hist-empty').style.display=filtered.length?'none':'block';
 }
@@ -1899,7 +1541,7 @@ function renderClientes(){
   var filtered=DB.clientes.filter(function(c){return!q||c.nombre.toLowerCase().includes(q)||(c.tel||'').includes(q);});
   var tb=document.getElementById('cli-tbody'); tb.innerHTML='';
   filtered.forEach(function(c){
-    var wa='https://wa.me/'+normTel(c.tel||'');
+    var wa='https://wa.me/'+(c.tel||'').replace(/\D/g,'');
     tb.innerHTML+='<tr><td><div style="font-weight:600;font-size:12px">'+esc(c.nombre)+'</div><div style="color:var(--muted);font-size:10px">'+esc(c.email||'')+'</div></td><td style="font-family:var(--mono);font-size:12px">'+esc(c.tel||'—')+'</td><td style="color:var(--muted);font-size:11px">'+esc(c.dir||'—')+'</td><td style="font-family:var(--mono)">'+(c.compras||0)+'</td><td style="font-family:var(--mono);'+(c.deuda_cc>0?'color:var(--red);font-weight:700':'color:var(--muted)')+'">'+fmt(c.deuda_cc||0)+'</td><td style="color:var(--muted);font-size:11px">'+(c.ultimo_pedido||'—')+'</td><td><div class="act"><a href="'+wa+'" target="_blank" class="btn btn-green btn-xs">💬</a><button class="btn btn-ghost btn-xs" onclick="openClienteModal('+c.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delCliente('+c.id+')">🗑</button></div></td></tr>';
   });
   document.getElementById('cli-empty').style.display=filtered.length?'none':'block';
@@ -2182,10 +1824,10 @@ function renderMatafuegos(){
   var badges={Borrador:'badge-gray',Enviada:'badge-blue',Aprobada:'badge-green',Rechazada:'badge-red',Pendiente:'badge-yellow','En Taller':'badge-blue',Listo:'badge-green',Entregado:'badge-gray'};
   
   DB.matafuegos.forEach(function(m){
-    var wa='https://wa.me/'+normTel(m.telefono||'');
+    var wa='https://wa.me/'+(m.telefono||'').replace(/\D/g,'');
     var extra=matExtra(m);
     var detalle=quoteDetail(extra.descripcion||'', ((m.peso?m.peso+' Kg':'')+(m.serie?' / Serie '+m.serie:'')));
-    tb.innerHTML+='<tr><td style="font-size:11px;color:var(--muted)">'+(m.fecha||todayStr())+'</td><td style="font-weight:600;font-size:12px">'+esc(m.cliente_nombre||'—')+'</td><td>'+esc(m.telefono||'—')+' <a href="'+wa+'" target="_blank" style="text-decoration:none">💬</a></td><td><span class="badge badge-orange">'+esc(m.tipo)+'</span></td><td style="font-size:11px">'+esc(detalle)+'</td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(extra.monto)+'</td><td style="font-family:var(--mono);font-size:11px">'+esc(extra.validez||'—')+'</td><td><span class="badge '+(badges[m.estado]||'badge-gray')+'">'+m.estado+'</span></td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="printMatQuote('+m.id+')">🧾</button>'+(extra.foto&&m.telefono?'<button class="btn btn-ghost btn-xs" onclick="sendMatFotoWa('+m.id+')" title="Enviar foto por WhatsApp">📱</button>':'')+'<button class="btn btn-ghost btn-xs" onclick="openMatModal('+m.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delMat('+m.id+')">🗑</button></div></td></tr>';
+    tb.innerHTML+='<tr><td style="font-size:11px;color:var(--muted)">'+(m.fecha||todayStr())+'</td><td style="font-weight:600;font-size:12px">'+esc(m.cliente_nombre||'—')+'</td><td>'+esc(m.telefono||'—')+' <a href="'+wa+'" target="_blank" style="text-decoration:none">💬</a></td><td><span class="badge badge-orange">'+esc(m.tipo)+'</span></td><td style="font-size:11px">'+esc(detalle)+'</td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(extra.monto)+'</td><td style="font-family:var(--mono);font-size:11px">'+esc(extra.validez||'—')+'</td><td><span class="badge '+(badges[m.estado]||'badge-gray')+'">'+m.estado+'</span></td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="printMatQuote('+m.id+')">🧾</button><button class="btn btn-ghost btn-xs" onclick="openMatModal('+m.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delMat('+m.id+')">🗑</button></div></td></tr>';
   });
   document.getElementById('matafuegos-empty').style.display=DB.matafuegos.length?'none':'block';
 }
@@ -2225,55 +1867,6 @@ function fillMatPhone(){
   if(sel.selectedOptions.length && sel.selectedOptions[0].dataset.tel){
     document.getElementById('mmat-tel').value = sel.selectedOptions[0].dataset.tel;
   }
-}
-
-function normTel(t){
-  // Limpia caracteres no numéricos
-  var n=(t||'').replace(/\D/g,'');
-  // Si ya empieza con 54, dejarlo
-  if(n.startsWith('54')) return n;
-  // Si empieza con 0 (ej: 011...), sacar el 0
-  if(n.startsWith('0')) n=n.slice(1);
-  // Agregar código de país Argentina
-  return '54'+n;
-}
-
-async function sendFotoWaByData(tel, nombre, tipo, fotoUrl){
-  // Intentar copiar la imagen al portapapeles
-  try {
-    var resp = await fetch(fotoUrl);
-    var blob = await resp.blob();
-    // Descargar la foto automáticamente
-    var a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'matafuego-'+Date.now()+'.jpg';
-    a.click();
-    URL.revokeObjectURL(a.href);
-    toast('📥 Foto descargada — pegala en WhatsApp');
-  } catch(e) {
-    console.warn('No se pudo descargar la foto:', e);
-  }
-  // Abrir WhatsApp con el mensaje
-  var msg = 'Hola '+nombre+'! 👋\n\nTe enviamos la foto del matafuego registrado ('+tipo+') desde *Casa Leo*.\n\n📎 Adjuntamos la imagen en este mensaje.\n\nCualquier consulta, estamos a tu disposición.';
-  setTimeout(function(){
-    window.open('https://wa.me/'+tel+'?text='+encodeURIComponent(msg), '_blank');
-  }, 600);
-}
-
-async function sendMatFotoWa(id){
-  var m = DB.matafuegos.find(function(x){ return x.id===id; });
-  if(!m){ toast('No se encontró el registro','err'); return; }
-  var extra = matExtra(m);
-  if(!extra.foto){ toast('Este registro no tiene foto','warn'); return; }
-  if(!m.telefono){ toast('El cliente no tiene teléfono cargado','warn'); return; }
-  var tel = normTel(m.telefono);
-  await sendFotoWaByData(tel, m.cliente_nombre||'cliente', m.tipo||'', extra.foto);
-}
-
-function encodeWaFoto(m, extra){
-  var tel=normTel(m.telefono||'');
-  var msg='Hola '+(m.cliente_nombre||'cliente')+'! 👋\n\nTe enviamos la foto del matafuego registrado ('+(m.tipo||'')+') desde *Casa Leo*.\n\n📎 La imagen se descargará automáticamente, pegala en el chat.\n\nCualquier consulta, estamos a tu disposición.';
-  return 'https://wa.me/'+tel+'?text='+encodeURIComponent(msg);
 }
 
 async function saveMat(){
@@ -2316,15 +1909,6 @@ async function saveMat(){
   try {
     if(id){await sbUpdate('matafuegos',id,obj);}else{await sbInsert('matafuegos',obj);}
     await loadAll(); closeModal('modal-matafuegos'); renderMatafuegos(); toast('Registro guardado');
-    // Auto-envío WhatsApp si hay foto y teléfono
-    var tel=normTel(document.getElementById('mmat-tel').value||'');
-    if(tel && tel.length>4 && photoValue && photoValue.indexOf('http')===0){
-      setTimeout(function(){
-        if(confirm('¿Enviar foto al cliente por WhatsApp?')){
-          sendFotoWaByData(tel, cn, document.getElementById('mmat-tipo').value, photoValue);
-        }
-      },400);
-    }
   } catch(e){
     if(String(e.message||e).match(/descripcion|monto|validez|schema cache|column/i)){
       try {
@@ -2464,859 +2048,10 @@ function printRenovQuote(id){
   });
 }
 
-
-// ══════════════════════════════════════════
-// MERCADO LIBRE
-// ══════════════════════════════════════════
-function saveMLLocal(arr){ try{localStorage.setItem('ml_ventas', JSON.stringify(arr));}catch(e){} }
-
-function renderML(){
-  var q=(document.getElementById('ml-search')||{}).value||'';
-  var est=(document.getElementById('ml-estado')||{}).value||'';
-  var data=(DB.ml_ventas||[]).filter(function(x){
-    return (!q||(x.producto_nombre||'').toLowerCase().includes(q.toLowerCase())||(x.comprador||'').toLowerCase().includes(q.toLowerCase()))
-        && (!est||x.estado===est);
-  }).sort(function(a,b){return b.fecha>a.fecha?1:-1;});
-
-  var totalVentas=data.reduce(function(s,x){return s+(x.precio*x.qty||0);},0);
-  var totalNeto=data.reduce(function(s,x){return s+(x.neto||0);},0);
-  var totalComision=totalVentas-totalNeto;
-  document.getElementById('ml-stats').innerHTML=
-    sc('Ventas ML','orange',fmt(totalVentas),data.length+' transacciones','🛒')+
-    sc('Neto Cobrado','green',fmt(totalNeto),'Después de comisión','💰')+
-    sc('Comisiones ML','red',fmt(totalComision),'Pagado a ML','📉')+
-    sc('Pendientes','yellow',data.filter(function(x){return x.estado==='Pagado';}).length,'Sin enviar','📦');
-
-  var tb=document.getElementById('ml-tbody'); tb.innerHTML='';
-  data.forEach(function(x){
-    var envioColor=x.envio==='Mercado Envíos'?'badge-blue':x.envio==='Retiro en local'?'badge-green':'badge-yellow';
-    var estColor=x.estado==='Entregado'?'badge-green':x.estado==='Enviado'?'badge-blue':x.estado==='Cancelado'?'badge-red':'badge-yellow';
-    tb.innerHTML+='<tr><td style="font-family:var(--mono);font-size:11px;color:var(--muted)">'+esc(x.fecha)+'</td>'
-      +'<td><div style="font-weight:600;font-size:12px">'+esc(x.producto_nombre||'—')+'</div>'
-      +'<div style="font-size:10px;color:var(--muted)">#'+esc(x.nro_venta||'—')+'</div></td>'
-      +'<td>'+esc(x.comprador||'—')+'</td>'
-      +'<td style="text-align:center">'+x.qty+'</td>'
-      +'<td style="font-family:var(--mono)">'+fmt(x.precio||0)+'</td>'
-      +'<td style="font-family:var(--mono);color:var(--red)">-'+fmt((x.precio*x.qty||0)-(x.neto||0))+'</td>'
-      +'<td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(x.neto||0)+'</td>'
-      +'<td><span class="badge '+envioColor+'">'+esc(x.envio||'—')+'</span></td>'
-      +'<td><span class="badge '+estColor+'">'+esc(x.estado||'—')+'</span></td>'
-      +'<td><button class="btn btn-danger btn-xs" onclick="delML(''+x.id+'')">🗑</button></td></tr>';
-  });
-  document.getElementById('ml-empty').style.display=data.length?'none':'block';
-  document.getElementById('ml-tbody').style.display=data.length?'':'none';
-}
-
-function openMLModal(id){
-  var t=document.getElementById('mml-titulo');
-  document.getElementById('mml-id').value='';
-  document.getElementById('mml-fecha').value=todayStr();
-  document.getElementById('mml-comprador').value='';
-  document.getElementById('mml-nro').value='';
-  document.getElementById('mml-qty').value=1;
-  document.getElementById('mml-precio').value='';
-  document.getElementById('mml-comision').value=13.5;
-  document.getElementById('mml-neto-val').textContent='$0.00';
-  document.getElementById('mml-comision-val').textContent='';
-  // fill product select
-  var sel=document.getElementById('mml-prod');
-  sel.innerHTML='<option value="">— Seleccionar —</option>';
-  (DB.productos||[]).filter(function(p){return p.stock>0;}).forEach(function(p){
-    sel.innerHTML+='<option value="'+p.id+'" data-precio="'+p.precio+'" data-nombre="'+esc(p.nombre)+'">'+esc(p.nombre)+' (Stock: '+p.stock+')</option>';
-  });
-  openModal('modal-ml');
-}
-
-function fillMLPrice(){
-  var sel=document.getElementById('mml-prod');
-  var opt=sel.options[sel.selectedIndex];
-  if(opt&&opt.dataset.precio) document.getElementById('mml-precio').value=parseFloat(opt.dataset.precio);
-  calcMLNeto();
-}
-
-function calcMLNeto(){
-  var precio=parseFloat(document.getElementById('mml-precio').value)||0;
-  var qty=parseFloat(document.getElementById('mml-qty').value)||1;
-  var com=parseFloat(document.getElementById('mml-comision').value)||0;
-  var bruto=precio*qty;
-  var comMonto=bruto*(com/100);
-  var neto=bruto-comMonto;
-  document.getElementById('mml-neto-val').textContent=fmt(neto);
-  document.getElementById('mml-comision-val').textContent='Comisión: -'+fmt(comMonto);
-}
-
-async function saveML(){
-  var prodId=document.getElementById('mml-prod').value;
-  var qty=parseInt(document.getElementById('mml-qty').value)||1;
-  var precio=parseFloat(document.getElementById('mml-precio').value)||0;
-  var com=parseFloat(document.getElementById('mml-comision').value)||0;
-  var comprador=document.getElementById('mml-comprador').value.trim();
-  var nro=document.getElementById('mml-nro').value.trim();
-  var envio=document.getElementById('mml-envio').value;
-  var estado=document.getElementById('mml-estado').value;
-  var fecha=document.getElementById('mml-fecha').value||todayStr();
-  if(!prodId){toast('Seleccioná un producto','err');return;}
-  var prod=DB.productos.find(function(p){return p.id===prodId;});
-  if(!prod){toast('Producto no encontrado','err');return;}
-  if(qty>prod.stock){toast('Stock insuficiente (hay '+prod.stock+')','err');return;}
-  var bruto=precio*qty;
-  var neto=bruto*(1-com/100);
-  var obj={id:'ml_'+Date.now(),fecha:fecha,producto_id:prodId,producto_nombre:prod.nombre,qty:qty,precio:precio,comision:com,neto:neto,comprador:comprador,nro_venta:nro,envio:envio,estado:estado};
-  // Try Supabase, fallback to localStorage
-  try { await sbPost('ml_ventas',obj); } catch(e) { DB.ml_ventas=[...(DB.ml_ventas||[]),obj]; saveMLLocal(DB.ml_ventas); }
-  // Discount stock
-  try { await sbPatch('productos',prodId,{stock:prod.stock-qty}); } catch(e) { prod.stock-=qty; }
-  await loadAll(); closeModal('modal-ml'); renderML(); toast('✅ Venta ML guardada — stock descontado');
-}
-
-async function delML(id){
-  if(!confirm('¿Eliminar esta venta ML?'))return;
-  DB.ml_ventas=(DB.ml_ventas||[]).filter(function(x){return x.id!==id;});
-  saveMLLocal(DB.ml_ventas);
-  try{await sbDelete('ml_ventas',id);}catch(e){}
-  renderML(); toast('Eliminado','warn');
-}
-
-// ══════════════════════════════════════════
-// GASTOS
-// ══════════════════════════════════════════
-function saveGastosLocal(arr){ try{localStorage.setItem('gastos',JSON.stringify(arr));}catch(e){} }
-
-function renderGastos(){
-  var mes=(document.getElementById('gastos-mes')||{}).value||'';
-  var cat=(document.getElementById('gastos-cat')||{}).value||'';
-  var data=(DB.gastos||[]).filter(function(x){
-    return (!mes||x.fecha.startsWith(mes))&&(!cat||x.categoria===cat);
-  }).sort(function(a,b){return b.fecha>a.fecha?1:-1;});
-
-  var total=data.reduce(function(s,x){return s+(parseFloat(x.monto)||0);},0);
-  var catMap={};data.forEach(function(x){catMap[x.categoria]=(catMap[x.categoria]||0)+(parseFloat(x.monto)||0);});
-  var topCat=Object.entries(catMap).sort(function(a,b){return b[1]-a[1];})[0];
-
-  document.getElementById('gastos-stats').innerHTML=
-    sc('Total Gastos','red',fmt(total),data.length+' registros','💸')+
-    sc('Mayor Rubro','yellow',topCat?topCat[0]:'—',topCat?fmt(topCat[1]):'','🏷️')+
-    sc('Promedio','muted',data.length?fmt(total/data.length):'$0','Por gasto','📊');
-
-  var tb=document.getElementById('gastos-tbody'); tb.innerHTML='';
-  data.forEach(function(x){
-    tb.innerHTML+='<tr>'
-      +'<td style="font-family:var(--mono);font-size:11px;color:var(--muted)">'+esc(x.fecha)+'</td>'
-      +'<td><div style="font-weight:600;font-size:12px">'+esc(x.descripcion||'—')+'</div>'
-      +(x.comprobante?'<div style="font-size:10px;color:var(--muted)">'+esc(x.comprobante)+'</div>':'')+'</td>'
-      +'<td><span class="badge badge-orange" style="font-size:9px">'+esc(x.categoria||'—')+'</span></td>'
-      +'<td style="color:var(--muted);font-size:12px">'+esc(x.proveedor_nombre||'—')+'</td>'
-      +'<td><span class="badge '+(x.metodo==='Efectivo'?'badge-green':x.metodo==='Transferencia'?'badge-blue':'badge-yellow')+'">'+esc(x.metodo||'—')+'</span></td>'
-      +'<td style="font-family:var(--mono);color:var(--red);font-weight:700">'+fmt(x.monto||0)+'</td>'
-      +'<td><button class="btn btn-ghost btn-xs" onclick="openGastoModal(''+x.id+'')">✏</button>'
-      +'<button class="btn btn-danger btn-xs" onclick="delGasto(''+x.id+'')">🗑</button></td></tr>';
-  });
-  document.getElementById('gastos-empty').style.display=data.length?'none':'block';
-}
-
-function openGastoModal(id){
-  var g=id?(DB.gastos||[]).find(function(x){return x.id===id;}):null;
-  document.getElementById('mgasto-id').value=g?g.id:'';
-  document.getElementById('mgasto-desc').value=g?g.descripcion:'';
-  document.getElementById('mgasto-cat').value=g?g.categoria:'Compras de mercadería';
-  document.getElementById('mgasto-monto').value=g?g.monto:'';
-  document.getElementById('mgasto-metodo').value=g?g.metodo:'Efectivo';
-  document.getElementById('mgasto-fecha').value=g?g.fecha:todayStr();
-  document.getElementById('mgasto-comp').value=g?g.comprobante:'';
-  document.getElementById('mgasto-notas').value=g?g.notas:'';
-  // Fill proveedores
-  var ps=document.getElementById('mgasto-prov');
-  ps.innerHTML='<option value="">— Sin proveedor —</option>';
-  (DB.proveedores||[]).forEach(function(p){ps.innerHTML+='<option value="'+p.id+'" '+(g&&g.proveedor_id===p.id?'selected':'')+'>'+esc(p.nombre)+'</option>';});
-  if(g&&g.proveedor_id) ps.value=g.proveedor_id;
-  openModal('modal-gasto');
-}
-
-async function saveGasto(){
-  var id=document.getElementById('mgasto-id').value;
-  var provId=document.getElementById('mgasto-prov').value;
-  var provNombre=provId?(DB.proveedores.find(function(x){return x.id===provId;})||{}).nombre:'';
-  var obj={
-    fecha:document.getElementById('mgasto-fecha').value||todayStr(),
-    descripcion:document.getElementById('mgasto-desc').value.trim(),
-    categoria:document.getElementById('mgasto-cat').value,
-    proveedor_id:provId||null,proveedor_nombre:provNombre,
-    monto:parseFloat(document.getElementById('mgasto-monto').value)||0,
-    metodo:document.getElementById('mgasto-metodo').value,
-    comprobante:document.getElementById('mgasto-comp').value.trim(),
-    notas:document.getElementById('mgasto-notas').value.trim()
-  };
-  if(!obj.descripcion){toast('Completá la descripción','err');return;}
-  if(!obj.monto){toast('Ingresá el monto','err');return;}
-  try {
-    if(id){ await sbPatch('gastos',id,obj); } else { obj.id='g_'+Date.now(); await sbPost('gastos',obj); }
-  } catch(e) {
-    if(!id) obj.id='g_'+Date.now();
-    var arr=(DB.gastos||[]);
-    if(id){ var i=arr.findIndex(function(x){return x.id===id;}); if(i>=0)arr[i]={...arr[i],...obj}; } else { arr.push(obj); }
-    DB.gastos=arr; saveGastosLocal(arr);
-  }
-  await loadAll(); closeModal('modal-gasto'); renderGastos(); toast('Gasto guardado');
-}
-
-async function delGasto(id){
-  if(!confirm('¿Eliminar este gasto?'))return;
-  DB.gastos=(DB.gastos||[]).filter(function(x){return x.id!==id;});
-  saveGastosLocal(DB.gastos);
-  try{await sbDelete('gastos',id);}catch(e){}
-  renderGastos(); toast('Eliminado','warn');
-}
-
-// ══════════════════════════════════════════
-// REPORTES
-// ══════════════════════════════════════════
-function renderReportes(){
-  var dias=parseInt((document.getElementById('rep-periodo')||{}).value||30);
-  var desde=new Date(); desde.setDate(desde.getDate()-dias);
-  var desdeS=desde.toISOString().slice(0,10);
-
-  var ventas=(DB.ventas||[]).filter(function(v){return v.fecha>=desdeS;});
-  var ml=(DB.ml_ventas||[]).filter(function(v){return v.fecha>=desdeS;});
-  var mat=(DB.matafuegos||[]).filter(function(v){return v.fecha>=desdeS;});
-  var alq=(DB.alquileres||[]).filter(function(v){return v.salida>=desdeS;});
-  var ren=(DB.renovables||[]).filter(function(v){return v.fecha>=desdeS;});
-  var dtv=(DB.directv||[]).filter(function(v){return v.fecha>=desdeS;});
-  var gastos=(DB.gastos||[]).filter(function(v){return v.fecha>=desdeS;});
-
-  var totalVentas=ventas.reduce(function(s,v){return s+(v.total||0);},0);
-  var totalML=ml.reduce(function(s,v){return s+(v.neto||0);},0);
-  var totalMat=mat.reduce(function(s,v){var ex=matExtra(v);return s+(parseFloat(ex.monto)||0);},0);
-  var totalAlq=alq.reduce(function(s,v){return s+(parseFloat(v.total)||0);},0);
-  var totalRen=ren.reduce(function(s,v){return s+(parseFloat(v.monto)||0);},0);
-  var totalDtv=dtv.reduce(function(s,v){return s+(parseFloat(v.monto)||0);},0);
-  var totalGastos=gastos.reduce(function(s,v){return s+(parseFloat(v.monto)||0);},0);
-  var ingresos=totalVentas+totalML+totalMat+totalAlq+totalRen+totalDtv;
-  var ganancia=ingresos-totalGastos;
-
-  document.getElementById('rep-stats').innerHTML=
-    sc('Ingresos Totales','green',fmt(ingresos),'Todos los rubros','💰')+
-    sc('Gastos','red',fmt(totalGastos),'Egresos del período','💸')+
-    sc('Ganancia Neta',ganancia>=0?'green':'red',fmt(ganancia),'Ingresos - Gastos','📈')+
-    sc('Transacciones','blue',(ventas.length+ml.length+mat.length+alq.length),'Total operaciones','🔢');
-
-  // Rubros
-  var rubros=[
-    {label:'🛒 Ventas mostrador',monto:totalVentas,color:'var(--orange)'},
-    {label:'🛍 Mercado Libre',monto:totalML,color:'var(--yellow)'},
-    {label:'🧯 Matafuegos',monto:totalMat,color:'var(--red)'},
-    {label:'🔧 Alquileres',monto:totalAlq,color:'var(--blue)'},
-    {label:'☀️ Energía Renovable',monto:totalRen,color:'var(--green)'},
-    {label:'📡 DirecTV',monto:totalDtv,color:'#a78bfa'}
-  ].filter(function(r){return r.monto>0;}).sort(function(a,b){return b.monto-a.monto;});
-  document.getElementById('rep-rubros').innerHTML=rubros.map(function(r){
-    var pct=ingresos?Math.round(r.monto/ingresos*100):0;
-    return '<div style="margin-bottom:10px">'
-      +'<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>'+r.label+'</span><span style="font-family:var(--mono);color:'+r.color+'">'+fmt(r.monto)+' ('+pct+'%)</span></div>'
-      +'<div style="height:6px;background:var(--s3);border-radius:3px"><div style="height:100%;width:'+pct+'%;background:'+r.color+';border-radius:3px"></div></div></div>';
-  }).join('')||'<div style="color:var(--muted);font-size:12px">Sin datos.</div>';
-
-  // Bar chart ventas por día
-  var daysMap={};
-  var labels=[];
-  for(var i=Math.min(dias,30)-1;i>=0;i--){var d=new Date();d.setDate(d.getDate()-i);var ds=d.toISOString().slice(0,10);daysMap[ds]=0;labels.push(ds);}
-  ventas.forEach(function(v){if(daysMap[v.fecha]!==undefined)daysMap[v.fecha]+=(v.total||0);});
-  var maxV=Math.max.apply(null,Object.values(daysMap))||1;
-  var chartHTML='';
-  labels.slice(-14).forEach(function(d){
-    var v=daysMap[d]||0;
-    var h=Math.round((v/maxV)*140);
-    var day=d.slice(5);
-    chartHTML+='<div class="chart-bar" style="height:'+(h||2)+'px;background:var(--orange)" title="'+d+': '+fmt(v)+'">'
-      +(v?'<div class="chart-bar-val">'+fmt(v,'short')+'</div>':'')
-      +'<div class="chart-bar-label">'+day+'</div></div>';
-  });
-  document.getElementById('rep-chart-ventas').innerHTML=chartHTML||'<div style="color:var(--muted);font-size:12px">Sin ventas.</div>';
-
-  // Top productos
-  var prodMap={};
-  ventas.forEach(function(v){(v.items||[]).forEach(function(i){prodMap[i.nombre]=(prodMap[i.nombre]||{qty:0,total:0});prodMap[i.nombre].qty+=i.qty;prodMap[i.nombre].total+=i.subtotal||0;});});
-  var topProds=Object.entries(prodMap).sort(function(a,b){return b[1].total-a[1].total;}).slice(0,10);
-  document.getElementById('rep-top-prod').innerHTML=topProds.map(function(e,i){
-    return '<div style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px">'
-      +'<div style="color:var(--muted);font-family:var(--mono);min-width:18px">'+(i+1)+'</div>'
-      +'<div style="flex:1;font-weight:600">'+esc(e[0])+'</div>'
-      +'<div style="color:var(--muted);font-size:10px">x'+e[1].qty+'</div>'
-      +'<div style="font-family:var(--mono);color:var(--green)">'+fmt(e[1].total)+'</div></div>';
-  }).join('')||'<div style="color:var(--muted);font-size:12px">Sin datos.</div>';
-
-  // Top clientes
-  var cliMap={};
-  ventas.forEach(function(v){var n=v.cliente_id?(DB.clientes.find(function(c){return c.id===v.cliente_id;})||{nombre:'Consumidor final'}).nombre:'Consumidor final';cliMap[n]=(cliMap[n]||0)+(v.total||0);});
-  var topClis=Object.entries(cliMap).sort(function(a,b){return b[1]-a[1];}).slice(0,8);
-  document.getElementById('rep-top-cli').innerHTML=topClis.map(function(e,i){
-    return '<div style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px">'
-      +'<div style="color:var(--muted);font-family:var(--mono);min-width:18px">'+(i+1)+'</div>'
-      +'<div style="flex:1;font-weight:600">'+esc(e[0])+'</div>'
-      +'<div style="font-family:var(--mono);color:var(--green)">'+fmt(e[1])+'</div></div>';
-  }).join('')||'<div style="color:var(--muted);font-size:12px">Sin datos.</div>';
-
-  // Métodos de pago
-  var metMap={};
-  ventas.forEach(function(v){metMap[v.metodo]=(metMap[v.metodo]||0)+(v.total||0);});
-  var totalMet=Object.values(metMap).reduce(function(s,x){return s+x;},0)||1;
-  document.getElementById('rep-metodos').innerHTML=Object.entries(metMap).sort(function(a,b){return b[1]-a[1];}).map(function(e){
-    var pct=Math.round(e[1]/totalMet*100);
-    var col=e[0]==='Efectivo'?'var(--green)':e[0]==='Transferencia'?'var(--blue)':'var(--yellow)';
-    return '<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>'+e[0]+'</span><span style="font-family:var(--mono);color:'+col+'">'+fmt(e[1])+' ('+pct+'%)</span></div>'
-      +'<div style="height:6px;background:var(--s3);border-radius:3px"><div style="height:100%;width:'+pct+'%;background:'+col+';border-radius:3px"></div></div></div>';
-  }).join('')||'<div style="color:var(--muted);font-size:12px">Sin ventas.</div>';
-
-  // Rentabilidad
-  document.getElementById('rep-rentabilidad').innerHTML=
-    '<div style="font-size:12px">'
-    +'<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)"><span>💰 Ingresos totales</span><span style="font-family:var(--mono);color:var(--green)">'+fmt(ingresos)+'</span></div>'
-    +'<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)"><span>💸 Gastos registrados</span><span style="font-family:var(--mono);color:var(--red)">-'+fmt(totalGastos)+'</span></div>'
-    +'<div style="display:flex;justify-content:space-between;padding:10px 0;font-weight:700;font-size:14px"><span>📊 Ganancia neta</span><span style="font-family:var(--mono);color:'+(ganancia>=0?'var(--green)':'var(--red)')+'">'+fmt(ganancia)+'</span></div>'
-    +(totalGastos?'<div style="color:var(--muted);font-size:10px">Margen: '+Math.round(ganancia/ingresos*100)+'%</div>':'')
-    +'</div>';
-}
-
-// fmt shorthand for chart labels
-var _fmtFull=fmt;
-function fmt(n,mode){
-  if(mode==='short'){if(Math.abs(n)>=1000)return '$'+(n/1000).toFixed(1)+'k';return '$'+Math.round(n);}
-  return _fmtFull(n);
-}
-
-// ══════════════════════════════════════════
-// AGENDA / TURNOS
-// ══════════════════════════════════════════
-function saveTurnosLocal(arr){ try{localStorage.setItem('turnos',JSON.stringify(arr));}catch(e){} }
-
-function renderAgenda(){
-  var vista=(document.getElementById('agenda-vista')||{}).value||'semana';
-  var tipo=(document.getElementById('agenda-tipo')||{}).value||'';
-  var today=todayStr();
-  var data=(DB.turnos||[]).filter(function(t){
-    if(tipo&&t.tipo!==tipo)return false;
-    if(vista==='semana'){var d=new Date(today);d.setDate(d.getDate()+7);return t.fecha>=today&&t.fecha<=d.toISOString().slice(0,10);}
-    if(vista==='proximos'){var d=new Date(today);d.setDate(d.getDate()+14);return t.fecha>=today&&t.fecha<=d.toISOString().slice(0,10);}
-    return true;
-  }).sort(function(a,b){return a.fecha+a.hora>b.fecha+b.hora?1:-1;});
-
-  var body=document.getElementById('agenda-body'); body.innerHTML='';
-  var emptyEl=document.getElementById('agenda-empty');
-  if(!data.length){emptyEl.style.display='block';return;}
-  emptyEl.style.display='none';
-
-  // Group by date
-  var groups={};
-  data.forEach(function(t){if(!groups[t.fecha])groups[t.fecha]=[];groups[t.fecha].push(t);});
-  Object.keys(groups).sort().forEach(function(fecha){
-    var dayLabel=fecha===today?'📅 Hoy — '+fecha:fecha;
-    var div=document.createElement('div');div.className='agenda-day';
-    div.innerHTML='<div class="agenda-day-hdr">'+dayLabel+'</div>'
-      +groups[fecha].map(function(t){
-        var estColor=t.estado==='Completado'?'badge-green':t.estado==='Cancelado'?'badge-red':t.estado==='Confirmado'?'badge-blue':'badge-yellow';
-        return '<div class="turno-row">'
-          +'<div class="turno-hour">'+esc(t.hora||'—')+'</div>'
-          +'<div style="flex:1"><div class="turno-name">'+esc(t.descripcion||'—')+'</div>'
-          +'<div class="turno-tag">👤 '+esc(t.cliente_nombre||'Sin cliente')+(t.direccion?' · 📍'+esc(t.direccion):'')+'</div></div>'
-          +'<span class="badge badge-orange" style="font-size:9px">'+esc(t.tipo)+'</span>'
-          +'<span class="badge '+estColor+'" style="font-size:9px">'+esc(t.estado)+'</span>'
-          +'<button class="btn btn-ghost btn-xs" onclick="openTurnoModal(''+t.id+'')">✏</button>'
-          +'<button class="btn btn-danger btn-xs" onclick="delTurno(''+t.id+'')">🗑</button>'
-          +(t.cliente_tel?'<a class="btn btn-ghost btn-xs" href="https://wa.me/'+normTel(t.cliente_tel||'')+'" target="_blank">📱</a>':'')
-          +'</div>';
-      }).join('');
-    body.appendChild(div);
-  });
-}
-
-function openTurnoModal(id){
-  var t=id?(DB.turnos||[]).find(function(x){return x.id===id;}):null;
-  document.getElementById('mturno-id').value=t?t.id:'';
-  document.getElementById('mturno-fecha').value=t?t.fecha:todayStr();
-  document.getElementById('mturno-hora').value=t?t.hora:'09:00';
-  document.getElementById('mturno-tipo').value=t?t.tipo:'Matafuego';
-  document.getElementById('mturno-desc').value=t?t.descripcion:'';
-  document.getElementById('mturno-dir').value=t?t.direccion:'';
-  document.getElementById('mturno-estado').value=t?t.estado:'Pendiente';
-  document.getElementById('mturno-notas').value=t?t.notas:'';
-  var cs=document.getElementById('mturno-cli');
-  cs.innerHTML='<option value="">— Sin cliente —</option>';
-  (DB.clientes||[]).forEach(function(c){cs.innerHTML+='<option value="'+c.id+'" '+(t&&t.cliente_id===c.id?'selected':'')+'>'+esc(c.nombre)+'</option>';});
-  openModal('modal-turno');
-}
-
-async function saveTurno(){
-  var id=document.getElementById('mturno-id').value;
-  var cliId=document.getElementById('mturno-cli').value;
-  var cli=cliId?(DB.clientes.find(function(c){return c.id===cliId;})):null;
-  var obj={
-    fecha:document.getElementById('mturno-fecha').value||todayStr(),
-    hora:document.getElementById('mturno-hora').value,
-    tipo:document.getElementById('mturno-tipo').value,
-    cliente_id:cliId||null,
-    cliente_nombre:cli?cli.nombre:'Sin cliente',
-    cliente_tel:cli?cli.tel:'',
-    descripcion:document.getElementById('mturno-desc').value.trim(),
-    direccion:document.getElementById('mturno-dir').value.trim(),
-    estado:document.getElementById('mturno-estado').value,
-    notas:document.getElementById('mturno-notas').value.trim()
-  };
-  if(!obj.descripcion){toast('Completá la descripción','err');return;}
-  if(!id) obj.id='t_'+Date.now();
-  try {
-    if(id){ await sbPatch('turnos',id,obj); } else { await sbPost('turnos',obj); }
-  } catch(e) {
-    var arr=(DB.turnos||[]);
-    if(id){var i=arr.findIndex(function(x){return x.id===id;});if(i>=0)arr[i]={...arr[i],...obj};}else{arr.push(obj);}
-    DB.turnos=arr; saveTurnosLocal(arr);
-  }
-  await loadAll(); closeModal('modal-turno'); renderAgenda(); updateBadges(); toast('Turno guardado');
-}
-
-async function delTurno(id){
-  if(!confirm('¿Eliminar este turno?'))return;
-  DB.turnos=(DB.turnos||[]).filter(function(x){return x.id!==id;});
-  saveTurnosLocal(DB.turnos);
-  try{await sbDelete('turnos',id);}catch(e){}
-  renderAgenda(); updateBadges(); toast('Eliminado','warn');
-}
-
-// ══════════════════════════════════════════
-// HISTORIAL CLIENTE
-// ══════════════════════════════════════════
-var _cliHistId=null;
-var _cliHistTab='ventas';
-
-function openCliHist(id){
-  _cliHistId=id;
-  _cliHistTab='ventas';
-  var c=(DB.clientes||[]).find(function(x){return x.id===id;});
-  if(!c)return;
-  document.getElementById('mclihi-title').textContent='👤 '+c.nombre;
-  var ventas=(DB.ventas||[]).filter(function(v){return v.cliente_id===id;});
-  var mat=(DB.matafuegos||[]).filter(function(v){return v.cliente_id===id;});
-  var alq=(DB.alquileres||[]).filter(function(v){return v.cliente_id===id;});
-  var ml=(DB.ml_ventas||[]).filter(function(v){return v.cliente_id===id;});
-  var totalGastado=ventas.reduce(function(s,v){return s+(v.total||0);},0);
-  document.getElementById('mclihi-stats').innerHTML=
-    sc('Total Compras','orange',fmt(totalGastado),ventas.length+' ventas','🛒')+
-    sc('Matafuegos','red',mat.length,'registros','🧯')+
-    sc('Alquileres','blue',alq.length,'registros','🔧');
-  cliHistTab('ventas', document.querySelector('#modal-cli-hist .itab'));
-  openModal('modal-cli-hist');
-}
-
-function cliHistTab(tab, el){
-  _cliHistTab=tab;
-  document.querySelectorAll('#modal-cli-hist .itab').forEach(function(b){b.classList.remove('active');});
-  if(el) el.classList.add('active');
-  var id=_cliHistId;
-  var body=document.getElementById('mclihi-body');
-  if(tab==='ventas'){
-    var data=(DB.ventas||[]).filter(function(v){return v.cliente_id===id;}).sort(function(a,b){return b.fecha>a.fecha?1:-1;});
-    body.innerHTML=data.map(function(v){
-      return '<div class="cli-hist-block"><div class="cli-hist-label">🧾 Ticket #'+esc(v.ticket)+' — '+esc(v.fecha)+'</div>'
-        +'<div style="display:flex;justify-content:space-between;font-size:13px"><span>'+(v.items||[]).length+' productos</span>'
-        +'<span style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(v.total)+'</span></div>'
-        +'<div style="font-size:11px;color:var(--muted);margin-top:3px">'+esc(v.metodo)+'</div></div>';
-    }).join('')||'<div style="color:var(--muted);font-size:12px;padding:10px">Sin compras.</div>';
-  } else if(tab==='matafuegos'){
-    var data=(DB.matafuegos||[]).filter(function(v){return v.cliente_id===id;}).sort(function(a,b){return b.fecha>a.fecha?1:-1;});
-    body.innerHTML=data.map(function(v){var ex=matExtra(v);return '<div class="cli-hist-block"><div class="cli-hist-label">🧯 '+esc(v.tipo||'—')+' — '+esc(v.fecha)+'</div>'
-      +'<div style="display:flex;justify-content:space-between;font-size:13px"><span>'+esc(v.descripcion||'—')+'</span>'
-      +'<span style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(parseFloat(ex.monto)||0)+'</span></div>'
-      +'<div style="font-size:11px;color:var(--muted);margin-top:3px">Estado: '+esc(v.estado||'—')+(v.prox_venc?' · Vence: '+v.prox_venc:'')+'</div></div>';
-    }).join('')||'<div style="color:var(--muted);font-size:12px;padding:10px">Sin registros.</div>';
-  } else if(tab==='alquileres'){
-    var data=(DB.alquileres||[]).filter(function(v){return v.cliente_id===id;}).sort(function(a,b){return b.salida>a.salida?1:-1;});
-    body.innerHTML=data.map(function(v){return '<div class="cli-hist-block"><div class="cli-hist-label">🔧 '+esc(v.maq_nombre||'—')+' — '+esc(v.salida)+'</div>'
-      +'<div style="display:flex;justify-content:space-between;font-size:13px"><span>'+v.dias+' días</span>'
-      +'<span style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(v.total||0)+'</span></div>'
-      +'<div style="font-size:11px;color:var(--muted);margin-top:3px">Devolución: '+esc(v.devol)+'</div></div>';
-    }).join('')||'<div style="color:var(--muted);font-size:12px;padding:10px">Sin alquileres.</div>';
-  } else if(tab==='ml'){
-    var data=(DB.ml_ventas||[]).filter(function(v){return v.cliente_id===id;}).sort(function(a,b){return b.fecha>a.fecha?1:-1;});
-    body.innerHTML=data.map(function(v){return '<div class="cli-hist-block"><div class="cli-hist-label">🛍 '+esc(v.producto_nombre||'—')+' — '+esc(v.fecha)+'</div>'
-      +'<div style="display:flex;justify-content:space-between;font-size:13px"><span>x'+v.qty+'</span>'
-      +'<span style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(v.neto||0)+' neto</span></div>'
-      +'<div style="font-size:11px;color:var(--muted);margin-top:3px">'+esc(v.estado)+'</div></div>';
-    }).join('')||'<div style="color:var(--muted);font-size:12px;padding:10px">Sin ventas ML.</div>';
-  }
-}
-
-// ══════════════════════════════════════════
-// NOTIFICACIONES
-// ══════════════════════════════════════════
-function updateNotifications(){
-  var today=todayStr();
-  var hoy30=new Date();hoy30.setDate(hoy30.getDate()+30);
-  var hoy30s=hoy30.toISOString().slice(0,10);
-  var notifs=[];
-
-  // Stock bajo
-  (DB.productos||[]).filter(function(p){return p.stock<=p.min;}).forEach(function(p){
-    notifs.push({tipo:'red',msg:'⚠️ Stock bajo: '+p.nombre+' ('+p.stock+' und.)',tab:'stock'});
-  });
-  // Matafuegos venciendo
-  (DB.matafuegos||[]).filter(function(x){return x.prox_venc&&x.prox_venc>=today&&x.prox_venc<=hoy30s;}).forEach(function(x){
-    var dias=Math.round((new Date(x.prox_venc)-new Date(today))/86400000);
-    notifs.push({tipo:dias<=7?'red':'yellow',msg:'🧯 Vence en '+dias+'d: '+esc(x.cliente_nombre||'—'),tab:'matafuegos'});
-  });
-  // Alquileres vencidos sin devolver
-  (DB.alquileres||[]).filter(function(a){return a.estado==='Activo'&&a.devol<today;}).forEach(function(a){
-    notifs.push({tipo:'red',msg:'🔧 Alquiler vencido: '+esc(a.cliente_nombre||'—')+' ('+a.maq_nombre+')',tab:'alquileres'});
-  });
-  // Turnos de hoy
-  (DB.turnos||[]).filter(function(t){return t.fecha===today&&t.estado==='Pendiente';}).forEach(function(t){
-    notifs.push({tipo:'blue',msg:'📅 Turno hoy '+t.hora+': '+esc(t.descripcion),tab:'agenda'});
-  });
-  // DirecTV pendientes
-  var dtvPend=(DB.directv||[]).filter(function(x){return x.estado==='Pendiente';});
-  if(dtvPend.length) notifs.push({tipo:'yellow',msg:'📡 '+dtvPend.length+' servicio(s) DirecTV pendiente(s)',tab:'directv'});
-
-  var count=document.getElementById('notif-count');
-  var list=document.getElementById('notif-list');
-  count.textContent=notifs.length;
-  count.style.display=notifs.length?'block':'none';
-  list.innerHTML=notifs.length
-    ?notifs.map(function(n){return '<div class="notif-item" onclick="toggleNotifPanel();go(''+n.tab+'')" style="cursor:pointer"><div class="notif-dot '+n.tipo+'"></div><div style="font-size:12px">'+n.msg+'</div></div>';}).join('')
-    :'<div style="padding:14px;color:var(--muted);font-size:12px;text-align:center">✅ Sin alertas</div>';
-}
-
-function toggleNotifPanel(){
-  document.getElementById('notif-panel').classList.toggle('open');
-}
-document.addEventListener('click',function(e){
-  if(!e.target.closest('#notif-btn')&&!e.target.closest('#notif-panel'))
-    document.getElementById('notif-panel').classList.remove('open');
-});
-
-// ══════════════════════════════════════════
-// BÚSQUEDA GLOBAL
-// ══════════════════════════════════════════
-function globalSearch(q){
-  var res=document.getElementById('global-results');
-  if(!q||q.length<2){res.classList.remove('open');return;}
-  q=q.toLowerCase();
-  var hits=[];
-  (DB.clientes||[]).forEach(function(c){if((c.nombre||'').toLowerCase().includes(q)){hits.push({icon:'👤',label:c.nombre,sub:'Cliente · '+esc(c.tel||''),action:"go('clientes')"});}});
-  (DB.productos||[]).forEach(function(p){if((p.nombre||'').toLowerCase().includes(q)||(p.cod||'').toLowerCase().includes(q)){hits.push({icon:'📦',label:p.nombre,sub:'Stock: '+p.stock+' · $'+p.precio,action:"go('stock')"});}});
-  (DB.ventas||[]).forEach(function(v){if(('#'+(v.ticket||'')).includes(q)||(v.total+'').includes(q)){hits.push({icon:'🧾',label:'Ticket #'+(v.ticket||'—'),sub:v.fecha+' · '+fmt(v.total||0),action:"showTicket("+JSON.stringify(v)+")"});}});
-  (DB.matafuegos||[]).forEach(function(m){if((m.cliente_nombre||'').toLowerCase().includes(q)||(m.tipo||'').toLowerCase().includes(q)){hits.push({icon:'🧯',label:m.cliente_nombre||'—',sub:'Matafuego · '+m.tipo+' · '+m.fecha,action:"go('matafuegos')"});}});
-  (DB.alquileres||[]).forEach(function(a){if((a.maq_nombre||'').toLowerCase().includes(q)||(a.cliente_nombre||'').toLowerCase().includes(q)){hits.push({icon:'🔧',label:a.maq_nombre||'—',sub:'Alquiler · '+esc(a.cliente_nombre||'—'),action:"go('alquileres')"});}});
-  hits=hits.slice(0,8);
-  res.innerHTML=hits.map(function(h){
-    return '<div class="gr-item" onclick="'+h.action+';document.getElementById('global-search').value='';document.getElementById('global-results').classList.remove('open')">'
-      +'<span style="font-size:16px">'+h.icon+'</span>'
-      +'<div style="flex:1"><div style="font-weight:600;font-size:12px">'+esc(h.label)+'</div><div style="color:var(--muted);font-size:10px">'+h.sub+'</div></div></div>';
-  }).join('')||'<div class="gr-item" style="color:var(--muted)">Sin resultados para "'+esc(q)+'"</div>';
-  res.classList.add('open');
-}
-
-// ══════════════════════════════════════════
-// NAV BADGES
-// ══════════════════════════════════════════
-function updateBadges(){
-  var today=todayStr();
-  var mlPend=(DB.ml_ventas||[]).filter(function(x){return x.estado==='Pagado';}).length;
-  var nbml=document.getElementById('nb-ml');
-  if(nbml){nbml.textContent=mlPend;nbml.style.display=mlPend?'':'none';}
-  var turnHoy=(DB.turnos||[]).filter(function(t){return t.fecha===today&&t.estado==='Pendiente';}).length;
-  var nbag=document.getElementById('nb-agenda');
-  if(nbag){nbag.textContent=turnHoy;nbag.style.display=turnHoy?'':'none';}
-}
-
-// ══════════════════════════════════════════
-// HISTORIAL BUTTON in clientes table
-// ══════════════════════════════════════════
-// Patch renderClientes to add 👁 button
-var _origRenderClientes = renderClientes;
-function renderClientes(){
-  _origRenderClientes();
-  // Add history buttons
-  setTimeout(function(){
-    document.querySelectorAll('#clientes-tbody tr').forEach(function(tr){
-      var lastTd=tr.querySelector('td:last-child');
-      if(lastTd&&!lastTd.querySelector('.hist-btn')){
-        var cliId=lastTd.querySelector('[onclick*="delCliente"]');
-        if(cliId){
-          var match=cliId.getAttribute('onclick').match(/delCliente\('([^']+)'\)/);
-          if(match){
-            var btn=document.createElement('button');
-            btn.className='btn btn-ghost btn-xs hist-btn';
-            btn.title='Ver historial';
-            btn.textContent='📋';
-            btn.onclick=function(){openCliHist(match[1]);};
-            lastTd.insertBefore(btn,lastTd.firstChild);
-          }
-        }
-      }
-    });
-  },50);
-}
-
-
-// ══════════════════════════════════════════
-// EDITAR / ELIMINAR VENTAS
-// ══════════════════════════════════════════
-var _editVentaItems = [];
-
-function openEditVenta(v){
-  _editVentaItems = JSON.parse(JSON.stringify(v.items||[]));
-  document.getElementById('mev-id').value = v.id;
-  document.getElementById('mev-ticket').textContent = '#'+v.ticket;
-  document.getElementById('mev-fecha').value = v.fecha||'';
-  document.getElementById('mev-hora').value = v.hora||'';
-  document.getElementById('mev-metodo').value = v.metodo||'Efectivo';
-  document.getElementById('mev-desc').value = v.desc_pct||0;
-  document.getElementById('mev-total').value = v.total||0;
-  document.getElementById('mev-obs').value = v.obs||'';
-  // Fill clientes
-  var cs = document.getElementById('mev-cliente');
-  cs.innerHTML = '<option value="">Consumidor final</option>';
-  (DB.clientes||[]).forEach(function(c){
-    cs.innerHTML += '<option value="'+c.id+'"'+(v.cliente_id===c.id?' selected':'')+'>'+esc(c.nombre)+'</option>';
-  });
-  // Fill add-prod select
-  var ps = document.getElementById('mev-add-prod');
-  ps.innerHTML = '<option value="">— Agregar producto —</option>';
-  (DB.productos||[]).forEach(function(p){
-    ps.innerHTML += '<option value="'+p.id+'" data-precio="'+p.precio+'" data-nombre="'+esc(p.nombre)+'">'+esc(p.nombre)+' ($'+p.precio+')</option>';
-  });
-  renderEditVentaItems();
-  openModal('modal-edit-venta');
-}
-
-function renderEditVentaItems(){
-  var el = document.getElementById('mev-items');
-  if(!_editVentaItems.length){ el.innerHTML='<div style="color:var(--muted);font-size:11px;padding:4px 0">Sin ítems.</div>'; recalcEditVenta(); return; }
-  el.innerHTML = _editVentaItems.map(function(it, i){
-    return '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)">'
-      +'<div style="flex:1;font-weight:600">'+esc(it.nombre||it.prod_nombre||'—')+'</div>'
-      +'<div style="color:var(--muted);font-family:var(--mono);font-size:11px">$'+it.precio+'</div>'
-      +'<input type="number" min="1" value="'+it.qty+'" style="width:54px;background:var(--s2);border:1px solid var(--border);border-radius:4px;padding:3px 6px;color:var(--text);font-size:12px" oninput="_editVentaItems['+i+'].qty=parseInt(this.value)||1;recalcEditVenta()"/>'
-      +'<div style="font-family:var(--mono);color:var(--green);min-width:64px;text-align:right">'+fmt(it.precio*(it.qty||1))+'</div>'
-      +'<button class="btn btn-danger btn-xs" onclick="_editVentaItems.splice('+i+',1);renderEditVentaItems()">✕</button>'
-      +'</div>';
-  }).join('');
-  recalcEditVenta();
-}
-
-function addItemEditVenta(){
-  var sel = document.getElementById('mev-add-prod');
-  var opt = sel.options[sel.selectedIndex];
-  if(!opt||!opt.value){ toast('Seleccioná un producto','warn'); return; }
-  var qty = parseInt(document.getElementById('mev-add-qty').value)||1;
-  var existing = _editVentaItems.find(function(x){ return x.prodId===opt.value; });
-  if(existing){ existing.qty += qty; }
-  else { _editVentaItems.push({prodId:opt.value, nombre:opt.dataset.nombre||opt.text, precio:parseFloat(opt.dataset.precio)||0, qty:qty}); }
-  sel.value='';
-  document.getElementById('mev-add-qty').value=1;
-  renderEditVentaItems();
-}
-
-function recalcEditVenta(){
-  var sub = _editVentaItems.reduce(function(s,it){ return s+(it.precio*(it.qty||1)); }, 0);
-  var desc = parseFloat(document.getElementById('mev-desc').value)||0;
-  var total = sub - sub*(desc/100);
-  document.getElementById('mev-total-calc').textContent = fmt(total);
-  document.getElementById('mev-total').value = total.toFixed(2);
-}
-
-async function saveEditVenta(){
-  var id = document.getElementById('mev-id').value;
-  if(!id){ toast('Error: sin ID de venta','err'); return; }
-  var total = parseFloat(document.getElementById('mev-total').value)||0;
-  var desc = parseFloat(document.getElementById('mev-desc').value)||0;
-  var clienteId = document.getElementById('mev-cliente').value||null;
-  var updates = {
-    fecha: document.getElementById('mev-fecha').value,
-    hora: document.getElementById('mev-hora').value,
-    cliente_id: clienteId,
-    metodo: document.getElementById('mev-metodo').value,
-    desc_pct: desc,
-    total: total,
-    obs: document.getElementById('mev-obs').value.trim(),
-    items: _editVentaItems
-  };
-  if(!updates.fecha){ toast('Completá la fecha','err'); return; }
-  try {
-    await sbUpdate('ventas', id, updates);
-    toast('✅ Venta actualizada');
-  } catch(e) {
-    // Fallback: update in local DB array
-    var idx = DB.ventas.findIndex(function(v){ return v.id===id; });
-    if(idx>=0) DB.ventas[idx] = {...DB.ventas[idx], ...updates};
-    toast('✅ Venta actualizada (local)');
-  }
-  await loadAll();
-  closeModal('modal-edit-venta');
-  renderHistorial();
-  renderCaja();
-}
-
-async function delVenta(id){
-  if(!confirm('⚠️ ¿Eliminar esta venta? Esta acción no se puede deshacer.\n\nNota: el stock NO se revierte automáticamente.')) return;
-  try {
-    await sbDelete('ventas', id);
-    toast('Venta eliminada','warn');
-  } catch(e) {
-    DB.ventas = DB.ventas.filter(function(v){ return v.id!==id; });
-    toast('Venta eliminada (local)','warn');
-  }
-  await loadAll();
-  renderHistorial();
-  renderCaja();
-}
-
 // ══════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════
 loadAll();
 </script>
-
-<!-- MODAL MERCADO LIBRE -->
-<div class="overlay" id="modal-ml">
-  <div class="modal">
-    <div class="mhead"><div class="mhead-title" id="mml-title">Nueva Venta Mercado Libre</div><button class="mclose" onclick="closeModal('modal-ml')">✕</button></div>
-    <div class="mbody">
-      <input type="hidden" id="mml-id"/>
-      <div class="fr2">
-        <div class="field"><label>Producto (del stock)</label><select id="mml-prod" onchange="fillMLPrice()"><option value="">— Seleccionar —</option></select></div>
-        <div class="field"><label>Cantidad</label><input type="number" id="mml-qty" min="1" value="1" oninput="calcMLNeto()"/></div>
-      </div>
-      <div class="fr2">
-        <div class="field"><label>Precio de venta ML ($)</label><input type="number" id="mml-precio" step="0.01" min="0" oninput="calcMLNeto()"/></div>
-        <div class="field"><label>Comisión ML (%)</label><input type="number" id="mml-comision" value="13.5" step="0.5" min="0" max="100" oninput="calcMLNeto()"/></div>
-      </div>
-      <div class="fr2">
-        <div class="field"><label>Comprador (usuario ML)</label><input type="text" id="mml-comprador" placeholder="usuario_ml123"/></div>
-        <div class="field"><label>N° de Venta ML</label><input type="text" id="mml-nro" placeholder="1234567890"/></div>
-      </div>
-      <div class="fr2">
-        <div class="field"><label>Tipo de envío</label><select id="mml-envio"><option>Mercado Envíos</option><option>Retiro en local</option><option>Envío propio</option></select></div>
-        <div class="field"><label>Estado</label><select id="mml-estado"><option>Pagado</option><option>Enviado</option><option>Entregado</option><option>Cancelado</option></select></div>
-      </div>
-      <div class="field"><label>Fecha</label><input type="date" id="mml-fecha"/></div>
-      <div style="background:var(--s3);border-radius:var(--r2);padding:10px 13px;font-size:12px">
-        💰 Neto a cobrar: <span id="mml-neto-val" style="font-family:var(--mono);color:var(--green);font-weight:700;font-size:15px">$0.00</span>
-        <span style="color:var(--muted);margin-left:10px" id="mml-comision-val"></span>
-      </div>
-    </div>
-    <div class="mfooter"><button class="btn btn-ghost btn-sm" onclick="closeModal('modal-ml')">Cancelar</button><button class="btn btn-primary btn-sm" onclick="saveML()">Guardar y descontar stock</button></div>
-  </div>
-</div>
-
-<!-- MODAL GASTO -->
-<div class="overlay" id="modal-gasto">
-  <div class="modal">
-    <div class="mhead"><div class="mhead-title" id="mgasto-title">Registrar Gasto</div><button class="mclose" onclick="closeModal('modal-gasto')">✕</button></div>
-    <div class="mbody">
-      <input type="hidden" id="mgasto-id"/>
-      <div class="field"><label>Descripción</label><input type="text" id="mgasto-desc" placeholder="Ej: Factura de luz, compra tornillos…"/></div>
-      <div class="fr2">
-        <div class="field"><label>Categoría</label><select id="mgasto-cat">
-          <option>Compras de mercadería</option><option>Servicios (luz, gas, internet)</option><option>Alquiler local</option><option>Sueldos</option><option>Transporte / flete</option><option>Herramientas</option><option>Varios</option>
-        </select></div>
-        <div class="field"><label>Proveedor (opcional)</label><select id="mgasto-prov"><option value="">— Sin proveedor —</option></select></div>
-      </div>
-      <div class="fr2">
-        <div class="field"><label>Monto ($)</label><input type="number" id="mgasto-monto" step="0.01" min="0"/></div>
-        <div class="field"><label>Método de pago</label><select id="mgasto-metodo"><option>Efectivo</option><option>Transferencia</option><option>Tarjeta</option><option>Cheque</option></select></div>
-      </div>
-      <div class="fr2">
-        <div class="field"><label>Fecha</label><input type="date" id="mgasto-fecha"/></div>
-        <div class="field"><label>Comprobante N°</label><input type="text" id="mgasto-comp" placeholder="Factura, recibo…"/></div>
-      </div>
-      <div class="field"><label>Notas</label><input type="text" id="mgasto-notas" placeholder="Observaciones adicionales…"/></div>
-    </div>
-    <div class="mfooter"><button class="btn btn-ghost btn-sm" onclick="closeModal('modal-gasto')">Cancelar</button><button class="btn btn-primary btn-sm" onclick="saveGasto()">Guardar</button></div>
-  </div>
-</div>
-
-<!-- MODAL TURNO AGENDA -->
-<div class="overlay" id="modal-turno">
-  <div class="modal">
-    <div class="mhead"><div class="mhead-title" id="mturno-title">Nuevo Turno</div><button class="mclose" onclick="closeModal('modal-turno')">✕</button></div>
-    <div class="mbody">
-      <input type="hidden" id="mturno-id"/>
-      <div class="fr2">
-        <div class="field"><label>Fecha</label><input type="date" id="mturno-fecha"/></div>
-        <div class="field"><label>Hora</label><input type="time" id="mturno-hora" value="09:00"/></div>
-      </div>
-      <div class="fr2">
-        <div class="field"><label>Tipo</label><select id="mturno-tipo"><option>Matafuego</option><option>DirecTV</option><option>Alquiler</option><option>Renovable</option><option>Reunión</option><option>Otro</option></select></div>
-        <div class="field"><label>Cliente</label><select id="mturno-cli"><option value="">— Sin cliente —</option></select></div>
-      </div>
-      <div class="field"><label>Descripción / Trabajo a realizar</label><input type="text" id="mturno-desc" placeholder="Ej: Recarga matafuego 5kg, instalación antena…"/></div>
-      <div class="fr2">
-        <div class="field"><label>Dirección</label><input type="text" id="mturno-dir" placeholder="Calle y número…"/></div>
-        <div class="field"><label>Estado</label><select id="mturno-estado"><option>Pendiente</option><option>Confirmado</option><option>Completado</option><option>Cancelado</option></select></div>
-      </div>
-      <div class="field"><label>Notas</label><input type="text" id="mturno-notas" placeholder="Observaciones…"/></div>
-    </div>
-    <div class="mfooter"><button class="btn btn-ghost btn-sm" onclick="closeModal('modal-turno')">Cancelar</button><button class="btn btn-primary btn-sm" onclick="saveTurno()">Guardar</button></div>
-  </div>
-</div>
-
-<!-- MODAL HISTORIAL CLIENTE -->
-<div class="overlay" id="modal-cli-hist">
-  <div class="modal" style="max-width:640px">
-    <div class="mhead"><div class="mhead-title" id="mclihi-title">Historial del Cliente</div><button class="mclose" onclick="closeModal('modal-cli-hist')">✕</button></div>
-    <div class="mbody">
-      <div id="mclihi-stats" class="stat-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:14px"></div>
-      <div class="inner-tabs">
-        <button class="itab active" onclick="cliHistTab('ventas',this)">🛒 Ventas</button>
-        <button class="itab" onclick="cliHistTab('matafuegos',this)">🧯 Matafuegos</button>
-        <button class="itab" onclick="cliHistTab('alquileres',this)">🔧 Alquileres</button>
-        <button class="itab" onclick="cliHistTab('ml',this)">🛍 ML</button>
-      </div>
-      <div id="mclihi-body"></div>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL EDITAR VENTA -->
-<div class="overlay" id="modal-edit-venta">
-  <div class="modal" style="max-width:560px">
-    <div class="mhead"><div class="mhead-title">✏️ Editar Venta <span id="mev-ticket" style="color:var(--orange)"></span></div><button class="mclose" onclick="closeModal('modal-edit-venta')">✕</button></div>
-    <div class="mbody">
-      <input type="hidden" id="mev-id"/>
-      <div class="fr2">
-        <div class="field"><label>Fecha</label><input type="date" id="mev-fecha"/></div>
-        <div class="field"><label>Hora</label><input type="time" id="mev-hora"/></div>
-      </div>
-      <div class="fr2">
-        <div class="field"><label>Cliente</label><select id="mev-cliente"><option value="">Consumidor final</option></select></div>
-        <div class="field"><label>Método de pago</label>
-          <select id="mev-metodo">
-            <option>Efectivo</option><option>Transferencia</option><option>Débito</option><option>Crédito</option>
-          </select>
-        </div>
-      </div>
-      <div class="fr2">
-        <div class="field"><label>Descuento (%)</label><input type="number" id="mev-desc" min="0" max="100" step="1" value="0" oninput="recalcEditVenta()"/></div>
-        <div class="field"><label>Total ($)</label><input type="number" id="mev-total" step="0.01" min="0" style="font-weight:700;color:var(--green)"/></div>
-      </div>
-      <div class="field"><label>Observaciones</label><input type="text" id="mev-obs" placeholder="Notas de la venta…"/></div>
-      <div style="margin-top:10px">
-        <div class="panel-title" style="margin-bottom:8px">📦 Ítems de la venta</div>
-        <div id="mev-items" style="font-size:12px"></div>
-        <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
-          <select id="mev-add-prod" style="flex:1;background:var(--s2);border:1px solid var(--border);border-radius:var(--r2);padding:6px 10px;color:var(--text)"><option value="">— Agregar producto —</option></select>
-          <input type="number" id="mev-add-qty" min="1" value="1" style="width:60px;background:var(--s2);border:1px solid var(--border);border-radius:var(--r2);padding:6px 8px;color:var(--text)"/>
-          <button class="btn btn-ghost btn-sm" onclick="addItemEditVenta()">➕ Agregar</button>
-        </div>
-      </div>
-      <div style="background:var(--s3);border-radius:var(--r2);padding:10px 13px;margin-top:12px;font-size:12px;display:flex;justify-content:space-between;align-items:center">
-        <span style="color:var(--muted)">Total calculado:</span>
-        <span id="mev-total-calc" style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--orange)">$0.00</span>
-      </div>
-    </div>
-    <div class="mfooter">
-      <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-edit-venta')">Cancelar</button>
-      <button class="btn btn-primary btn-sm" onclick="saveEditVenta()">💾 Guardar cambios</button>
-    </div>
-  </div>
-</div>
 </body>
 </html>
