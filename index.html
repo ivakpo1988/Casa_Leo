@@ -1044,19 +1044,36 @@ function lsInsert(table, data){
   return [data];
 }
 
+function setSupabaseOnline(online){
+  SB_ONLINE = !!online;
+}
+
+async function pingSupabase(){
+  try {
+    var r = await fetch(SB_URL + '/rest/v1/productos?select=id&limit=1', {headers: HEADERS, signal: AbortSignal.timeout(5000)});
+    setSupabaseOnline(r.ok);
+    return r.ok;
+  } catch(e) {
+    setSupabaseOnline(false);
+    return false;
+  }
+}
+
 // ── API helpers con fallback automático ──
 async function sbGet(table, params) {
   params = params || '';
   try {
     var r = await fetch(SB_URL + '/rest/v1/' + table + '?order=id.desc' + (params ? '&' + params : ''), {headers: HEADERS, signal: AbortSignal.timeout(6000)});
+    if (r.status === 401 || r.status === 403) throw new Error('Auth '+r.status);
+    if (r.status === 404) return lsGet(table) || []; // tabla no creada — no es “offline”
     if (!r.ok) throw new Error('HTTP '+r.status);
     var data = await r.json();
     if(!Array.isArray(data)) throw new Error('Not array');
-    SB_ONLINE = true;
+    setSupabaseOnline(true);
     lsSet(table, data);
     return data;
   } catch(e) {
-    SB_ONLINE = false;
+    if(String(e.message||e).match(/Auth|Failed to fetch|NetworkError|abort/i)) setSupabaseOnline(false);
     return lsGet(table) || []; // NUNCA lanza, siempre devuelve array
   }
 }
@@ -1064,12 +1081,13 @@ async function sbGet(table, params) {
 async function sbInsert(table, data) {
   try {
     var r = await fetch(SB_URL + '/rest/v1/' + table, {method:'POST', headers: HEADERS, body: JSON.stringify(data), signal: AbortSignal.timeout(5000)});
+    if (r.status === 401 || r.status === 403) throw new Error('Auth '+r.status);
     if (!r.ok) throw new Error('HTTP '+r.status);
     var res = await r.json();
-    SB_ONLINE = true;
+    setSupabaseOnline(true);
     return Array.isArray(res)?res:[res];
   } catch(e) {
-    SB_ONLINE = false;
+    if(String(e.message||e).match(/Auth|Failed to fetch|NetworkError|abort/i)) setSupabaseOnline(false);
     return lsInsert(table, data);
   }
 }
@@ -1080,11 +1098,12 @@ async function sbUpdate(table, id, data) {
   lsPatch(table, id, data);
   try {
     var r = await fetch(SB_URL + '/rest/v1/' + table + '?id=eq.' + id, {method:'PATCH', headers: HEADERS, body: JSON.stringify(data), signal: AbortSignal.timeout(5000)});
+    if (r.status === 401 || r.status === 403) throw new Error('Auth '+r.status);
     if (!r.ok) throw new Error('HTTP '+r.status);
-    SB_ONLINE = true;
+    setSupabaseOnline(true);
     return r.json();
   } catch(e) {
-    SB_ONLINE = false;
+    if(String(e.message||e).match(/Auth|Failed to fetch|NetworkError|abort/i)) setSupabaseOnline(false);
     return data;
   }
 }
@@ -1096,8 +1115,11 @@ async function sbDelete(table, id) {
   lsDel(table, id);
   try {
     var r = await fetch(SB_URL + '/rest/v1/' + table + '?id=eq.' + id, {method:'DELETE', headers: HEADERS, signal: AbortSignal.timeout(5000)});
-    SB_ONLINE = r.ok;
-  } catch(e) { SB_ONLINE = false; }
+    if (r.ok) setSupabaseOnline(true);
+    else if (r.status === 401 || r.status === 403) setSupabaseOnline(false);
+  } catch(e) {
+    if(String(e.message||e).match(/Auth|Failed to fetch|NetworkError|abort/i)) setSupabaseOnline(false);
+  }
   return true;
 }
 
@@ -1409,6 +1431,7 @@ async function loadAll(){
     try { DB.gastos     = await sbGet('gastos');     } catch(e){ DB.gastos     = lsGet('gastos');     }
     try { DB.turnos     = await sbGet('turnos');     } catch(e){ DB.turnos     = lsGet('turnos');     }
 
+    await pingSupabase();
     clearTimeout(safetyTimer);
     setSyncing(null);
     try { updateSyncStatus(); }    catch(e){ console.warn('updateSyncStatus',e); }
