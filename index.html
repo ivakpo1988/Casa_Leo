@@ -1044,15 +1044,16 @@ function lsInsert(table, data){
 async function sbGet(table, params) {
   params = params || '';
   try {
-    var r = await fetch(SB_URL + '/rest/v1/' + table + '?order=id.desc' + (params ? '&' + params : ''), {headers: HEADERS, signal: AbortSignal.timeout(5000)});
+    var r = await fetch(SB_URL + '/rest/v1/' + table + '?order=id.desc' + (params ? '&' + params : ''), {headers: HEADERS, signal: AbortSignal.timeout(6000)});
     if (!r.ok) throw new Error('HTTP '+r.status);
     var data = await r.json();
+    if(!Array.isArray(data)) throw new Error('Not array');
     SB_ONLINE = true;
-    lsSet(table, data); // cache local
+    lsSet(table, data);
     return data;
   } catch(e) {
     SB_ONLINE = false;
-    return lsGet(table); // fallback local
+    return lsGet(table) || []; // NUNCA lanza, siempre devuelve array
   }
 }
 
@@ -1362,37 +1363,62 @@ function go(tab){
 // LOAD ALL
 // ══════════════════════════════════════════
 async function loadAll(){
-  setSyncing(true);
-  // Carga offline-first: sbGet devuelve localStorage si Supabase no responde
-  var results = await Promise.all([
-    sbGet('productos'),
-    sbGet('ventas'),
-    sbGet('movimientos'),
-    sbGet('clientes'),
-    sbGet('proveedores'),
-    sbGet('maquinas'),
-    sbGet('alquileres'),
-    sbGet('directv')
-  ]);
-  DB.productos=results[0]; DB.ventas=results[1]; DB.movimientos=results[2];
-  DB.clientes=results[3]; DB.proveedores=results[4]; DB.maquinas=results[5];
-  DB.alquileres=results[6]; DB.directv=results[7];
+  // Safety timeout: si en 12 segundos no termina, abre igual con lo que hay
+  var safetyTimer = setTimeout(function(){
+    console.warn('loadAll timeout — forzando apertura');
+    document.getElementById('loading').style.display='none';
+    try { renderDash(); } catch(e) {}
+  }, 12000);
 
-  DB.matafuegos = await sbGet('matafuegos');
-  DB.renovables = mergeLocalRows(await sbGet('renovables_cotizaciones'), 'renovables_local');
-  DB.ml_ventas  = await sbGet('ml_ventas');
-  DB.gastos     = await sbGet('gastos');
-  DB.turnos     = await sbGet('turnos');
+  try {
+    setSyncing(true);
 
-  updateSyncStatus();
-  setSyncing(null);
-  updateNotifications();
-  updateBadges();
-  renderDash();
-  document.getElementById('loading').style.display='none';
+    // Cargar tablas principales en paralelo (sbGet nunca lanza, devuelve [] si falla)
+    var results = await Promise.all([
+      sbGet('productos'),
+      sbGet('ventas'),
+      sbGet('movimientos'),
+      sbGet('clientes'),
+      sbGet('proveedores'),
+      sbGet('maquinas'),
+      sbGet('alquileres'),
+      sbGet('directv')
+    ]);
+    DB.productos   = results[0]||[];
+    DB.ventas      = results[1]||[];
+    DB.movimientos = results[2]||[];
+    DB.clientes    = results[3]||[];
+    DB.proveedores = results[4]||[];
+    DB.maquinas    = results[5]||[];
+    DB.alquileres  = results[6]||[];
+    DB.directv     = results[7]||[];
 
-  // seed si está vacío (primera vez)
-  if(!DB.productos.length) await seedData();
+    // Tablas opcionales — cada una con su propio try/catch
+    try { DB.matafuegos = await sbGet('matafuegos'); } catch(e){ DB.matafuegos = lsGet('matafuegos'); }
+    try { DB.renovables = mergeLocalRows(await sbGet('renovables_cotizaciones'), 'renovables_local'); } catch(e){ DB.renovables = lsGet('renovables_cotizaciones'); }
+    try { DB.ml_ventas  = await sbGet('ml_ventas');  } catch(e){ DB.ml_ventas  = lsGet('ml_ventas');  }
+    try { DB.gastos     = await sbGet('gastos');     } catch(e){ DB.gastos     = lsGet('gastos');     }
+    try { DB.turnos     = await sbGet('turnos');     } catch(e){ DB.turnos     = lsGet('turnos');     }
+
+    clearTimeout(safetyTimer);
+    setSyncing(null);
+    try { updateSyncStatus(); }    catch(e){ console.warn('updateSyncStatus',e); }
+    try { updateNotifications(); } catch(e){ console.warn('updateNotifications',e); }
+    try { updateBadges(); }        catch(e){ console.warn('updateBadges',e); }
+    try { renderDash(); }          catch(e){ console.warn('renderDash',e); }
+    document.getElementById('loading').style.display='none';
+
+    // Seed datos de ejemplo si está completamente vacío
+    if(!DB.productos.length) await seedData();
+
+  } catch(e) {
+    clearTimeout(safetyTimer);
+    setSyncing(false);
+    console.error('loadAll error:', e);
+    document.getElementById('loading').style.display='none';
+    try { renderDash(); } catch(e2){}
+    toast('Modo offline — datos locales cargados','warn');
+  }
 }
 
 // ══════════════════════════════════════════
@@ -3192,6 +3218,17 @@ async function delVenta(id){
 // ══════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════
+// Extra safety: si loadAll tarda más de 15s, forzar apertura
+window.addEventListener('load', function(){
+  setTimeout(function(){
+    var loading = document.getElementById('loading');
+    if(loading && loading.style.display !== 'none'){
+      loading.style.display = 'none';
+      console.warn('Forced loading hide after 15s');
+      try { renderDash(); } catch(e){}
+    }
+  }, 15000);
+});
 loadAll();
 </script>
 
