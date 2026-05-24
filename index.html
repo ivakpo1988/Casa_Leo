@@ -1151,6 +1151,7 @@ function diffDays(a,b){ var da=new Date(a+'T12:00:00'),db=new Date(b+'T12:00:00'
 function addDays(ds,n){ var d=new Date(ds+'T12:00:00'); d.setDate(d.getDate()+n); return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate()); }
 
 function setSyncing(v){ var d=document.getElementById('sync-dot'); d.className='sync-dot'+(v===true?' syncing':v===false?' error':''); }
+function getVentaById(id){ return DB.ventas.find(function(v){return v.id===id||v.id===parseInt(id);})||{}; }
 
 function localGet(key){
   try { return JSON.parse(localStorage.getItem(key)||'[]'); } catch(e) { return []; }
@@ -1331,8 +1332,29 @@ function go(tab){
   document.querySelectorAll('.nav-item').forEach(function(b){b.classList.remove('active');});
   var s=document.getElementById('tab-'+tab); if(s) s.classList.add('active');
   document.getElementById('topbar-title').textContent=tabTitles[tab]||tab;
-  document.querySelectorAll('.nav-item')[tabMap[tab]].classList.add('active');
-  var renders={dashboard:renderDash,ventas:initVentas,caja:renderCaja,historial:function(){document.getElementById('hist-fecha').value=todayStr();renderHistorial();},stock:renderStock,movimientos:renderMovimientos,clientes:renderClientes,proveedores:renderProveedores,alquileres:renderAlquileres,directv:renderDtv,matafuegos:renderMatafuegos,renovable:renderRenovables,mercadolibre:renderML,gastos:renderGastos,reportes:renderReportes,agenda:renderAgenda};
+  // Activar el botón del nav que corresponde a este tab (por atributo onclick)
+  var navBtns=document.querySelectorAll('.nav-item');
+  navBtns.forEach(function(b){
+    if((b.getAttribute('onclick')||'').indexOf("go('"+tab+"')") !== -1) b.classList.add('active');
+  });
+  var renders={
+    dashboard:renderDash,
+    ventas:initVentas,
+    caja:renderCaja,
+    historial:function(){document.getElementById('hist-fecha').value=todayStr();renderHistorial();},
+    stock:renderStock,
+    movimientos:renderMovimientos,
+    clientes:renderClientes,
+    proveedores:renderProveedores,
+    alquileres:renderAlquileres,
+    directv:renderDtv,
+    matafuegos:renderMatafuegos,
+    renovable:renderRenovables,
+    mercadolibre:renderML,
+    gastos:renderGastos,
+    reportes:renderReportes,
+    agenda:renderAgenda
+  };
   if(renders[tab]) renders[tab]();
 }
 
@@ -1709,12 +1731,11 @@ function renderCaja(){
   // Filas de ventas
   v.forEach(function(x){
     var cn=x.cliente_id?(DB.clientes.find(function(c){return c.id===x.cliente_id;})||{nombre:'—'}).nombre:'Consumidor final';
-    var xj=JSON.stringify(x).replace(/'/g,"&#39;");
     tb.innerHTML+='<tr><td style="font-family:var(--mono);color:var(--muted);font-size:11px">#'+esc(x.ticket)+'</td><td>'+x.hora+'</td><td>'+esc(cn)+'</td><td>'+(Array.isArray(x.items)?x.items.length:0)+' items</td><td><span class="badge '+(x.metodo==='Efectivo'?'badge-green':x.metodo==='Transferencia'?'badge-blue':'badge-yellow')+'">'+x.metodo+'</span></td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(x.total)+'</td>'
       +'<td style="white-space:nowrap">'
-      +'<button class="btn btn-ghost btn-xs" onclick=\'showTicket('+xj+')\'  title="Ver ticket">🧾</button> '
-      +'<button class="btn btn-ghost btn-xs" onclick=\'openEditVenta('+xj+')\'  title="Editar">✏️</button> '
-      +'<button class="btn btn-danger btn-xs" onclick=\'delVenta(\"'+x.id+'\")\'  title="Eliminar">🗑</button>'
+      +'<button class="btn btn-ghost btn-xs" onclick="showTicket(getVentaById(''+x.id+''))" title="Ver ticket">🧾</button> '
+      +'<button class="btn btn-ghost btn-xs" onclick="openEditVenta(getVentaById(''+x.id+''))" title="Editar">✏️</button> '
+      +'<button class="btn btn-danger btn-xs" onclick="delVenta(''+x.id+'')" title="Eliminar">🗑</button>'
       +'</td></tr>';
   });
 
@@ -1769,12 +1790,12 @@ function renderHistorial(){
   var tb=document.getElementById('hist-tbody'); tb.innerHTML='';
   filtered.forEach(function(v){
     var cn=v.cliente_id?(DB.clientes.find(function(c){return c.id===v.cliente_id;})||{nombre:'—'}).nombre:'Consumidor final';
-    var vj=JSON.stringify(v).replace(/'/g,"&#39;");
+    var rowId='hrow_'+v.id;
     tb.innerHTML+='<tr><td style="font-family:var(--mono);color:var(--orange)">#'+esc(v.ticket)+'</td><td style="color:var(--muted);font-size:11px">'+v.fecha+' '+v.hora+'</td><td>'+esc(cn)+'</td><td>'+(Array.isArray(v.items)?v.items.length:0)+'</td><td><span class="badge '+(v.metodo==='Efectivo'?'badge-green':v.metodo==='Transferencia'?'badge-blue':'badge-yellow')+'">'+v.metodo+'</span></td><td>'+(v.desc_pct?'<span class="badge badge-red">-'+v.desc_pct+'%</span>':'<span style="color:var(--dim)">—</span>')+'</td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(v.total)+'</td>'
       +'<td style="white-space:nowrap">'
-      +'<button class="btn btn-ghost btn-xs" onclick=\'showTicket('+vj+')\'  title="Ver ticket">🧾</button> '
-      +'<button class="btn btn-ghost btn-xs" onclick=\'openEditVenta('+vj+')\'  title="Editar venta">✏️</button> '
-      +'<button class="btn btn-danger btn-xs" onclick=\'delVenta(\"'+v.id+'\")\'  title="Eliminar venta">🗑</button>'
+      +'<button class="btn btn-ghost btn-xs" onclick="showTicket(getVentaById(''+v.id+''))" title="Ver ticket">🧾</button> '
+      +'<button class="btn btn-ghost btn-xs" onclick="openEditVenta(getVentaById(''+v.id+''))" title="Editar venta">✏️</button> '
+      +'<button class="btn btn-danger btn-xs" onclick="delVenta(''+v.id+'')" title="Eliminar venta">🗑</button>'
       +'</td></tr>';
   });
   document.getElementById('hist-empty').style.display=filtered.length?'none':'block';
