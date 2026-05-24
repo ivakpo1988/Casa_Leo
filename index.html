@@ -1323,16 +1323,84 @@ function showTicket(v){
 function renderCaja(){
   var today=todayStr();
   document.getElementById('caja-fecha').textContent='Resumen del '+today;
+
+  // Ventas del día
   var v=DB.ventas.filter(function(x){return x.fecha===today;});
   var total=v.reduce(function(s,x){return s+(x.total||0);},0);
   var por={};v.forEach(function(x){por[x.metodo]=(por[x.metodo]||0)+(x.total||0);});
-  document.getElementById('caja-stats').innerHTML=sc('Total Día','orange',fmt(total),v.length+' ventas','💰')+sc('Efectivo','green',fmt(por['Efectivo']||0),'','💵')+sc('Transferencia','blue',fmt(por['Transferencia']||0),'','📲')+sc('Tarjetas','yellow',fmt((por['Débito']||0)+(por['Crédito']||0)),'','💳');
+
+  // Cotizaciones Matafuegos del día
+  var mat=DB.matafuegos.filter(function(x){return x.fecha===today;});
+  var totalMat=mat.reduce(function(s,x){
+    var extra=matExtra(x);
+    return s+(parseFloat(extra.monto)||0);
+  },0);
+
+  // Alquileres activos / iniciados hoy
+  var alq=DB.alquileres.filter(function(x){return x.salida===today;});
+  var totalAlq=alq.reduce(function(s,x){return s+(parseFloat(x.total)||0);},0);
+
+  // Cotizaciones Energía Renovable del día
+  var ren=DB.renovables.filter(function(x){return x.fecha===today;});
+  var totalRen=ren.reduce(function(s,x){return s+(parseFloat(x.monto)||0);},0);
+
+  // Servicios DirecTV del día
+  var dtv=DB.directv.filter(function(x){return x.fecha===today;});
+  var totalDtv=dtv.reduce(function(s,x){return s+(parseFloat(x.monto)||0);},0);
+
+  document.getElementById('caja-stats').innerHTML=
+    sc('Total Ventas','orange',fmt(total),v.length+' ventas','💰')+
+    sc('Efectivo','green',fmt(por['Efectivo']||0),'','💵')+
+    sc('Transferencia','blue',fmt(por['Transferencia']||0),'','📲')+
+    sc('Tarjetas','yellow',fmt((por['Débito']||0)+(por['Crédito']||0)),'','💳')+
+    sc('Matafuegos','red',fmt(totalMat),mat.length+' cotizaciones','🧯')+
+    sc('Alquileres','blue',fmt(totalAlq),alq.length+' alquileres','🔧')+
+    sc('Energía Renovable','green',fmt(totalRen),ren.length+' cotizaciones','☀️')+
+    sc('DirecTV','yellow',fmt(totalDtv),dtv.length+' servicios','📡');
+
   var tb=document.getElementById('caja-tbody'); tb.innerHTML='';
+
+  // Filas de ventas
   v.forEach(function(x){
     var cn=x.cliente_id?(DB.clientes.find(function(c){return c.id===x.cliente_id;})||{nombre:'—'}).nombre:'Consumidor final';
     tb.innerHTML+='<tr><td style="font-family:var(--mono);color:var(--muted);font-size:11px">#'+esc(x.ticket)+'</td><td>'+x.hora+'</td><td>'+esc(cn)+'</td><td>'+(Array.isArray(x.items)?x.items.length:0)+' items</td><td><span class="badge '+(x.metodo==='Efectivo'?'badge-green':x.metodo==='Transferencia'?'badge-blue':'badge-yellow')+'">'+x.metodo+'</span></td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(x.total)+'</td><td><button class="btn btn-ghost btn-xs" onclick=\'showTicket('+JSON.stringify(x).replace(/'/g,"&#39;")+')\'">🧾</button></td></tr>';
   });
-  document.getElementById('caja-empty').style.display=v.length?'none':'block';
+
+  // Separador + filas de Matafuegos
+  if(mat.length){
+    tb.innerHTML+='<tr><td colspan="7" style="background:var(--s3);color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:6px 13px">🧯 Cotizaciones Matafuegos</td></tr>';
+    mat.forEach(function(x){
+      var extra=matExtra(x);
+      var monto=parseFloat(extra.monto)||0;
+      tb.innerHTML+='<tr><td style="font-family:var(--mono);color:var(--muted);font-size:11px">—</td><td>—</td><td>'+esc(x.cliente_nombre||'—')+'</td><td>'+esc(x.tipo||'—')+'</td><td><span class="badge badge-red">Matafuego</span></td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(monto)+'</td><td><button class="btn btn-ghost btn-xs" onclick="printMatQuote('+x.id+')">🧾</button></td></tr>';
+    });
+  }
+
+  // Separador + filas de Alquileres
+  if(alq.length){
+    tb.innerHTML+='<tr><td colspan="7" style="background:var(--s3);color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:6px 13px">🔧 Alquileres del Día</td></tr>';
+    alq.forEach(function(x){
+      tb.innerHTML+='<tr><td style="font-family:var(--mono);color:var(--muted);font-size:11px">—</td><td>—</td><td>'+esc(x.cliente_nombre||'—')+'</td><td>'+esc(x.maq_nombre||'—')+' ('+x.dias+' días)</td><td><span class="badge badge-blue">Alquiler</span></td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(x.total||0)+'</td><td></td></tr>';
+    });
+  }
+
+  // Separador + filas de Energía Renovable
+  if(ren.length){
+    tb.innerHTML+='<tr><td colspan="7" style="background:var(--s3);color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:6px 13px">☀️ Cotizaciones Energía Renovable</td></tr>';
+    ren.forEach(function(x){
+      tb.innerHTML+='<tr><td style="font-family:var(--mono);color:var(--muted);font-size:11px">—</td><td>—</td><td>'+esc(x.cliente_nombre||'—')+'</td><td>'+esc(x.tipo||'—')+'</td><td><span class="badge badge-orange">Renovable</span></td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(x.monto||0)+'</td><td><button class="btn btn-ghost btn-xs" onclick="printRenovQuote('+x.id+')">🧾</button></td></tr>';
+    });
+  }
+
+  // Separador + filas de DirecTV
+  if(dtv.length){
+    tb.innerHTML+='<tr><td colspan="7" style="background:var(--s3);color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:6px 13px">📡 Servicios DirecTV</td></tr>';
+    dtv.forEach(function(x){
+      tb.innerHTML+='<tr><td style="font-family:var(--mono);color:var(--muted);font-size:11px">—</td><td>—</td><td>'+esc(x.cliente_nombre||'—')+'</td><td>'+esc(x.tipo||'—')+(x.tecnico?' · '+esc(x.tecnico):'')+'</td><td><span class="badge badge-yellow">DirecTV</span></td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(x.monto||0)+'</td><td></td></tr>';
+    });
+  }
+
+  document.getElementById('caja-empty').style.display=(v.length||mat.length||alq.length||ren.length||dtv.length)?'none':'block';
 }
 
 // ══════════════════════════════════════════
