@@ -302,13 +302,13 @@ tbody tr:hover td:last-child{background:var(--s3)}
 
 <div id="loading">
   <div class="spinner"></div>
-  <p>Conectando con Supabase…</p>
+  <p id="loading-msg">Cargando Casa Leo…</p>
 </div>
 
 <div id="sidebar">
   <div class="logo">
     <div class="logo-icon">🔨</div>
-    <div><div class="logo-text">Casa Leo</div><div class="logo-sub">Supabase</div></div>
+    <div><div class="logo-text">Casa Leo</div><div class="logo-sub" id="sync-label">Cargando…</div></div>
   </div>
   <nav>
     <div class="nav-group">
@@ -999,10 +999,24 @@ tbody tr:hover td:last-child{background:var(--s3)}
 
 <script>
 // ══════════════════════════════════════════
+// ══════════════════════════════════════════
 // SUPABASE CONFIG
 // ══════════════════════════════════════════
 var SB_URL = 'https://unbvutpxilsszdwtcuvq.supabase.co';
 var SB_KEY = 'sb_publishable_svGnaOsBazxcphzdKLqhtw_QqW5xK4U';
+// IMPORTANTE: Si tenés la clave anon (empieza con eyJ...) reemplazá SB_KEY arriba.
+// La app funciona 100% offline con localStorage aunque Supabase no responda.
+
+var SB_ONLINE = false; // se detecta automáticamente
+
+// Polyfill AbortSignal.timeout para navegadores viejos
+if(!AbortSignal.timeout){
+  AbortSignal.timeout = function(ms){
+    var ctrl = new AbortController();
+    setTimeout(function(){ ctrl.abort(); }, ms);
+    return ctrl.signal;
+  };
+}
 
 var HEADERS = {
   'Content-Type': 'application/json',
@@ -1011,27 +1025,87 @@ var HEADERS = {
   'Prefer': 'return=representation'
 };
 
-// ── API helper ──
+// ── LOCAL STORAGE HELPERS ──
+var LS_TABLES = ['productos','ventas','movimientos','clientes','proveedores','maquinas','alquileres','directv','matafuegos','renovables_cotizaciones','ml_ventas','gastos','turnos'];
+
+function lsGet(table){ try{return JSON.parse(localStorage.getItem('casaleo_'+table)||'[]');}catch(e){return[];} }
+function lsSet(table, rows){ try{localStorage.setItem('casaleo_'+table, JSON.stringify(rows));}catch(e){} }
+function lsDel(table, id){ var rows=lsGet(table).filter(function(r){return r.id!==id;}); lsSet(table,rows); }
+function lsPatch(table, id, data){ var rows=lsGet(table); var i=rows.findIndex(function(r){return r.id===id;}); if(i>=0){rows[i]={...rows[i],...data};} lsSet(table,rows); return rows[i]||data; }
+function lsInsert(table, data){
+  var rows=lsGet(table);
+  if(!data.id) data.id='local_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+  rows.unshift(data);
+  lsSet(table,rows);
+  return [data];
+}
+
+// ── API helpers con fallback automático ──
 async function sbGet(table, params) {
   params = params || '';
-  var r = await fetch(SB_URL + '/rest/v1/' + table + '?order=id.desc' + (params ? '&' + params : ''), {headers: HEADERS});
-  if (!r.ok) { var e = await r.text(); throw new Error(e); }
-  return r.json();
+  try {
+    var r = await fetch(SB_URL + '/rest/v1/' + table + '?order=id.desc' + (params ? '&' + params : ''), {headers: HEADERS, signal: AbortSignal.timeout(5000)});
+    if (!r.ok) throw new Error('HTTP '+r.status);
+    var data = await r.json();
+    SB_ONLINE = true;
+    lsSet(table, data); // cache local
+    return data;
+  } catch(e) {
+    SB_ONLINE = false;
+    return lsGet(table); // fallback local
+  }
 }
+
 async function sbInsert(table, data) {
-  var r = await fetch(SB_URL + '/rest/v1/' + table, {method:'POST', headers: HEADERS, body: JSON.stringify(data)});
-  if (!r.ok) { var e = await r.text(); throw new Error(e); }
-  return r.json();
+  try {
+    var r = await fetch(SB_URL + '/rest/v1/' + table, {method:'POST', headers: HEADERS, body: JSON.stringify(data), signal: AbortSignal.timeout(5000)});
+    if (!r.ok) throw new Error('HTTP '+r.status);
+    var res = await r.json();
+    SB_ONLINE = true;
+    return Array.isArray(res)?res:[res];
+  } catch(e) {
+    SB_ONLINE = false;
+    return lsInsert(table, data);
+  }
 }
+
+async function sbPost(table, data) { return sbInsert(table, data); }
+
 async function sbUpdate(table, id, data) {
-  var r = await fetch(SB_URL + '/rest/v1/' + table + '?id=eq.' + id, {method:'PATCH', headers: HEADERS, body: JSON.stringify(data)});
-  if (!r.ok) { var e = await r.text(); throw new Error(e); }
-  return r.json();
+  lsPatch(table, id, data);
+  try {
+    var r = await fetch(SB_URL + '/rest/v1/' + table + '?id=eq.' + id, {method:'PATCH', headers: HEADERS, body: JSON.stringify(data), signal: AbortSignal.timeout(5000)});
+    if (!r.ok) throw new Error('HTTP '+r.status);
+    SB_ONLINE = true;
+    return r.json();
+  } catch(e) {
+    SB_ONLINE = false;
+    return data;
+  }
 }
+
+// alias usado en distintas partes del código
+async function sbPatch(table, id, data) { return sbUpdate(table, id, data); }
+
 async function sbDelete(table, id) {
-  var r = await fetch(SB_URL + '/rest/v1/' + table + '?id=eq.' + id, {method:'DELETE', headers: HEADERS});
-  if (!r.ok) { var e = await r.text(); throw new Error(e); }
+  lsDel(table, id);
+  try {
+    var r = await fetch(SB_URL + '/rest/v1/' + table + '?id=eq.' + id, {method:'DELETE', headers: HEADERS, signal: AbortSignal.timeout(5000)});
+    SB_ONLINE = r.ok;
+  } catch(e) { SB_ONLINE = false; }
   return true;
+}
+
+function updateSyncStatus(){
+  var dot = document.getElementById('sync-dot');
+  var logo = document.querySelector('.logo-sub');
+  if(SB_ONLINE){
+    if(dot) dot.className='sync-dot';
+    if(logo) logo.textContent='En línea ✅';
+  } else {
+    if(dot) dot.className='sync-dot error';
+    if(logo) logo.textContent='Modo offline 💾';
+  }
 }
 
 async function uploadStorageImage(bucket, dataUrl, prefix) {
@@ -1267,42 +1341,36 @@ function go(tab){
 // ══════════════════════════════════════════
 async function loadAll(){
   setSyncing(true);
-  try {
-    var results = await Promise.all([
-      sbGet('productos'),
-      sbGet('ventas'),
-      sbGet('movimientos'),
-      sbGet('clientes'),
-      sbGet('proveedores'),
-      sbGet('maquinas'),
-      sbGet('alquileres'),
-      sbGet('directv')
-    ]);
-    DB.productos=results[0]; DB.ventas=results[1]; DB.movimientos=results[2];
-    DB.clientes=results[3]; DB.proveedores=results[4]; DB.maquinas=results[5];
-    DB.alquileres=results[6]; DB.directv=results[7];
-    
-    // Carga segura de nuevas tablas (por si aún no las creaste en Supabase)
-    try { DB.matafuegos = await sbGet('matafuegos'); } catch(e) { DB.matafuegos = []; }
-    try { DB.renovables = mergeLocalRows(await sbGet('renovables_cotizaciones'), 'renovables_local'); } catch(e) { DB.renovables = mergeLocalRows([], 'renovables_local'); }
-    try { DB.ml_ventas = await sbGet('ml_ventas'); } catch(e) { DB.ml_ventas = JSON.parse(localStorage.getItem('ml_ventas')||'[]'); }
-    try { DB.gastos = await sbGet('gastos'); } catch(e) { DB.gastos = JSON.parse(localStorage.getItem('gastos')||'[]'); }
-    try { DB.turnos = await sbGet('turnos'); } catch(e) { DB.turnos = JSON.parse(localStorage.getItem('turnos')||'[]'); }
-    updateNotifications();
-    updateBadges();
+  // Carga offline-first: sbGet devuelve localStorage si Supabase no responde
+  var results = await Promise.all([
+    sbGet('productos'),
+    sbGet('ventas'),
+    sbGet('movimientos'),
+    sbGet('clientes'),
+    sbGet('proveedores'),
+    sbGet('maquinas'),
+    sbGet('alquileres'),
+    sbGet('directv')
+  ]);
+  DB.productos=results[0]; DB.ventas=results[1]; DB.movimientos=results[2];
+  DB.clientes=results[3]; DB.proveedores=results[4]; DB.maquinas=results[5];
+  DB.alquileres=results[6]; DB.directv=results[7];
 
-    setSyncing(null);
-    renderDash();
-    document.getElementById('loading').style.display='none';
+  DB.matafuegos = await sbGet('matafuegos');
+  DB.renovables = mergeLocalRows(await sbGet('renovables_cotizaciones'), 'renovables_local');
+  DB.ml_ventas  = await sbGet('ml_ventas');
+  DB.gastos     = await sbGet('gastos');
+  DB.turnos     = await sbGet('turnos');
 
-    // seed if empty
-    if(!DB.productos.length) await seedData();
-  } catch(e) {
-    setSyncing(false);
-    document.getElementById('loading').style.display='none';
-    toast('Error conectando: '+e.message,'err');
-    console.error(e);
-  }
+  updateSyncStatus();
+  setSyncing(null);
+  updateNotifications();
+  updateBadges();
+  renderDash();
+  document.getElementById('loading').style.display='none';
+
+  // seed si está vacío (primera vez)
+  if(!DB.productos.length) await seedData();
 }
 
 // ══════════════════════════════════════════
