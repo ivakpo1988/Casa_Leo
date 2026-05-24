@@ -347,6 +347,10 @@ tbody tr:hover td:last-child{background:var(--s3)}
         <div class="panel"><div class="panel-title">🕒 <span>Últimas Ventas</span></div><div id="dash-recent"></div></div>
         <div class="panel"><div class="panel-title">🔧 <span>Alquileres Activos</span></div><div id="dash-alq"></div></div>
       </div>
+      <div class="dash-grid">
+        <div class="panel"><div class="panel-title">🧯 <span>Venc. Matafuegos Próximos</span></div><div id="dash-mat-venc"></div></div>
+        <div class="panel"><div class="panel-title">📡 <span>Servicios DirecTV Pendientes</span></div><div id="dash-dtv-pend"></div></div>
+      </div>
     </div>
 
     <div class="section" id="tab-ventas">
@@ -416,18 +420,27 @@ tbody tr:hover td:last-child{background:var(--s3)}
     <div class="section" id="tab-caja">
       <div class="ph">
         <div><div class="ph-title">Caja del Día</div><div class="ph-sub" id="caja-fecha"></div></div>
-        <div class="ph-actions"><button class="btn btn-ghost btn-sm" onclick="renderCaja()">🔄 Actualizar</button></div>
+        <div class="ph-actions">
+          <button class="btn btn-ghost btn-sm" onclick="renderCaja()">🔄 Actualizar</button>
+          <button class="btn btn-ghost btn-sm" onclick="printCaja()">🖨️ Imprimir</button>
+        </div>
+      </div>
+      <div id="caja-total-banner" style="display:none;background:linear-gradient(135deg,var(--ora-glow),var(--grn-glow));border:1px solid var(--orange);border-radius:var(--r);padding:14px 20px;margin-bottom:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em">💼 Total Consolidado del Día</div>
+          <div id="caja-total-val" style="font-family:var(--mono);font-size:28px;font-weight:700;color:var(--orange)">$0.00</div>
+        </div>
+        <div id="caja-total-desglose" style="font-size:11px;color:var(--muted);text-align:right;line-height:1.8"></div>
       </div>
       <div class="caja-grid" id="caja-stats"></div>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>#</th><th>Hora</th><th>Cliente</th><th>Items</th><th>Método</th><th>Total</th><th></th></tr></thead>
+          <thead><tr><th>#</th><th>Hora</th><th>Cliente</th><th>Items / Detalle</th><th>Tipo</th><th>Total</th><th></th></tr></thead>
           <tbody id="caja-tbody"></tbody>
         </table>
-        <div id="caja-empty" class="empty-row">No hay ventas hoy.</div>
+        <div id="caja-empty" class="empty-row">No hay movimientos hoy.</div>
       </div>
     </div>
-
     <div class="section" id="tab-historial">
       <div class="ph">
         <div><div class="ph-title">Historial de Ventas</div></div>
@@ -1161,8 +1174,20 @@ function renderDash(){
   var deuda=(DB.clientes.reduce(function(s,c){return s+(c.deuda_cc||0);},0))+(DB.proveedores.reduce(function(s,p){return s+(p.deuda||0);},0));
   var alqAct=DB.alquileres.filter(function(a){return a.estado==='Activo';});
 
+  // Totales de otros rubros del dia para el panel
+  var matHoy=DB.matafuegos.filter(function(x){return x.fecha===today;});
+  var totalMatHoy=matHoy.reduce(function(s,x){var ex=matExtra(x);return s+(parseFloat(ex.monto)||0);},0);
+  var alqHoy=DB.alquileres.filter(function(x){return x.salida===today;});
+  var totalAlqHoy=alqHoy.reduce(function(s,x){return s+(parseFloat(x.total)||0);},0);
+  var renHoy=DB.renovables.filter(function(x){return x.fecha===today;});
+  var totalRenHoy=renHoy.reduce(function(s,x){return s+(parseFloat(x.monto)||0);},0);
+  var dtvHoy=DB.directv.filter(function(x){return x.fecha===today;});
+  var totalDtvHoy=dtvHoy.reduce(function(s,x){return s+(parseFloat(x.monto)||0);},0);
+  var totalConsolidado=totalDia+totalMatHoy+totalAlqHoy+totalRenHoy+totalDtvHoy;
+
   document.getElementById('dash-stats').innerHTML=
-    sc('Ventas Hoy','orange',fmt(totalDia),tv.length+' transacciones','💰')+
+    sc('Total Consolidado','orange',fmt(totalConsolidado),'Todos los rubros hoy','💼')+
+    sc('Ventas Hoy','green',fmt(totalDia),tv.length+' transacciones','🛒')+
     sc('Ganancia Hoy','green',fmt(ganDia),'Margen bruto','📈')+
     sc('Stock Bajo','red',low.length,'Bajo mínimo','⚠️')+
     sc('Alquileres','blue',alqAct.length,'Activos','🔧')+
@@ -1193,6 +1218,25 @@ function renderDash(){
     var over=a.devol<today;
     return '<div class="top-row"><div><div style="font-size:12px;font-weight:600">'+esc(a.maq_nombre)+'</div><div style="color:var(--muted);font-size:10px">'+esc(a.cliente_nombre)+' · dev. <span style="'+(over?'color:var(--red)':'')+'">'+(over?'⚠️ ':'')+a.devol+'</span></div></div><span class="badge badge-orange">Activo</span></div>';
   }).join('')||'<div style="color:var(--muted);font-size:12px">Sin alquileres activos.</div>';
+
+  // Panel Vencimientos Matafuegos (próximos 30 días)
+  var hoy30=new Date(); hoy30.setDate(hoy30.getDate()+30);
+  var hoy30s=hoy30.toISOString().slice(0,10);
+  var matVenc=(DB.matafuegos||[]).filter(function(x){return x.prox_venc&&x.prox_venc>=today&&x.prox_venc<=hoy30s;}).sort(function(a,b){return a.prox_venc>b.prox_venc?1:-1;}).slice(0,6);
+  var matVencEl=document.getElementById('dash-mat-venc');
+  if(matVencEl) matVencEl.innerHTML=matVenc.map(function(x){
+    var dias=Math.round((new Date(x.prox_venc)-new Date(today))/(86400000));
+    var color=dias<=7?'var(--red)':dias<=15?'var(--yellow)':'var(--muted)';
+    return '<div class="top-row"><div><div style="font-size:12px;font-weight:600">'+esc(x.cliente_nombre||'—')+'</div><div style="color:var(--muted);font-size:10px">'+esc(x.tipo||'—')+'</div></div><span style="font-family:var(--mono);font-size:11px;color:'+color+'">'+x.prox_venc+' ('+dias+'d)</span></div>';
+  }).join('')||'<div style="color:var(--muted);font-size:12px">✅ Sin vencimientos próximos.</div>';
+
+  // Panel DirecTV Pendientes
+  var dtvPend=(DB.directv||[]).filter(function(x){return x.estado==='Pendiente';}).slice(0,6);
+  var dtvPendEl=document.getElementById('dash-dtv-pend');
+  if(dtvPendEl) dtvPendEl.innerHTML=dtvPend.map(function(x){
+    return '<div class="top-row"><div><div style="font-size:12px;font-weight:600">'+esc(x.cliente_nombre||'—')+'</div><div style="color:var(--muted);font-size:10px">'+esc(x.tipo||'—')+(x.tecnico?' · '+esc(x.tecnico):'')+'</div></div><span class="badge badge-yellow">Pendiente</span></div>';
+  }).join('')||'<div style="color:var(--muted);font-size:12px">✅ Sin servicios pendientes.</div>';
+
 }
 function sc(l,c,v,s,i){ return '<div class="stat-card '+c+'"><div class="sc-icon">'+i+'</div><div class="sc-label">'+l+'</div><div class="sc-val '+c+'">'+v+'</div><div class="sc-sub">'+s+'</div></div>'; }
 
@@ -1318,6 +1362,23 @@ function showTicket(v){
 }
 
 // ══════════════════════════════════════════
+// IMPRIMIR CAJA
+// ══════════════════════════════════════════
+function printCaja(){
+  var content=document.getElementById('caja-total-banner').outerHTML+
+    '<br>'+document.getElementById('caja-stats').outerHTML+
+    '<br><table border="1" cellpadding="6" cellspacing="0" style="width:100%;border-collapse:collapse;font-family:monospace;font-size:12px">'+
+    document.querySelector('#tab-caja table thead').outerHTML+
+    '<tbody>'+document.getElementById('caja-tbody').innerHTML+'</tbody></table>';
+  var w=window.open('','_blank','width=900,height=700');
+  w.document.write('<html><head><title>Caja del Día - Casa Leo</title><style>body{font-family:Arial,sans-serif;padding:20px;color:#000}table{width:100%;border-collapse:collapse}th,td{padding:6px 10px;border:1px solid #ccc;text-align:left}th{background:#f0f0f0}.stat-card{display:inline-block;border:1px solid #ccc;border-radius:6px;padding:10px 14px;margin:4px;min-width:140px}.sc-label{font-size:10px;color:#666;text-transform:uppercase}.sc-val{font-size:20px;font-weight:700}.sc-sub{font-size:10px;color:#888}.badge{font-size:10px;padding:2px 6px;border-radius:3px;background:#eee;font-weight:700}.caja-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}</style></head><body>');
+  w.document.write('<h2>🔨 Casa Leo — Caja del Día ('+document.getElementById('caja-fecha').textContent+')</h2>');
+  w.document.write(content);
+  w.document.write('</body></html>');
+  w.document.close(); w.print();
+}
+
+// ══════════════════════════════════════════
 // CAJA
 // ══════════════════════════════════════════
 function renderCaja(){
@@ -1347,6 +1408,20 @@ function renderCaja(){
   // Servicios DirecTV del día
   var dtv=DB.directv.filter(function(x){return x.fecha===today;});
   var totalDtv=dtv.reduce(function(s,x){return s+(parseFloat(x.monto)||0);},0);
+
+  // Banner total consolidado
+  var totalConsolidado=total+totalMat+totalAlq+totalRen+totalDtv;
+  var banner=document.getElementById('caja-total-banner');
+  if(totalConsolidado>0){
+    banner.style.display='flex';
+    document.getElementById('caja-total-val').textContent=fmt(totalConsolidado);
+    document.getElementById('caja-total-desglose').innerHTML=
+      (total?'💰 Ventas: '+fmt(total)+'<br>':'')+
+      (totalMat?'🧯 Matafuegos: '+fmt(totalMat)+'<br>':'')+
+      (totalAlq?'🔧 Alquileres: '+fmt(totalAlq)+'<br>':'')+
+      (totalRen?'☀️ Renovable: '+fmt(totalRen)+'<br>':'')+
+      (totalDtv?'📡 DirecTV: '+fmt(totalDtv):'');
+  } else { banner.style.display='none'; }
 
   document.getElementById('caja-stats').innerHTML=
     sc('Total Ventas','orange',fmt(total),v.length+' ventas','💰')+
@@ -1541,7 +1616,7 @@ function renderClientes(){
   var filtered=DB.clientes.filter(function(c){return!q||c.nombre.toLowerCase().includes(q)||(c.tel||'').includes(q);});
   var tb=document.getElementById('cli-tbody'); tb.innerHTML='';
   filtered.forEach(function(c){
-    var wa='https://wa.me/'+(c.tel||'').replace(/\D/g,'');
+    var wa='https://wa.me/'+normTel(c.tel||'');
     tb.innerHTML+='<tr><td><div style="font-weight:600;font-size:12px">'+esc(c.nombre)+'</div><div style="color:var(--muted);font-size:10px">'+esc(c.email||'')+'</div></td><td style="font-family:var(--mono);font-size:12px">'+esc(c.tel||'—')+'</td><td style="color:var(--muted);font-size:11px">'+esc(c.dir||'—')+'</td><td style="font-family:var(--mono)">'+(c.compras||0)+'</td><td style="font-family:var(--mono);'+(c.deuda_cc>0?'color:var(--red);font-weight:700':'color:var(--muted)')+'">'+fmt(c.deuda_cc||0)+'</td><td style="color:var(--muted);font-size:11px">'+(c.ultimo_pedido||'—')+'</td><td><div class="act"><a href="'+wa+'" target="_blank" class="btn btn-green btn-xs">💬</a><button class="btn btn-ghost btn-xs" onclick="openClienteModal('+c.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delCliente('+c.id+')">🗑</button></div></td></tr>';
   });
   document.getElementById('cli-empty').style.display=filtered.length?'none':'block';
@@ -1824,10 +1899,10 @@ function renderMatafuegos(){
   var badges={Borrador:'badge-gray',Enviada:'badge-blue',Aprobada:'badge-green',Rechazada:'badge-red',Pendiente:'badge-yellow','En Taller':'badge-blue',Listo:'badge-green',Entregado:'badge-gray'};
   
   DB.matafuegos.forEach(function(m){
-    var wa='https://wa.me/'+(m.telefono||'').replace(/\D/g,'');
+    var wa='https://wa.me/'+normTel(m.telefono||'');
     var extra=matExtra(m);
     var detalle=quoteDetail(extra.descripcion||'', ((m.peso?m.peso+' Kg':'')+(m.serie?' / Serie '+m.serie:'')));
-    tb.innerHTML+='<tr><td style="font-size:11px;color:var(--muted)">'+(m.fecha||todayStr())+'</td><td style="font-weight:600;font-size:12px">'+esc(m.cliente_nombre||'—')+'</td><td>'+esc(m.telefono||'—')+' <a href="'+wa+'" target="_blank" style="text-decoration:none">💬</a></td><td><span class="badge badge-orange">'+esc(m.tipo)+'</span></td><td style="font-size:11px">'+esc(detalle)+'</td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(extra.monto)+'</td><td style="font-family:var(--mono);font-size:11px">'+esc(extra.validez||'—')+'</td><td><span class="badge '+(badges[m.estado]||'badge-gray')+'">'+m.estado+'</span></td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="printMatQuote('+m.id+')">🧾</button><button class="btn btn-ghost btn-xs" onclick="openMatModal('+m.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delMat('+m.id+')">🗑</button></div></td></tr>';
+    tb.innerHTML+='<tr><td style="font-size:11px;color:var(--muted)">'+(m.fecha||todayStr())+'</td><td style="font-weight:600;font-size:12px">'+esc(m.cliente_nombre||'—')+'</td><td>'+esc(m.telefono||'—')+' <a href="'+wa+'" target="_blank" style="text-decoration:none">💬</a></td><td><span class="badge badge-orange">'+esc(m.tipo)+'</span></td><td style="font-size:11px">'+esc(detalle)+'</td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(extra.monto)+'</td><td style="font-family:var(--mono);font-size:11px">'+esc(extra.validez||'—')+'</td><td><span class="badge '+(badges[m.estado]||'badge-gray')+'">'+m.estado+'</span></td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="printMatQuote('+m.id+')">🧾</button>'+(extra.foto&&m.telefono?'<button class="btn btn-ghost btn-xs" onclick="sendMatFotoWa('+m.id+')" title="Enviar foto por WhatsApp">📱</button>':'')+'<button class="btn btn-ghost btn-xs" onclick="openMatModal('+m.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delMat('+m.id+')">🗑</button></div></td></tr>';
   });
   document.getElementById('matafuegos-empty').style.display=DB.matafuegos.length?'none':'block';
 }
@@ -1867,6 +1942,55 @@ function fillMatPhone(){
   if(sel.selectedOptions.length && sel.selectedOptions[0].dataset.tel){
     document.getElementById('mmat-tel').value = sel.selectedOptions[0].dataset.tel;
   }
+}
+
+function normTel(t){
+  // Limpia caracteres no numéricos
+  var n=(t||'').replace(/\D/g,'');
+  // Si ya empieza con 54, dejarlo
+  if(n.startsWith('54')) return n;
+  // Si empieza con 0 (ej: 011...), sacar el 0
+  if(n.startsWith('0')) n=n.slice(1);
+  // Agregar código de país Argentina
+  return '54'+n;
+}
+
+async function sendFotoWaByData(tel, nombre, tipo, fotoUrl){
+  // Intentar copiar la imagen al portapapeles
+  try {
+    var resp = await fetch(fotoUrl);
+    var blob = await resp.blob();
+    // Descargar la foto automáticamente
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'matafuego-'+Date.now()+'.jpg';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast('📥 Foto descargada — pegala en WhatsApp');
+  } catch(e) {
+    console.warn('No se pudo descargar la foto:', e);
+  }
+  // Abrir WhatsApp con el mensaje
+  var msg = 'Hola '+nombre+'! 👋\n\nTe enviamos la foto del matafuego registrado ('+tipo+') desde *Casa Leo*.\n\n📎 Adjuntamos la imagen en este mensaje.\n\nCualquier consulta, estamos a tu disposición.';
+  setTimeout(function(){
+    window.open('https://wa.me/'+tel+'?text='+encodeURIComponent(msg), '_blank');
+  }, 600);
+}
+
+async function sendMatFotoWa(id){
+  var m = DB.matafuegos.find(function(x){ return x.id===id; });
+  if(!m){ toast('No se encontró el registro','err'); return; }
+  var extra = matExtra(m);
+  if(!extra.foto){ toast('Este registro no tiene foto','warn'); return; }
+  if(!m.telefono){ toast('El cliente no tiene teléfono cargado','warn'); return; }
+  var tel = normTel(m.telefono);
+  await sendFotoWaByData(tel, m.cliente_nombre||'cliente', m.tipo||'', extra.foto);
+}
+
+function encodeWaFoto(m, extra){
+  var tel=normTel(m.telefono||'');
+  var msg='Hola '+(m.cliente_nombre||'cliente')+'! 👋\n\nTe enviamos la foto del matafuego registrado ('+(m.tipo||'')+') desde *Casa Leo*.\n\n📎 La imagen se descargará automáticamente, pegala en el chat.\n\nCualquier consulta, estamos a tu disposición.';
+  return 'https://wa.me/'+tel+'?text='+encodeURIComponent(msg);
 }
 
 async function saveMat(){
@@ -1909,6 +2033,15 @@ async function saveMat(){
   try {
     if(id){await sbUpdate('matafuegos',id,obj);}else{await sbInsert('matafuegos',obj);}
     await loadAll(); closeModal('modal-matafuegos'); renderMatafuegos(); toast('Registro guardado');
+    // Auto-envío WhatsApp si hay foto y teléfono
+    var tel=normTel(document.getElementById('mmat-tel').value||'');
+    if(tel && tel.length>4 && photoValue && photoValue.indexOf('http')===0){
+      setTimeout(function(){
+        if(confirm('¿Enviar foto al cliente por WhatsApp?')){
+          sendFotoWaByData(tel, cn, document.getElementById('mmat-tipo').value, photoValue);
+        }
+      },400);
+    }
   } catch(e){
     if(String(e.message||e).match(/descripcion|monto|validez|schema cache|column/i)){
       try {
