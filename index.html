@@ -302,6 +302,10 @@ tbody tr:hover td:last-child{background:var(--s3)}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 9.5L9.5 17M8 3L3 8M21 12l-5 5M15 3l3 3-9.5 9.5-3-3L15 3z"/><circle cx="19" cy="5" r="2"/></svg>
         <span>DirecTV</span>
       </button>
+      <button class="nav-item" onclick="go('mlventas')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18M3 12h18M3 17h18"/></svg>
+        <span>ML Ventas</span>
+      </button>
       <button class="nav-item" onclick="go('matafuegos')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
         <span>Matafuegos</span>
@@ -559,6 +563,21 @@ tbody tr:hover td:last-child{background:var(--s3)}
       </div>
     </div>
 
+    <div class="section" id="tab-mlventas">
+      <div class="ph">
+        <div><div class="ph-title">Ventas Mercado Libre</div><div class="ph-sub">Registros de ML</div></div>
+        <div class="ph-actions"><button class="btn btn-primary btn-sm" onclick="openMlModal()">➕ Nuevo</button></div>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Fecha</th><th>Producto</th><th>Cant.</th><th>Precio</th><th>Neto</th><th>Comprador</th><th>Nro Venta</th><th>Acciones</th></tr></thead>
+          <tbody id="ml-tbody"></tbody>
+        </table>
+        <div id="ml-empty" class="empty-row">Sin ventas de Mercado Libre.</div>
+      </div>
+    </div>
+
+
     <div class="section" id="tab-matafuegos">
       <div class="ph">
         <div><div class="ph-title">Gestión de Matafuegos</div><div class="ph-sub">Cotizaciones, recambios y recargas</div></div>
@@ -729,7 +748,7 @@ tbody tr:hover td:last-child{background:var(--s3)}
       <input type="hidden" id="mmat-id"/>
       <div class="fr2">
         <div class="field"><label>Cliente</label><select id="mmat-cli" onchange="fillMatPhone()"><option value="">— Seleccionar —</option></select></div>
-        <div class="field"><label>Teléfono</label><input type="text" id="mmat-tel" placeholder="Nro para avisar..."/></div>
+        <div class="field"><label>Teléfono</label><input type="text" id="mmat-tel" placeholder="Nro para avisar..." oninput="updateMatWhatsappButton()"/></div>
       </div>
       <div class="field">
         <label>Foto del matafuego</label>
@@ -745,6 +764,7 @@ tbody tr:hover td:last-child{background:var(--s3)}
           <img id="mmat-foto-img" alt="Foto del matafuego"/>
           <button type="button" onclick="clearMatPhoto()">Quitar</button>
         </div>
+        <button type="button" class="btn btn-green btn-sm" id="mmat-send-wa" style="display:none;margin-top:8px" onclick="sendMatPhotoWhatsApp()">📲 Enviar por WhatsApp</button>
       </div>
       <div class="fr2">
         <div class="field"><label>Tipo de Trabajo</label><select id="mmat-tipo"><option>Cotización Recarga</option><option>Cotización Recambio</option><option>Cotización Venta Nuevo</option><option>Recarga</option><option>Recambio</option><option>Venta Nuevo</option></select></div>
@@ -785,6 +805,38 @@ tbody tr:hover td:last-child{background:var(--s3)}
 </div>
 
 <div id="toast-wrap"></div>
+
+<div class="overlay" id="modal-edit-venta">
+  <div class="modal" style="max-width:520px">
+    <div class="mhead"><div class="mhead-title">Editar Venta</div><button class="mclose" onclick="closeModal('modal-edit-venta')">✕</button></div>
+    <div class="mbody">
+      <input type="hidden" id="editv-id"/>
+      <div class="fr2"><div class="field"><label>Cliente</label><select id="editv-cliente"><option value="">— Consumidor final —</option></select></div><div class="field"><label>Fecha</label><input type="date" id="editv-fecha"/></div></div>
+      <div class="fr2"><div class="field"><label>Hora</label><input type="time" id="editv-hora"/></div><div class="field"><label>Método</label><select id="editv-metodo"><option>Efectivo</option><option>Transferencia</option><option>Débito</option><option>Crédito</option></select></div></div>
+      <div class="fr2"><div class="field"><label>Desc. (%)</label><input type="number" id="editv-descpct" min="0" max="100"/></div><div class="field"><label>Total ($)</label><input type="number" id="editv-total" step="0.01" min="0"/></div></div>
+      <div class="field"><label>Observaciones</label><input type="text" id="editv-obs"/></div>
+      <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
+        <div class="fr2"><div class="field"><label>Agregar producto</label><select id="editv-prod-select" class="fi"></select></div><div class="field" style="display:flex;align-items:center;gap:8px"><button class="btn btn-primary btn-sm" onclick="addEditItemFromSelect()">Agregar</button></div></div>
+        <div style="margin-top:8px"><div style="font-weight:700;margin-bottom:6px">Items</div><div id="editv-items-list" style="max-height:220px;overflow:auto;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:8px"></div></div>
+      </div>
+    </div>
+    <div class="mfooter"><button class="btn btn-ghost btn-sm" onclick="closeModal('modal-edit-venta')">Cancelar</button><button class="btn btn-primary btn-sm" onclick="saveVentaEdit()">Guardar</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="modal-ml">
+  <div class="modal" style="max-width:520px">
+    <div class="mhead"><div class="mhead-title">Editar ML Venta</div><button class="mclose" onclick="closeModal('modal-ml')">✕</button></div>
+    <div class="mbody">
+      <input type="hidden" id="mml-id"/>
+      <div class="fr2"><div class="field"><label>Fecha</label><input type="date" id="mml-fecha"/></div><div class="field"><label>Producto</label><input type="text" id="mml-producto"/></div></div>
+      <div class="fr2"><div class="field"><label>Cantidad</label><input type="number" id="mml-qty" min="1"/></div><div class="field"><label>Precio</label><input type="number" id="mml-precio" step="0.01" min="0"/></div></div>
+      <div class="fr2"><div class="field"><label>Neto</label><input type="number" id="mml-neto" step="0.01" min="0"/></div><div class="field"><label>Comprador</label><input type="text" id="mml-comprador"/></div></div>
+      <div class="fr2"><div class="field"><label>Nro Venta</label><input type="text" id="mml-nro"/></div><div class="field"><label>Estado</label><input type="text" id="mml-estado"/></div></div>
+    </div>
+    <div class="mfooter"><button class="btn btn-ghost btn-sm" onclick="closeModal('modal-ml')">Cancelar</button><button class="btn btn-primary btn-sm" onclick="saveMl()">Guardar</button></div>
+  </div>
+</div>
 
 <script>
 // ══════════════════════════════════════════
@@ -926,6 +978,53 @@ function setMatPhotoPreview(dataUrl){
     img.removeAttribute('src');
     wrap.classList.remove('open');
   }
+  updateMatWhatsappButton();
+}
+
+function normalizeArgPhone(tel){
+  if(!tel) return '';
+  tel=String(tel).replace(/\D/g,'');
+  if(!tel) return '';
+  while(tel.startsWith('0')) tel=tel.slice(1);
+  if(!tel.startsWith('54')) tel='54'+tel;
+  return tel;
+}
+
+function getMatWhatsappMessage(){
+  var nombre=document.getElementById('mmat-cli')?.selectedOptions?.[0]?.text || 'cliente';
+  var tipo=document.getElementById('mmat-tipo')?.value||'';
+  var desc=document.getElementById('mmat-desc')?.value.trim()||'';
+  var tel=document.getElementById('mmat-tel')?.value.trim()||'';
+  var foto=document.getElementById('mmat-foto')?.value||'';
+  var msg='Hola '+nombre+', te comparto la foto del matafuego '+tipo+'.';
+  if(desc) msg+=' '+desc+'.';
+  if(foto) msg+=' Ver foto: '+foto;
+  msg+='';
+  return encodeURIComponent(msg);
+}
+
+function updateMatWhatsappButton(){
+  var tel=document.getElementById('mmat-tel')?.value.trim();
+  var foto=document.getElementById('mmat-foto')?.value || '';
+  var btn=document.getElementById('mmat-send-wa');
+  if(!btn) return;
+  if(tel && foto){
+    btn.style.display='inline-flex';
+    btn.title='Abrir WhatsApp con la foto y número del cliente';
+  } else {
+    btn.style.display='none';
+  }
+}
+
+function sendMatPhotoWhatsApp(){
+  var tel=document.getElementById('mmat-tel')?.value.trim();
+  var foto=document.getElementById('mmat-foto')?.value||'';
+  if(!tel){toast('Ingresá teléfono del cliente','err');return;}
+  if(!foto){toast('No hay foto para enviar','err');return;}
+  var normalized=normalizeArgPhone(tel);
+  if(!normalized){toast('Teléfono inválido para WhatsApp','err');return;}
+  var url='https://wa.me/'+normalized+'?text='+getMatWhatsappMessage();
+  window.open(url,'_blank');
 }
 
 function clearMatPhoto(){
@@ -951,7 +1050,16 @@ function readMatPhoto(input){
       canvas.height=Math.max(1,Math.round(img.height*scale));
       var ctx=canvas.getContext('2d');
       ctx.drawImage(img,0,0,canvas.width,canvas.height);
-      setMatPhotoPreview(canvas.toDataURL('image/jpeg', .78));
+      var dataUrl=canvas.toDataURL('image/jpeg', .78);
+      setMatPhotoPreview(dataUrl);
+      var tel=document.getElementById('mmat-tel')?.value.trim();
+      if(tel){
+        setTimeout(function(){
+          if(document.getElementById('mmat-foto')?.value===dataUrl){
+            sendMatPhotoWhatsApp();
+          }
+        }, 400);
+      }
     };
     img.onerror=function(){toast('No se pudo leer la imagen','err');};
     img.src=e.target.result;
@@ -1039,7 +1147,8 @@ function updateClock(){ var d=new Date(); document.getElementById('clock').textC
 setInterval(updateClock,1000); updateClock();
 
 var tabTitles={dashboard:'Panel',ventas:'Nueva Venta',caja:'Caja del Día',historial:'Historial de Ventas',stock:'Control de Stock',movimientos:'Movimientos',clientes:'Clientes',proveedores:'Proveedores',alquileres:'Alquileres',directv:'DirecTV',matafuegos:'Gestión de Matafuegos',renovable:'Energía Renovable'};
-var tabMap={dashboard:0,ventas:1,caja:2,historial:3,stock:4,movimientos:5,clientes:6,proveedores:7,alquileres:8,directv:9,matafuegos:10,renovable:11};
+var tabTitles={dashboard:'Panel',ventas:'Nueva Venta',caja:'Caja del Día',historial:'Historial de Ventas',stock:'Control de Stock',movimientos:'Movimientos',clientes:'Clientes',proveedores:'Proveedores',alquileres:'Alquileres',directv:'DirecTV',mlventas:'ML Ventas',matafuegos:'Gestión de Matafuegos',renovable:'Energía Renovable'};
+var tabMap={dashboard:0,ventas:1,caja:2,historial:3,stock:4,movimientos:5,clientes:6,proveedores:7,alquileres:8,directv:9,mlventas:10,matafuegos:11,renovable:12};
 
 function go(tab){
   document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active');});
@@ -1048,6 +1157,7 @@ function go(tab){
   document.getElementById('topbar-title').textContent=tabTitles[tab]||tab;
   document.querySelectorAll('.nav-item')[tabMap[tab]].classList.add('active');
   var renders={dashboard:renderDash,ventas:initVentas,caja:renderCaja,historial:function(){document.getElementById('hist-fecha').value=todayStr();renderHistorial();},stock:renderStock,movimientos:renderMovimientos,clientes:renderClientes,proveedores:renderProveedores,alquileres:renderAlquileres,directv:renderDtv,matafuegos:renderMatafuegos,renovable:renderRenovables};
+  renders.mlventas = renderMLVentas;
   if(renders[tab]) renders[tab]();
 }
 
@@ -1065,11 +1175,13 @@ async function loadAll(){
       sbGet('proveedores'),
       sbGet('maquinas'),
       sbGet('alquileres'),
-      sbGet('directv')
+      sbGet('directv'),
+      sbGet('ml_ventas')
     ]);
     DB.productos=results[0]; DB.ventas=results[1]; DB.movimientos=results[2];
     DB.clientes=results[3]; DB.proveedores=results[4]; DB.maquinas=results[5];
     DB.alquileres=results[6]; DB.directv=results[7];
+    DB.ml_ventas=results[8];
     
     // Carga segura de nuevas tablas (por si aún no las creaste en Supabase)
     try { DB.matafuegos = await sbGet('matafuegos'); } catch(e) { DB.matafuegos = []; }
@@ -1323,16 +1435,97 @@ function showTicket(v){
 function renderCaja(){
   var today=todayStr();
   document.getElementById('caja-fecha').textContent='Resumen del '+today;
+
+  // Ventas del día
   var v=DB.ventas.filter(function(x){return x.fecha===today;});
   var total=v.reduce(function(s,x){return s+(x.total||0);},0);
   var por={};v.forEach(function(x){por[x.metodo]=(por[x.metodo]||0)+(x.total||0);});
-  document.getElementById('caja-stats').innerHTML=sc('Total Día','orange',fmt(total),v.length+' ventas','💰')+sc('Efectivo','green',fmt(por['Efectivo']||0),'','💵')+sc('Transferencia','blue',fmt(por['Transferencia']||0),'','📲')+sc('Tarjetas','yellow',fmt((por['Débito']||0)+(por['Crédito']||0)),'','💳');
+
+  // Cotizaciones Matafuegos del día
+  var mat=DB.matafuegos.filter(function(x){return x.fecha===today;});
+  var totalMat=mat.reduce(function(s,x){
+    var extra=matExtra(x);
+    return s+(parseFloat(extra.monto)||0);
+  },0);
+
+  // Alquileres activos / iniciados hoy
+  var alq=DB.alquileres.filter(function(x){return x.salida===today;});
+  var totalAlq=alq.reduce(function(s,x){return s+(parseFloat(x.total)||0);},0);
+
+  // Cotizaciones Energía Renovable del día
+  var ren=DB.renovables.filter(function(x){return x.fecha===today;});
+  var totalRen=ren.reduce(function(s,x){return s+(parseFloat(x.monto)||0);},0);
+
+  // Servicios DirecTV del día
+  var dtv=DB.directv.filter(function(x){return x.fecha===today;});
+  var totalDtv=dtv.reduce(function(s,x){return s+(parseFloat(x.monto)||0);},0);
+
+  // Ventas Mercado Libre del día
+  var ml=DB.ml_ventas.filter(function(x){return x.fecha===today;});
+  var totalMl=ml.reduce(function(s,x){return s+(parseFloat(x.neto)||0);},0);
+
+  document.getElementById('caja-stats').innerHTML=
+    sc('Total Ventas','orange',fmt(total),v.length+' ventas','💰')+
+    sc('Efectivo','green',fmt(por['Efectivo']||0),'','💵')+
+    sc('Transferencia','blue',fmt(por['Transferencia']||0),'','📲')+
+    sc('Tarjetas','yellow',fmt((por['Débito']||0)+(por['Crédito']||0)),'','💳')+
+    sc('Matafuegos','red',fmt(totalMat),mat.length+' cotizaciones','🧯')+
+    sc('ML Ventas','blue',fmt(totalMl),ml.length+' ventas','🛒')+
+    sc('Alquileres','blue',fmt(totalAlq),alq.length+' alquileres','🔧')+
+    sc('Energía Renovable','green',fmt(totalRen),ren.length+' cotizaciones','☀️')+
+    sc('DirecTV','yellow',fmt(totalDtv),dtv.length+' servicios','📡');
+
   var tb=document.getElementById('caja-tbody'); tb.innerHTML='';
+
+  // Filas de ventas
   v.forEach(function(x){
     var cn=x.cliente_id?(DB.clientes.find(function(c){return c.id===x.cliente_id;})||{nombre:'—'}).nombre:'Consumidor final';
     tb.innerHTML+='<tr><td style="font-family:var(--mono);color:var(--muted);font-size:11px">#'+esc(x.ticket)+'</td><td>'+x.hora+'</td><td>'+esc(cn)+'</td><td>'+(Array.isArray(x.items)?x.items.length:0)+' items</td><td><span class="badge '+(x.metodo==='Efectivo'?'badge-green':x.metodo==='Transferencia'?'badge-blue':'badge-yellow')+'">'+x.metodo+'</span></td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(x.total)+'</td><td><button class="btn btn-ghost btn-xs" onclick=\'showTicket('+JSON.stringify(x).replace(/'/g,"&#39;")+')\'">🧾</button></td></tr>';
   });
-  document.getElementById('caja-empty').style.display=v.length?'none':'block';
+
+  // Separador + filas de Matafuegos
+  if(mat.length){
+    tb.innerHTML+='<tr><td colspan="7" style="background:var(--s3);color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:6px 13px">🧯 Cotizaciones Matafuegos</td></tr>';
+    mat.forEach(function(x){
+      var extra=matExtra(x);
+      var monto=parseFloat(extra.monto)||0;
+      tb.innerHTML+='<tr><td style="font-family:var(--mono);color:var(--muted);font-size:11px">—</td><td>—</td><td>'+esc(x.cliente_nombre||'—')+'</td><td>'+esc(x.tipo||'—')+'</td><td><span class="badge badge-red">Matafuego</span></td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(monto)+'</td><td><button class="btn btn-ghost btn-xs" onclick="printMatQuote('+x.id+')">🧾</button></td></tr>';
+    });
+  }
+
+  // Separador + filas de Alquileres
+  if(alq.length){
+    tb.innerHTML+='<tr><td colspan="7" style="background:var(--s3);color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:6px 13px">🔧 Alquileres del Día</td></tr>';
+    alq.forEach(function(x){
+      tb.innerHTML+='<tr><td style="font-family:var(--mono);color:var(--muted);font-size:11px">—</td><td>—</td><td>'+esc(x.cliente_nombre||'—')+'</td><td>'+esc(x.maq_nombre||'—')+' ('+x.dias+' días)</td><td><span class="badge badge-blue">Alquiler</span></td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(x.total||0)+'</td><td></td></tr>';
+    });
+  }
+
+  // Separador + filas de Energía Renovable
+  if(ren.length){
+    tb.innerHTML+='<tr><td colspan="7" style="background:var(--s3);color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:6px 13px">☀️ Cotizaciones Energía Renovable</td></tr>';
+    ren.forEach(function(x){
+      tb.innerHTML+='<tr><td style="font-family:var(--mono);color:var(--muted);font-size:11px">—</td><td>—</td><td>'+esc(x.cliente_nombre||'—')+'</td><td>'+esc(x.tipo||'—')+'</td><td><span class="badge badge-orange">Renovable</span></td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(x.monto||0)+'</td><td><button class="btn btn-ghost btn-xs" onclick="printRenovQuote('+x.id+')">🧾</button></td></tr>';
+    });
+  }
+
+  // Separador + filas de DirecTV
+  if(dtv.length){
+    tb.innerHTML+='<tr><td colspan="7" style="background:var(--s3);color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:6px 13px">📡 Servicios DirecTV</td></tr>';
+    dtv.forEach(function(x){
+      tb.innerHTML+='<tr><td style="font-family:var(--mono);color:var(--muted);font-size:11px">—</td><td>—</td><td>'+esc(x.cliente_nombre||'—')+'</td><td>'+esc(x.tipo||'—')+(x.tecnico?' · '+esc(x.tecnico):'')+'</td><td><span class="badge badge-yellow">DirecTV</span></td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(x.monto||0)+'</td><td></td></tr>';
+    });
+  }
+
+  // Separador + filas de ML Ventas
+  if(ml.length){
+    tb.innerHTML+='<tr><td colspan="7" style="background:var(--s3);color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:6px 13px">🛒 Ventas Mercado Libre</td></tr>';
+    ml.forEach(function(x){
+      tb.innerHTML+='<tr><td style="font-family:var(--mono);color:var(--muted);font-size:11px">—</td><td>—</td><td>'+esc(x.producto_nombre||x.producto||'—')+'</td><td>'+esc(x.qty||1)+'</td><td><span class="badge badge-blue">ML</span></td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(x.neto||0)+'</td><td>'+esc(x.comprador||'—')+'</td></tr>';
+    });
+  }
+
+  document.getElementById('caja-empty').style.display=(v.length||mat.length||alq.length||ren.length||dtv.length||ml.length)?'none':'block';
 }
 
 // ══════════════════════════════════════════
@@ -1349,7 +1542,7 @@ function renderHistorial(){
   var tb=document.getElementById('hist-tbody'); tb.innerHTML='';
   filtered.forEach(function(v){
     var cn=v.cliente_id?(DB.clientes.find(function(c){return c.id===v.cliente_id;})||{nombre:'—'}).nombre:'Consumidor final';
-    tb.innerHTML+='<tr><td style="font-family:var(--mono);color:var(--orange)">#'+esc(v.ticket)+'</td><td style="color:var(--muted);font-size:11px">'+v.fecha+' '+v.hora+'</td><td>'+esc(cn)+'</td><td>'+(Array.isArray(v.items)?v.items.length:0)+'</td><td><span class="badge '+(v.metodo==='Efectivo'?'badge-green':v.metodo==='Transferencia'?'badge-blue':'badge-yellow')+'">'+v.metodo+'</span></td><td>'+(v.desc_pct?'<span class="badge badge-red">-'+v.desc_pct+'%</span>':'<span style="color:var(--dim)">—</span>')+'</td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(v.total)+'</td><td><button class="btn btn-ghost btn-xs" onclick=\'showTicket('+JSON.stringify(v).replace(/'/g,"&#39;")+')\'">🧾</button></td></tr>';
+    tb.innerHTML+='<tr><td style="font-family:var(--mono);color:var(--orange)">#'+esc(v.ticket)+'</td><td style="color:var(--muted);font-size:11px">'+v.fecha+' '+v.hora+'</td><td>'+esc(cn)+'</td><td>'+(Array.isArray(v.items)?v.items.length:0)+'</td><td><span class="badge '+(v.metodo==='Efectivo'?'badge-green':v.metodo==='Transferencia'?'badge-blue':'badge-yellow')+'">'+v.metodo+'</span></td><td>'+(v.desc_pct?'<span class="badge badge-red">-'+v.desc_pct+'%</span>':'<span style="color:var(--dim)">—</span>')+'</td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(v.total)+'</td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="openEditVenta('+v.id+')">✏</button><button class="btn btn-ghost btn-xs" onclick=\'showTicket('+JSON.stringify(v).replace(/'/g,"&#39;")+')\'">🧾</button></div></td></tr>';
   });
   document.getElementById('hist-empty').style.display=filtered.length?'none':'block';
 }
@@ -1798,6 +1991,7 @@ function fillMatPhone(){
   var sel = document.getElementById('mmat-cli');
   if(sel.selectedOptions.length && sel.selectedOptions[0].dataset.tel){
     document.getElementById('mmat-tel').value = sel.selectedOptions[0].dataset.tel;
+    updateMatWhatsappButton();
   }
 }
 
@@ -1807,9 +2001,10 @@ async function saveMat(){
   var cn=cliId?(DB.clientes.find(function(c){return c.id===cliId;})||{nombre:'Particular'}).nombre:'Particular';
   
   var photoValue=document.getElementById('mmat-foto').value.trim();
+  var uploadedPhotoUrl=photoValue;
   if(photoValue && photoValue.indexOf('data:image/')===0){
     try {
-      photoValue=await uploadStorageImage('matafuegos-fotos', photoValue, 'matafuego');
+      uploadedPhotoUrl=await uploadStorageImage('matafuegos-fotos', photoValue, 'matafuego');
     } catch(upErr) {
       console.error('Error subiendo foto a Supabase Storage:', upErr);
       toast('No se pudo subir la foto a Supabase, se guarda en el registro','warn');
@@ -1820,7 +2015,7 @@ async function saveMat(){
     descripcion: document.getElementById('mmat-desc').value.trim(),
     monto: parseFloat(document.getElementById('mmat-monto').value)||0,
     validez: document.getElementById('mmat-validez').value,
-    foto: photoValue
+    foto: uploadedPhotoUrl
   };
   var obj={
     fecha: todayStr(),
@@ -1841,6 +2036,9 @@ async function saveMat(){
   try {
     if(id){await sbUpdate('matafuegos',id,obj);}else{await sbInsert('matafuegos',obj);}
     await loadAll(); closeModal('modal-matafuegos'); renderMatafuegos(); toast('Registro guardado');
+    if(uploadedPhotoUrl && uploadedPhotoUrl.indexOf('http')===0 && obj.telefono){
+      setTimeout(sendMatPhotoWhatsApp, 800);
+    }
   } catch(e){
     if(String(e.message||e).match(/descripcion|monto|validez|schema cache|column/i)){
       try {
@@ -1979,6 +2177,141 @@ function printRenovQuote(id){
     monto:r.monto
   });
 }
+
+// ══════════════════════════════════════════
+// EDIT VENTAS (Historial)
+// ══════════════════════════════════════════
+function openEditVenta(id){
+  var v=DB.ventas.find(function(x){return x.id===id;});
+  if(!v){toast('Venta no encontrada','err');return;}
+  var sel=document.getElementById('editv-cliente'); sel.innerHTML='<option value="">— Consumidor final —</option>';
+  DB.clientes.forEach(function(c){sel.innerHTML+='<option value="'+c.id+'">'+esc(c.nombre)+'</option>';});
+  document.getElementById('editv-id').value=v.id||'';
+  document.getElementById('editv-cliente').value=v.cliente_id||'';
+  document.getElementById('editv-fecha').value=v.fecha||todayStr();
+  document.getElementById('editv-hora').value=v.hora||nowTime();
+  document.getElementById('editv-metodo').value=v.metodo||'Efectivo';
+  document.getElementById('editv-descpct').value=v.desc_pct||0;
+  document.getElementById('editv-total').value=v.total||0;
+  document.getElementById('editv-obs').value=v.obs||'';
+  // prepare products select
+  var ps=document.getElementById('editv-prod-select'); ps.innerHTML='';
+  DB.productos.forEach(function(p){ ps.innerHTML+='<option value="'+p.id+'">'+esc(p.nombre)+' — '+fmt(p.precio)+'</option>'; });
+  // load items into temporary array for editing
+  window._editVentaItems = Array.isArray(v.items)? JSON.parse(JSON.stringify(v.items)) : [];
+  renderEditItems();
+  openModal('modal-edit-venta');
+}
+
+async function saveVentaEdit(){
+  var id=parseInt(document.getElementById('editv-id').value);
+  if(!id){toast('ID inválido','err');return;}
+  var obj={
+    cliente_id: parseInt(document.getElementById('editv-cliente').value)||null,
+    fecha: document.getElementById('editv-fecha').value||todayStr(),
+    hora: document.getElementById('editv-hora').value||nowTime(),
+    metodo: document.getElementById('editv-metodo').value,
+    desc_pct: parseFloat(document.getElementById('editv-descpct').value)||0,
+    total: parseFloat(document.getElementById('editv-total').value)||0,
+    obs: document.getElementById('editv-obs').value.trim()
+  };
+  // include edited items if present
+  if(window._editVentaItems) obj.items = window._editVentaItems;
+  setSyncing(true);
+  try{
+    await sbUpdate('ventas', id, obj);
+    await loadAll(); closeModal('modal-edit-venta'); renderHistorial(); toast('Venta actualizada');
+  } catch(e){toast('Error: '+e.message,'err');}
+  setSyncing(null);
+}
+
+function renderEditItems(){
+  var wrap=document.getElementById('editv-items-list'); if(!wrap) return;
+  var items=window._editVentaItems||[];
+  if(!items.length){ wrap.innerHTML='<div class="cart-empty">Sin items.</div>'; return; }
+  wrap.innerHTML='';
+  items.forEach(function(it,idx){
+    var row=document.createElement('div'); row.className='cart-item';
+    row.innerHTML='<div style="flex:1;min-width:0"><div class="ci-name">'+esc(it.nombre||it.nombre)+'</div><div class="ci-unit">'+(it.precio?fmt(it.precio)+' /':'')+' '+(it.unidad||'')+'</div></div>'+
+      '<div class="ci-qty"><button onclick="changeEditQty('+idx+',-1)">−</button><input type="number" value="'+(it.qty||1)+'" min="1" onchange="setEditQty('+idx+',this.value)"/><button onclick="changeEditQty('+idx+',1)">+</button></div>'+
+      '<div class="ci-price">'+fmt((it.precio||0)*(it.qty||1))+'</div><div class="ci-del" onclick="removeEditItem('+idx+')">✕</div>';
+    wrap.appendChild(row);
+  });
+}
+
+function addEditItemFromSelect(){
+  var sel=document.getElementById('editv-prod-select'); if(!sel) return;
+  var pid=parseInt(sel.value); var p=DB.productos.find(function(x){return x.id===pid;});
+  if(!p){toast('Producto no encontrado','err');return;}
+  window._editVentaItems = window._editVentaItems||[];
+  var ex=window._editVentaItems.find(function(i){return i.prodId===p.id;});
+  if(ex){ ex.qty = (ex.qty||1)+1; } else {
+    window._editVentaItems.push({prodId:p.id,nombre:p.nombre,unidad:p.unidad,precio:p.precio,qty:1});
+  }
+  renderEditItems();
+  // recalc total suggested
+  var sub=window._editVentaItems.reduce(function(s,i){return s+(i.precio||0)*(i.qty||1);},0);
+  document.getElementById('editv-total').value = sub - sub*(parseFloat(document.getElementById('editv-descpct').value)||0)/100;
+}
+
+function changeEditQty(idx,d){ if(!window._editVentaItems||!window._editVentaItems[idx]) return; window._editVentaItems[idx].qty = Math.max(1,(window._editVentaItems[idx].qty||1)+d); renderEditItems(); }
+function setEditQty(idx,v){ if(!window._editVentaItems||!window._editVentaItems[idx]) return; window._editVentaItems[idx].qty = Math.max(1,parseInt(v)||1); renderEditItems(); }
+function removeEditItem(idx){ if(!window._editVentaItems) return; window._editVentaItems.splice(idx,1); renderEditItems(); }
+
+// ══════════════════════════════════════════
+// ML VENTAS
+// ══════════════════════════════════════════
+function renderMLVentas(){
+  var tb=document.getElementById('ml-tbody'); tb.innerHTML='';
+  DB.ml_ventas.forEach(function(m){
+    tb.innerHTML+='<tr><td style="font-family:var(--mono);font-size:11px">'+esc(m.id)+'</td><td style="font-size:11px;color:var(--muted)">'+(m.fecha||'—')+'</td><td style="font-weight:600;font-size:12px">'+esc(m.producto_nombre||m.producto||'—')+'</td><td style="font-family:var(--mono);text-align:center">'+(m.qty||1)+'</td><td style="font-family:var(--mono)">'+fmt(m.precio||0)+'</td><td style="font-family:var(--mono)">'+fmt(m.neto||m.neto||0)+'</td><td>'+esc(m.comprador||'—')+'</td><td>'+esc(m.nro_venta||'—')+'</td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="openMlModal('+m.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delMl('+m.id+')">🗑</button></div></td></tr>';
+  });
+  document.getElementById('ml-empty').style.display=DB.ml_ventas&&DB.ml_ventas.length?'none':'block';
+}
+
+function openMlModal(id){
+  document.getElementById('mml-id').value=id||'';
+  if(id){
+    var m=DB.ml_ventas.find(function(x){return x.id===id;});
+    if(!m){toast('Registro no encontrado','err');return;}
+    document.getElementById('mml-fecha').value=m.fecha||todayStr();
+    document.getElementById('mml-producto').value=m.producto_nombre||m.producto||'';
+    document.getElementById('mml-qty').value=m.qty||1;
+    document.getElementById('mml-precio').value=m.precio||0;
+    document.getElementById('mml-neto').value=m.neto||0;
+    document.getElementById('mml-comprador').value=m.comprador||'';
+    document.getElementById('mml-nro').value=m.nro_venta||'';
+    document.getElementById('mml-estado').value=m.estado||'';
+  } else {
+    ['mml-fecha','mml-producto','mml-qty','mml-precio','mml-neto','mml-comprador','mml-nro','mml-estado'].forEach(function(id2){document.getElementById(id2).value='';});
+    document.getElementById('mml-fecha').value=todayStr();
+    document.getElementById('mml-qty').value=1;
+  }
+  openModal('modal-ml');
+}
+
+async function saveMl(){
+  var id=document.getElementById('mml-id').value;
+  var obj={
+    fecha: document.getElementById('mml-fecha').value||todayStr(),
+    producto_nombre: document.getElementById('mml-producto').value.trim(),
+    qty: parseInt(document.getElementById('mml-qty').value)||1,
+    precio: parseFloat(document.getElementById('mml-precio').value)||0,
+    neto: parseFloat(document.getElementById('mml-neto').value)||0,
+    comprador: document.getElementById('mml-comprador').value.trim(),
+    nro_venta: document.getElementById('mml-nro').value.trim(),
+    estado: document.getElementById('mml-estado').value.trim()
+  };
+  setSyncing(true);
+  try{
+    if(id){ await sbUpdate('ml_ventas', id, obj); }
+    else { await sbInsert('ml_ventas', obj); }
+    await loadAll(); closeModal('modal-ml'); renderMLVentas(); toast('Guardado');
+  } catch(e){toast('Error: '+e.message,'err');}
+  setSyncing(null);
+}
+
+async function delMl(id){ if(!confirm('¿Eliminar registro?'))return; try{ await sbDelete('ml_ventas', id); await loadAll(); renderMLVentas(); toast('Eliminado','warn'); } catch(e){ toast('Error: '+e.message,'err'); } }
 
 // ══════════════════════════════════════════
 // INIT
