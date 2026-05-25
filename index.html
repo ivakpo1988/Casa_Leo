@@ -1023,8 +1023,14 @@ function sendMatPhotoWhatsApp(){
   if(!foto){toast('No hay foto para enviar','err');return;}
   var normalized=normalizeArgPhone(tel);
   if(!normalized){toast('Teléfono inválido para WhatsApp','err');return;}
-  var url='https://wa.me/'+normalized+'?text='+getMatWhatsappMessage();
-  window.open(url,'_blank');
+  var message=encodeURIComponent(getMatWhatsappMessage());
+  if(/Android/i.test(navigator.userAgent)){
+    var url='intent://send?phone='+normalized+'&text='+message+'#Intent;scheme=whatsapp;package=com.whatsapp;end';
+    window.location.href=url;
+  } else {
+    var url='whatsapp://send?phone='+normalized+'&text='+message;
+    window.location.href=url;
+  }
 }
 
 function clearMatPhoto(){
