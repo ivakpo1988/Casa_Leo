@@ -981,12 +981,43 @@ function setMatPhotoPreview(dataUrl){
   updateMatWhatsappButton();
 }
 
+function saveMatPhotoToDevice(dataUrl){
+  if(!dataUrl) return;
+  // convertir dataURL a blob
+  var arr = dataUrl.split(','), mime = arr[0].match(/:(.*?);/)[1], bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+  while(n--) u8arr[n] = bstr.charCodeAt(n);
+  var blob = new Blob([u8arr], {type:mime});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  var now = new Date();
+  var ts = now.toISOString().replace(/[:.]/g,'-');
+  a.href = url;
+  a.download = 'matafuego-'+ts+'.jpg';
+  // intentar disparar la descarga; algunos browsers móviles pueden bloquearla
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function(){
+    URL.revokeObjectURL(url);
+    a.remove();
+  }, 1000);
+}
+
 function normalizeArgPhone(tel){
   if(!tel) return '';
-  tel=String(tel).replace(/\D/g,'');
+  tel = String(tel).trim();
+  // allow +54, 0054, spaces, dashes, parentheses
+  // strip leading + or international 00 prefix
+  if(tel.startsWith('+')) tel = tel.slice(1);
+  if(tel.startsWith('00')) tel = tel.slice(2);
+  // keep only digits
+  tel = tel.replace(/\D/g, '');
   if(!tel) return '';
-  while(tel.startsWith('0')) tel=tel.slice(1);
-  if(!tel.startsWith('54')) tel='54'+tel;
+  // remove accidental leading zeros
+  while(tel.startsWith('0')) tel = tel.slice(1);
+  // if no country code, assume Argentina (54)
+  if(!tel.startsWith('54')) tel = '54' + tel;
+  // basic length check: after adding country code should be >= 10 digits
+  if(tel.length < 10) return '';
   return tel;
 }
 
@@ -1053,6 +1084,8 @@ function readMatPhoto(input){
       ctx.drawImage(img,0,0,canvas.width,canvas.height);
       var dataUrl=canvas.toDataURL('image/jpeg', .78);
       setMatPhotoPreview(dataUrl);
+      // guardar copia en el dispositivo para adjuntar manualmente en WhatsApp
+      try{ saveMatPhotoToDevice(dataUrl); }catch(e){ console.warn('No se pudo guardar foto automáticamente',e); }
       var tel=document.getElementById('mmat-tel')?.value.trim();
       if(tel){
         setTimeout(function(){
