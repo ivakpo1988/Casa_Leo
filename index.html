@@ -992,25 +992,22 @@ function normalizeArgPhone(tel){
 
 function getMatWhatsappMessage(){
   var nombre=document.getElementById('mmat-cli')?.selectedOptions?.[0]?.text || 'cliente';
-  var tipo=document.getElementById('mmat-tipo')?.value||'';
-  var desc=document.getElementById('mmat-desc')?.value.trim()||'';
-  var tel=document.getElementById('mmat-tel')?.value.trim()||'';
-  var foto=document.getElementById('mmat-foto')?.value||'';
-  var msg='Hola '+nombre+', te comparto la foto del matafuego '+tipo+'.';
-  if(desc) msg+=' '+desc+'.';
-  if(foto) msg+=' Ver foto: '+foto;
-  msg+='';
-  return encodeURIComponent(msg);
+  var tipo=document.getElementById('mmat-tipo')?.value||'Cotizacion/Recarga';
+  var tipoText=tipo;
+  var msg='Hola '+nombre+' 👋\n';
+  msg+='Te enviamos la foto del matafuego registrado ('+tipoText+') desde *Casa Leo*.\n';
+  msg+='♣️ Adjuntamos la imagen en este mensaje.\n';
+  msg+='Cualquier consulta estamos a disposición.';
+  return msg;
 }
 
 function updateMatWhatsappButton(){
   var tel=document.getElementById('mmat-tel')?.value.trim();
-  var foto=document.getElementById('mmat-foto')?.value || '';
   var btn=document.getElementById('mmat-send-wa');
   if(!btn) return;
-  if(tel && foto){
+  if(tel){
     btn.style.display='inline-flex';
-    btn.title='Abrir WhatsApp con la foto y número del cliente';
+    btn.title='Enviar texto a WhatsApp. Adjunta la foto manualmente si es necesario.';
   } else {
     btn.style.display='none';
   }
@@ -1018,9 +1015,7 @@ function updateMatWhatsappButton(){
 
 function sendMatPhotoWhatsApp(){
   var tel=document.getElementById('mmat-tel')?.value.trim();
-  var foto=document.getElementById('mmat-foto')?.value||'';
   if(!tel){toast('Ingresá teléfono del cliente','err');return;}
-  if(!foto){toast('No hay foto para enviar','err');return;}
   var normalized=normalizeArgPhone(tel);
   if(!normalized){toast('Teléfono inválido para WhatsApp','err');return;}
   var message=encodeURIComponent(getMatWhatsappMessage());
