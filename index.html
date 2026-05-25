@@ -2318,7 +2318,8 @@ function removeEditItem(idx){ if(!window._editVentaItems) return; window._editVe
 function renderMLVentas(){
   var tb=document.getElementById('ml-tbody'); tb.innerHTML='';
   DB.ml_ventas.forEach(function(m){
-    tb.innerHTML+='<tr><td style="font-family:var(--mono);font-size:11px">'+esc(m.id)+'</td><td style="font-size:11px;color:var(--muted)">'+(m.fecha||'—')+'</td><td style="font-weight:600;font-size:12px">'+esc(m.producto_nombre||m.producto||'—')+'</td><td style="font-family:var(--mono);text-align:center">'+(m.qty||1)+'</td><td style="font-family:var(--mono)">'+fmt(m.precio||0)+'</td><td style="font-family:var(--mono)">'+fmt(m.neto||0)+'</td><td>'+esc(m.comprador||'—')+'</td><td>'+esc(m.nro_venta||'—')+'</td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="openMlModal('+parseInt(m.id)+')">✏</button><button class="btn btn-danger btn-xs" onclick="delMl('+parseInt(m.id)+')">🗑</button></div></td></tr>';
+    var idEsc=String(m.id||'').replace(/'/g,"\\'");
+    tb.innerHTML+='<tr><td style="font-family:var(--mono);font-size:11px">'+esc(m.id)+'</td><td style="font-size:11px;color:var(--muted)">'+(m.fecha||'—')+'</td><td style="font-weight:600;font-size:12px">'+esc(m.producto_nombre||m.producto||'—')+'</td><td style="font-family:var(--mono);text-align:center">'+(m.qty||1)+'</td><td style="font-family:var(--mono)">'+fmt(m.precio||0)+'</td><td style="font-family:var(--mono)">'+fmt(m.neto||0)+'</td><td>'+esc(m.comprador||'—')+'</td><td>'+esc(m.nro_venta||'—')+'</td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="openMlModal(\''+idEsc+'\')">✏</button><button class="btn btn-danger btn-xs" onclick="delMl(\''+idEsc+'\')">🗑</button></div></td></tr>';
   });
   document.getElementById('ml-empty').style.display=DB.ml_ventas&&DB.ml_ventas.length?'none':'block';
 }
@@ -2326,8 +2327,8 @@ function renderMLVentas(){
 function openMlModal(id){
   document.getElementById('mml-id').value=id||'';
   if(id){
-    var m=DB.ml_ventas.find(function(x){return x.id==id;});
-    if(!m){toast('Registro no encontrado','err');return;}
+    var m=DB.ml_ventas.find(function(x){return String(x.id)==String(id);});
+    if(!m){toast('Registro no encontrado: '+id,'err');return;}
     document.getElementById('mml-fecha').value=m.fecha||todayStr();
     document.getElementById('mml-producto').value=m.producto_nombre||m.producto||'';
     document.getElementById('mml-qty').value=m.qty||1;
@@ -2345,8 +2346,8 @@ function openMlModal(id){
 }
 
 async function saveMl(){
-  var id=document.getElementById('mml-id').value;
-  if(id) id=parseInt(id);
+  var id=document.getElementById('mml-id').value||null;
+  if(id) id=parseInt(id)||id; // intenta parsear como número, sino mantiene como string
   var obj={
     fecha: document.getElementById('mml-fecha').value||todayStr(),
     producto_nombre: document.getElementById('mml-producto').value.trim(),
@@ -2367,7 +2368,7 @@ async function saveMl(){
 }
 
 async function delMl(id){ 
-  id=parseInt(id);
+  id=parseInt(id)||id; // intenta parsear como número, sino mantiene como string
   if(!confirm('¿Eliminar registro?'))return; 
   try{ 
     await sbDelete('ml_ventas', id); 
