@@ -238,7 +238,41 @@ tbody tr:hover td:last-child{background:var(--s3)}
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:var(--s3);border-radius:3px}
+
+/* LIGHT MODE */
+html.light-mode{
+  --bg:#f5f7fb;--s1:#ffffff;--s2:#f0f2f5;--s3:#e8eaef;
+  --border:#d0d7de;--border2:#c9cfd8;
+  --text:#24292f;--muted:#57606a;--dim:#6e7681;
+}
+html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
+
+/* TOPBAR BUTTONS */
+.topbar-btn{background:none;border:none;color:var(--muted);cursor:pointer;padding:4px 8px;border-radius:4px;transition:.2s}
+.topbar-btn:hover{color:var(--text);background:var(--s3)}
+
+/* GLOBAL SEARCH MODAL */
+#global-search-modal{position:fixed;inset:0;background:#00000088;z-index:200;display:none;align-items:flex-start;justify-content:center;padding-top:80px}
+#global-search-modal.open{display:flex}
+#gs-container{background:var(--s1);border:1px solid var(--border);border-radius:10px;width:90%;max-width:500px;box-shadow:0 20px 60px #00000044}
+#gs-input{width:100%;padding:14px 18px;background:var(--s1);border:none;border-bottom:1px solid var(--border);color:var(--text);font-size:15px;outline:none;font-family:var(--mono)}
+#gs-results{max-height:400px;overflow-y:auto;list-style:none}
+.gs-item{padding:12px 18px;cursor:pointer;border-bottom:1px solid var(--border);transition:.1s}
+.gs-item:hover{background:var(--s3)}
+.gs-item-label{color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase}
+.gs-item-text{color:var(--text);font-size:13px}
+
+/* EXPORT BUTTONS */
+.export-btn{background:none;border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:4px;font-size:12px;cursor:pointer;transition:.2s}
+.export-btn:hover{border-color:var(--orange);color:var(--orange)}
 </style>
+<script>
+// Cargar tema guardado
+(function(){
+  var theme=localStorage.getItem('appTheme')||'dark';
+  if(theme==='light') document.documentElement.classList.add('light-mode');
+})();
+</script>
 </head>
 <body>
 
@@ -328,6 +362,9 @@ tbody tr:hover td:last-child{background:var(--s3)}
   <div id="topbar">
     <div class="topbar-title" id="topbar-title">Panel</div>
     <div class="topbar-right">
+      <button class="topbar-btn" title="Buscar (Ctrl+K)" onclick="openGlobalSearch()">🔍</button>
+      <button class="topbar-btn" title="Exportar" onclick="showExportMenu()">📥</button>
+      <button class="topbar-btn" title="Tema" onclick="toggleDarkMode()">🌙</button>
       <div id="sync-dot" class="sync-dot" title="Conectado a Supabase"></div>
       <div id="clock"></div>
     </div>
@@ -2381,8 +2418,109 @@ async function delMl(id){
 }
 
 // ══════════════════════════════════════════
+// MEJORAS 2026: Dark Mode, Búsqueda Global, Export
+// ══════════════════════════════════════════
+
+function toggleDarkMode(){
+  var isDark=document.documentElement.classList.toggle('light-mode');
+  localStorage.setItem('appTheme', isDark?'light':'dark');
+  toast(isDark?'Tema claro activado':'Tema oscuro activado');
+}
+
+function openGlobalSearch(){
+  var modal=document.getElementById('global-search-modal');
+  if(!modal){createGlobalSearchModal();}
+  modal=document.getElementById('global-search-modal');
+  modal.classList.add('open');
+  modal.querySelector('#gs-input').focus();
+}
+
+function createGlobalSearchModal(){
+  if(document.getElementById('global-search-modal')) return;
+  var html='<div id="global-search-modal"><div id="gs-container"><input id="gs-input" placeholder="Buscar clientes, productos, ventas..."/><ul id="gs-results"></ul></div></div>';
+  document.body.insertAdjacentHTML('beforeend',html);
+  var inp=document.getElementById('gs-input');
+  var results=document.getElementById('gs-results');
+  inp.oninput=function(){
+    var q=(this.value||'').toLowerCase();
+    results.innerHTML='';
+    if(!q) return;
+    var hits=[];
+    // Buscar en clientes
+    DB.clientes.forEach(function(c){
+      if(c.nombre.toLowerCase().includes(q) || (c.tel||'').includes(q))
+        hits.push({type:'Cliente',text:c.nombre+' ('+c.tel+')',onclick:'go("clientes")'});
+    });
+    // Buscar en productos
+    DB.productos.forEach(function(p){
+      if(p.nombre.toLowerCase().includes(q) || (p.codigo||'').includes(q))
+        hits.push({type:'Producto',text:p.nombre+' ($'+fmt(p.precio)+')',onclick:'go("inventario")'});
+    });
+    // Buscar en ventas
+    DB.ventas.forEach(function(v){
+      if((v.cliente_nombre||'').toLowerCase().includes(q) || String(v.id).includes(q))
+        hits.push({type:'Venta',text:'#'+v.id+' - '+esc(v.cliente_nombre||'Consumidor')+' ($'+fmt(v.total)+')',onclick:'go("historial")'});
+    });
+    hits.slice(0,15).forEach(function(h){
+      results.innerHTML+='<li class="gs-item" onclick="'+h.onclick+'; document.getElementById(\'global-search-modal\').classList.remove(\'open\')"><div class="gs-item-label">'+h.type+'</div><div class="gs-item-text">'+h.text+'</div></li>';
+    });
+  };
+  document.addEventListener('keydown',function(e){
+    if(e.ctrlKey && e.key==='k') { e.preventDefault(); openGlobalSearch(); }
+    if(e.key==='Escape') document.getElementById('global-search-modal').classList.remove('open');
+  });
+  document.getElementById('global-search-modal').onclick=function(e){ if(e.target===this) this.classList.remove('open'); };
+}
+
+function showExportMenu(){
+  var opts=['Descargar Ventas (CSV)','Descargar Clientes (CSV)','Descargar Productos (CSV)'];
+  var result=prompt('Exportar:\n1. Ventas\n2. Clientes\n3. Productos\n(ingresá número)','1');
+  if(result==='1') exportSalesCSV();
+  else if(result==='2') exportClientsCSV();
+  else if(result==='3') exportProductsCSV();
+}
+
+function exportSalesCSV(){
+  var csv='ID,Fecha,Cliente,Producto,Qty,Precio,Total,Descuento,Pago\n';
+  DB.ventas.forEach(function(v){
+    v.items.forEach(function(it){
+      csv+=v.id+','+v.fecha+','+v.cliente_nombre+','+it.nombre+','+it.qty+','+it.precio+','+it.subtotal+','+v.desc+'%,'+v.pago+'\n';
+    });
+  });
+  downloadCSV(csv,'ventas.csv');
+}
+
+function exportClientsCSV(){
+  var csv='Nombre,Tel,Email,Dir,Compras,Deuda,Último Pedido\n';
+  DB.clientes.forEach(function(c){
+    csv+=c.nombre+','+c.tel+','+c.email+','+c.dir+','+c.compras+','+c.deuda_cc+','+c.ultimo_pedido+'\n';
+  });
+  downloadCSV(csv,'clientes.csv');
+}
+
+function exportProductsCSV(){
+  var csv='Código,Nombre,Categoría,Precio,Stock,Proveedor\n';
+  DB.productos.forEach(function(p){
+    csv+=p.codigo+','+p.nombre+','+p.cat+','+p.precio+','+p.stock+','+p.prov+'\n';
+  });
+  downloadCSV(csv,'productos.csv');
+}
+
+function downloadCSV(csv,filename){
+  var blob=new Blob([csv],{type:'text/csv'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;
+  a.download=filename;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Archivo '+filename+' descargado');
+}
+
+// ══════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════
+createGlobalSearchModal();
 loadAll();
 </script>
 </body>
