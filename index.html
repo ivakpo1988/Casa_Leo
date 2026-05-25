@@ -265,6 +265,16 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
 /* EXPORT BUTTONS */
 .export-btn{background:none;border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:4px;font-size:12px;cursor:pointer;transition:.2s}
 .export-btn:hover{border-color:var(--orange);color:var(--orange)}
+#export-print-wrapper{display:none;}
+@media print {
+  body *{visibility:hidden !important;}
+  #export-print-wrapper, #export-print-wrapper *{visibility:visible !important;}
+  #export-print-wrapper{position:absolute;left:0;top:0;width:100%;padding:20px;display:block !important;background:#fff;color:#000;}
+  #export-print-wrapper table{width:100%;border-collapse:collapse;margin-top:14px;}
+  #export-print-wrapper th,#export-print-wrapper td{border:1px solid #222;padding:8px;text-align:left;}
+  #export-print-wrapper h1{font-size:22px;margin:0 0 12px 0;}
+}
+
 </style>
 <script>
 // Cargar tema guardado
@@ -393,7 +403,7 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
     <div class="section" id="tab-ventas">
       <div class="ph">
         <div><div class="ph-title">Nueva Venta</div><div class="ph-sub">Ticket #<span id="ticket-num">—</span></div></div>
-        <div class="ph-actions"><button class="btn btn-ghost btn-sm" onclick="go('historial')">📋 Historial</button></div>
+        <div class="ph-actions"><button class="btn btn-ghost btn-sm" onclick="go('historial')">📋 Historial</button><button class="btn btn-ghost btn-sm" onclick="exportCartPDF()">📄 Exportar PDF</button></div>
       </div>
       <div class="sale-layout">
         <div>
@@ -474,6 +484,7 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
         <div><div class="ph-title">Historial de Ventas</div></div>
         <div class="ph-actions">
           <input type="date" class="fi" id="hist-fecha" oninput="renderHistorial()"/>
+          <button class="btn btn-primary btn-sm" onclick="exportHistorialPDF()">📄 Exportar PDF</button>
         </div>
       </div>
       <div class="fbar">
@@ -842,6 +853,7 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
 </div>
 
 <div id="toast-wrap"></div>
+<div id="export-print-wrapper"></div>
 
 <div class="overlay" id="modal-edit-venta">
   <div class="modal" style="max-width:520px">
@@ -2504,6 +2516,56 @@ function exportProductsCSV(){
     csv+=p.codigo+','+p.nombre+','+p.cat+','+p.precio+','+p.stock+','+p.prov+'\n';
   });
   downloadCSV(csv,'productos.csv');
+}
+
+function showPrintContent(html){
+  var wrap=document.getElementById('export-print-wrapper');
+  if(!wrap){ wrap=document.createElement('div'); wrap.id='export-print-wrapper'; document.body.appendChild(wrap); }
+  wrap.innerHTML = '<div style="max-width:900px;margin:0 auto;font-family:Arial,sans-serif;color:#000;">'+html+'</div>';
+  wrap.style.display='block';
+  window.onafterprint = function(){ wrap.style.display='none'; window.onafterprint = null; };
+  window.print();
+}
+
+function exportCartPDF(){
+  if(!cart.length){ toast('Carrito vacío','warn'); return; }
+  var cliente=document.getElementById('sale-cliente');
+  var clienteTxt=(cliente&&cliente.selectedOptions&&cliente.selectedOptions[0])?cliente.selectedOptions[0].textContent:'Consumidor final';
+  var sub=cart.reduce(function(s,c){return s+c.precio*c.qty;},0);
+  var desc=parseFloat(document.getElementById('ct-desc').value)||0;
+  var descuento=sub*desc/100;
+  var total=sub-descuento;
+  var rows=cart.map(function(c){return '<tr><td>'+esc(c.nombre)+'</td><td>'+esc(c.unidad||'')+'</td><td style="text-align:right">'+c.qty+'</td><td style="text-align:right">'+fmt(c.precio)+'</td><td style="text-align:right">'+fmt(c.qty*c.precio)+'</td></tr>';}).join('');
+  var html='<h1>Venta desde Carrito</h1>'+
+    '<div style="margin-bottom:12px;"><strong>Fecha:</strong> '+todayStr()+' '+nowTime()+'<br>'+
+    '<strong>Cliente:</strong> '+esc(clienteTxt)+'<br>'+
+    '<strong>Método:</strong> '+esc(payMethod)+'</div>'+
+    '<table><thead><tr><th>Producto</th><th>Unidad</th><th style="text-align:right">Cantidad</th><th style="text-align:right">Precio</th><th style="text-align:right">Subtotal</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+    '<div style="margin-top:14px;width:100%;display:flex;justify-content:flex-end;gap:14px;flex-wrap:wrap;">'+
+    '<div style="min-width:220px;"><strong>Subtotal:</strong> '+fmt(sub)+'</div>'+
+    '<div style="min-width:220px;"><strong>Descuento:</strong> -'+fmt(descuento)+'</div>'+
+    '<div style="min-width:220px;font-size:18px;font-weight:700;">Total: '+fmt(total)+'</div></div>';
+  showPrintContent(html);
+}
+
+function exportHistorialPDF(){
+  var fecha=document.getElementById('hist-fecha').value;
+  var q=(document.getElementById('hist-search').value||'').toLowerCase();
+  var met=document.getElementById('hist-met').value;
+  var filtered=DB.ventas.filter(function(v){
+    var cn=v.cliente_id?(DB.clientes.find(function(c){return c.id===v.cliente_id;})||{nombre:''}).nombre:'Consumidor final';
+    return (!fecha||v.fecha===fecha) && (!q||('#'+v.ticket).includes(q)||cn.toLowerCase().includes(q)) && (!met||v.metodo===met);
+  });
+  if(!filtered.length){ toast('No hay ventas para exportar','warn'); return; }
+  var rows=filtered.map(function(v){
+    var cn=v.cliente_id?(DB.clientes.find(function(c){return c.id===v.cliente_id;})||{nombre:'Consumidor final'}).nombre:'Consumidor final';
+    return '<tr><td>#'+esc(v.ticket)+'</td><td>'+v.fecha+' '+v.hora+'</td><td>'+esc(cn)+'</td><td style="text-align:right">'+(Array.isArray(v.items)?v.items.length:0)+'</td><td>'+esc(v.metodo)+'</td><td style="text-align:right">'+(v.desc_pct?'-'+v.desc_pct+'%':'—')+'</td><td style="text-align:right">'+fmt(v.total)+'</td></tr>';
+  }).join('');
+  var html='<h1>Historial de Ventas</h1>'+
+    '<div style="margin-bottom:12px;"><strong>Filtrado:</strong> '+(fecha?fecha:'Todas las fechas')+' · '+(met?met:'Todos los métodos')+'<br>'+
+    '<strong>Buscar:</strong> '+esc(document.getElementById('hist-search').value||'Ninguno')+'</div>'+
+    '<table><thead><tr><th>Ticket</th><th>Fecha</th><th>Cliente</th><th style="text-align:right">Items</th><th>Método</th><th>Desc.</th><th style="text-align:right">Total</th></tr></thead><tbody>'+rows+'</tbody></table>';
+  showPrintContent(html);
 }
 
 function downloadCSV(csv,filename){
