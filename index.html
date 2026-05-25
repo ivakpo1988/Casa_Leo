@@ -1049,14 +1049,16 @@ function sendMatPhotoWhatsApp(){
   if(!tel){toast('Ingresá teléfono del cliente','err');return;}
   var normalized=normalizeArgPhone(tel);
   if(!normalized){toast('Teléfono inválido para WhatsApp','err');return;}
-  var message=encodeURIComponent(getMatWhatsappMessage());
-  if(/Android/i.test(navigator.userAgent)){
-    var url='intent://send?phone='+normalized+'&text='+message+'#Intent;scheme=whatsapp;package=com.whatsapp;end';
-    window.location.href=url;
-  } else {
-    var url='whatsapp://send?phone='+normalized+'&text='+message;
-    window.location.href=url;
-  }
+  var messageRaw = getMatWhatsappMessage();
+  var message = encodeURIComponent(messageRaw);
+  // try open native app first via whatsapp:// scheme
+  var appUrl = 'whatsapp://send?phone=' + normalized + '&text=' + message;
+  window.location.href = appUrl;
+  // fallback to web after short delay if app not available
+  setTimeout(function(){
+    var webUrl = 'https://wa.me/' + normalized + '?text=' + message;
+    window.open(webUrl,'_blank');
+  }, 1000);
 }
 
 function clearMatPhoto(){
