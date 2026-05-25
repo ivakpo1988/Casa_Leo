@@ -1530,6 +1530,30 @@ function showTicket(v){
   openModal('modal-ticket');
 }
 
+function exportSalePDF(id){
+  var v=DB.ventas.find(function(x){return x.id===id;});
+  if(!v){toast('Venta no encontrada','err');return;}
+  var cn=v.cliente_id?(DB.clientes.find(function(c){return c.id===v.cliente_id;})||{nombre:'Consumidor final'}).nombre:'Consumidor final';
+  var items=Array.isArray(v.items)?v.items:[];
+  var sub=items.reduce(function(s,i){return s+i.precio*i.qty;},0);
+  var desc=parseFloat(v.desc_pct)||0;
+  var descuento=sub*desc/100;
+  var total=v.total||sub-descuento;
+  var rows=items.map(function(i){
+    return '<tr><td>'+esc(i.nombre)+'</td><td>'+esc(i.unidad||'')+'</td><td style="text-align:right">'+i.qty+'</td><td style="text-align:right">'+fmt(i.precio)+'</td><td style="text-align:right">'+fmt(i.qty*i.precio)+'</td></tr>';
+  }).join('');
+  var html='<h1>Venta #'+esc(v.ticket)+'</h1>'+
+    '<div style="margin-bottom:12px;"><strong>Fecha:</strong> '+v.fecha+' '+v.hora+'<br>'+
+    '<strong>Cliente:</strong> '+esc(cn)+'<br>'+
+    '<strong>Método:</strong> '+esc(v.metodo||'—')+'</div>'+
+    '<table><thead><tr><th>Producto</th><th>Unidad</th><th style="text-align:right">Cantidad</th><th style="text-align:right">Precio</th><th style="text-align:right">Subtotal</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+    '<div style="margin-top:14px;width:100%;display:flex;justify-content:flex-end;gap:14px;flex-wrap:wrap;">'+
+    '<div style="min-width:220px;"><strong>Subtotal:</strong> '+fmt(sub)+'</div>'+
+    '<div style="min-width:220px;"><strong>Descuento:</strong> -'+fmt(descuento)+'</div>'+
+    '<div style="min-width:220px;font-size:18px;font-weight:700;">Total: '+fmt(total)+'</div></div>';
+  showPrintContent(html);
+}
+
 // ══════════════════════════════════════════
 // CAJA
 // ══════════════════════════════════════════
@@ -1643,7 +1667,7 @@ function renderHistorial(){
   var tb=document.getElementById('hist-tbody'); tb.innerHTML='';
   filtered.forEach(function(v){
     var cn=v.cliente_id?(DB.clientes.find(function(c){return c.id===v.cliente_id;})||{nombre:'—'}).nombre:'Consumidor final';
-    tb.innerHTML+='<tr><td style="font-family:var(--mono);color:var(--orange)">#'+esc(v.ticket)+'</td><td style="color:var(--muted);font-size:11px">'+v.fecha+' '+v.hora+'</td><td>'+esc(cn)+'</td><td>'+(Array.isArray(v.items)?v.items.length:0)+'</td><td><span class="badge '+(v.metodo==='Efectivo'?'badge-green':v.metodo==='Transferencia'?'badge-blue':'badge-yellow')+'">'+v.metodo+'</span></td><td>'+(v.desc_pct?'<span class="badge badge-red">-'+v.desc_pct+'%</span>':'<span style="color:var(--dim)">—</span>')+'</td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(v.total)+'</td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="openEditVenta('+v.id+')">✏</button><button class="btn btn-ghost btn-xs" onclick=\'showTicket('+JSON.stringify(v).replace(/'/g,"&#39;")+')\'">🧾</button></div></td></tr>';
+    tb.innerHTML+='<tr><td style="font-family:var(--mono);color:var(--orange)">#'+esc(v.ticket)+'</td><td style="color:var(--muted);font-size:11px">'+v.fecha+' '+v.hora+'</td><td>'+esc(cn)+'</td><td>'+(Array.isArray(v.items)?v.items.length:0)+'</td><td><span class="badge '+(v.metodo==='Efectivo'?'badge-green':v.metodo==='Transferencia'?'badge-blue':'badge-yellow')+'">'+v.metodo+'</span></td><td>'+(v.desc_pct?'<span class="badge badge-red">-'+v.desc_pct+'%</span>':'<span style="color:var(--dim)">—</span>')+'</td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(v.total)+'</td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="openEditVenta('+v.id+')">✏</button><button class="btn btn-ghost btn-xs" onclick="exportSalePDF('+v.id+')">📄</button><button class="btn btn-ghost btn-xs" onclick=\'showTicket('+JSON.stringify(v).replace(/'/g,"&#39;")+')\'">🧾</button></div></td></tr>';
   });
   document.getElementById('hist-empty').style.display=filtered.length?'none':'block';
 }
