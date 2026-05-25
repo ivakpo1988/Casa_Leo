@@ -1051,14 +1051,9 @@ function sendMatPhotoWhatsApp(){
   if(!normalized){toast('Teléfono inválido para WhatsApp','err');return;}
   var messageRaw = getMatWhatsappMessage();
   var message = encodeURIComponent(messageRaw);
-  // try open native app first via whatsapp:// scheme
+  // abrir app nativa Android
   var appUrl = 'whatsapp://send?phone=' + normalized + '&text=' + message;
   window.location.href = appUrl;
-  // fallback to web after short delay if app not available
-  setTimeout(function(){
-    var webUrl = 'https://wa.me/' + normalized + '?text=' + message;
-    window.open(webUrl,'_blank');
-  }, 1000);
 }
 
 function openWhatsAppNumber(raw){
@@ -1067,13 +1062,9 @@ function openWhatsAppNumber(raw){
   if(!normalized){ toast('Teléfono inválido: '+(tel||' vacío'),'err'); return; }
   // mostrar el número final para confirmar
   toast('Enviando a +'+normalized);
-  // intentar abrir app nativa
+  // abrir app nativa Android
   var appUrl = 'whatsapp://send?phone=' + normalized;
   window.location.href = appUrl;
-  setTimeout(function(){
-    var webUrl = 'https://wa.me/' + normalized;
-    window.open(webUrl,'_blank');
-  }, 1000);
 }
 
 function clearMatPhoto(){
