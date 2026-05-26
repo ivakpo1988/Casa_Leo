@@ -396,6 +396,10 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
         <span>Energía Renovable</span>
       </button>
+      <button class="nav-item" title="Reparación Maquinaria" onclick="go('reparaciones')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        <span>Reparac. Maquinaria</span>
+      </button>
     </div>
   </nav>
   <div class="sidebar-footer">
@@ -436,6 +440,10 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
       <div class="dash-grid">
         <div class="panel"><div class="panel-title">🕒 <span>Últimas Ventas</span></div><div id="dash-recent"></div></div>
         <div class="panel"><div class="panel-title">🔧 <span>Alquileres Activos</span></div><div id="dash-alq"></div></div>
+      </div>
+      <div class="dash-grid">
+        <div class="panel"><div class="panel-title">🧯 <span>Matafuegos Próximos a Vencer</span></div><div id="dash-mat-vencer"></div></div>
+        <div class="panel"><div class="panel-title">🔩 <span>Últimas Reparaciones</span></div><div id="dash-reparaciones"></div></div>
       </div>
     </div>
 
@@ -701,6 +709,41 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
     </div>
 
 
+    <div class="section" id="tab-reparaciones">
+      <div class="ph">
+        <div><div class="ph-title">Reparación de Maquinaria</div><div class="ph-sub">Cotizaciones y trabajos de taller</div></div>
+        <div class="ph-actions"><button class="btn btn-primary btn-sm" onclick="openRepModal()">➕ Nueva Reparación</button></div>
+      </div>
+      <div class="caja-grid" id="rep-summary"></div>
+      <div class="fbar">
+        <div class="search-box" style="flex:1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input placeholder="Buscar cliente o descripción…" id="rep-search" oninput="renderReparaciones()"/>
+        </div>
+        <select class="fi" id="rep-tec-fil" onchange="renderReparaciones()">
+          <option value="">Todos los técnicos</option>
+          <option>CasaLeo</option>
+          <option>Leo Bobinados</option>
+          <option>Leo Mecanico</option>
+        </select>
+        <select class="fi" id="rep-estado-fil" onchange="renderReparaciones()">
+          <option value="">Todos los estados</option>
+          <option>Pendiente</option>
+          <option>En Taller</option>
+          <option>Listo</option>
+          <option>Entregado</option>
+          <option>Cancelado</option>
+        </select>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Fecha</th><th>Cliente</th><th>Técnico</th><th>Descripción</th><th>Foto</th><th>Monto</th><th>Estado</th><th></th></tr></thead>
+          <tbody id="rep-tbody"></tbody>
+        </table>
+        <div id="rep-empty" class="empty-row">No hay reparaciones registradas.</div>
+      </div>
+    </div>
+
     <div class="section" id="tab-matafuegos">
       <div class="ph">
         <div><div class="ph-title">Gestión de Matafuegos</div><div class="ph-sub">Cotizaciones, recambios y recargas</div></div>
@@ -709,7 +752,7 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
       <div class="caja-grid" id="matafuegos-summary"></div>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>Fecha</th><th>Cliente</th><th>Teléfono</th><th>Trabajo</th><th>Detalle</th><th>Monto</th><th>Validez</th><th>Estado</th><th></th></tr></thead>
+          <thead><tr><th>Fecha</th><th>Cliente</th><th>Teléfono</th><th>Trabajo</th><th>Detalle</th><th>Monto</th><th>Vencimiento</th><th>Estado</th><th></th></tr></thead>
           <tbody id="matafuegos-tbody"></tbody>
         </table>
         <div id="matafuegos-empty" class="empty-row">No hay registros de matafuegos.</div>
@@ -928,7 +971,7 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
       <div class="field"><label>Descripción / Detalle</label><input type="text" id="mmat-desc" placeholder="Ej: Recarga ABC 5 kg + prueba hidráulica..."/></div>
       <div class="fr2">
         <div class="field"><label>Monto Total ($)</label><input type="number" id="mmat-monto" step="0.01" min="0"/></div>
-        <div class="field"><label>Validez de la oferta</label><select id="mmat-validez"><option>7 días</option><option>15 días</option><option>30 días</option></select></div>
+        <div class="field"><label>Vencimiento (MM/AA)</label><input type="text" id="mmat-validez" placeholder="05/27" maxlength="5" oninput="fmtVencInput(this)"/></div>
       </div>
     </div>
     <div class="mfooter"><button class="btn btn-ghost btn-sm" onclick="closeModal('modal-matafuegos')">Cancelar</button><button class="btn btn-primary btn-sm" onclick="saveMat()">Guardar</button></div>
@@ -952,6 +995,41 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
       <div class="field"><label>Estado</label><select id="mren-estado"><option>Borrador</option><option>Enviada</option><option>Aprobada</option><option>Rechazada</option></select></div>
     </div>
     <div class="mfooter"><button class="btn btn-ghost btn-sm" onclick="closeModal('modal-renovable')">Cancelar</button><button class="btn btn-primary btn-sm" onclick="saveRenov()">Guardar</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="modal-reparacion">
+  <div class="modal">
+    <div class="mhead"><div class="mhead-title" id="mrep-title">Nueva Reparación</div><button class="mclose" onclick="closeModal('modal-reparacion')">✕</button></div>
+    <div class="mbody">
+      <input type="hidden" id="mrep-id"/>
+      <div class="fr2">
+        <div class="field"><label>Fecha</label><input type="date" id="mrep-fecha"/></div>
+        <div class="field"><label>Técnico</label><select id="mrep-tec"><option>CasaLeo</option><option>Leo Bobinados</option><option>Leo Mecanico</option></select></div>
+      </div>
+      <div class="fr2">
+        <div class="field"><label>Cliente (opcional)</label><select id="mrep-cli"><option value="">— Sin cliente —</option></select></div>
+        <div class="field"><label>Monto ($)</label><input type="number" id="mrep-monto" step="0.01" min="0"/></div>
+      </div>
+      <div class="field"><label>Descripción de la reparación</label><input type="text" id="mrep-desc" placeholder="Ej: Reparación bomba de agua, cambio de rodamiento…"/></div>
+      <div class="field"><label>Estado</label><select id="mrep-estado"><option>Pendiente</option><option>En Taller</option><option>Listo</option><option>Entregado</option><option>Cancelado</option></select></div>
+      <div class="field">
+        <label>Foto de la máquina</label>
+        <input type="hidden" id="mrep-foto"/>
+        <div class="photo-picker">
+          <label class="btn btn-primary btn-sm" for="mrep-foto-camera">📷 Sacar Foto</label>
+          <input type="file" id="mrep-foto-camera" accept="image/*" capture="environment" onchange="readRepPhoto(this)"/>
+          <label class="btn btn-ghost btn-sm" for="mrep-foto-gallery">🖼 Galería</label>
+          <input type="file" id="mrep-foto-gallery" accept="image/*" onchange="readRepPhoto(this)"/>
+          <button type="button" class="btn btn-danger btn-sm" onclick="clearRepPhoto()">Quitar</button>
+        </div>
+        <div class="photo-preview" id="mrep-foto-preview">
+          <img id="mrep-foto-img" alt="Foto de la máquina"/>
+          <button type="button" onclick="clearRepPhoto()">Quitar</button>
+        </div>
+      </div>
+    </div>
+    <div class="mfooter"><button class="btn btn-ghost btn-sm" onclick="closeModal('modal-reparacion')">Cancelar</button><button class="btn btn-primary btn-sm" onclick="saveRep()">Guardar</button></div>
   </div>
 </div>
 
@@ -1054,7 +1132,7 @@ async function uploadStorageImage(bucket, dataUrl, prefix) {
 // ══════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════
-var DB = { productos:[], ventas:[], movimientos:[], clientes:[], proveedores:[], maquinas:[], alquileres:[], directv:[], matafuegos:[], renovables:[], ml_ventas:[], gastos:[] };
+var DB = { productos:[], ventas:[], movimientos:[], clientes:[], proveedores:[], maquinas:[], alquileres:[], directv:[], matafuegos:[], renovables:[], ml_ventas:[], gastos:[], reparaciones:[] };
 var cart = [];
 var payMethod = 'Efectivo';
 
@@ -1327,7 +1405,7 @@ function showQuoteTicket(title, q){
   html+='<div class="ticket-row"><span>Tipo</span><span>'+esc(q.tipo||'Cotización')+'</span></div>';
   html+='<div class="ticket-div"></div><div style="white-space:pre-wrap;margin-bottom:8px">'+esc(q.descripcion||'Sin detalle')+'</div>';
   if(q.foto) html+='<img src="'+esc(q.foto)+'" alt="Foto" style="width:100%;max-height:180px;object-fit:cover;margin:6px 0;border:1px solid #ddd"/>';
-  if(q.validez) html+='<div class="ticket-row"><span>Validez</span><span>'+esc(q.validez)+'</span></div>';
+  if(q.validez) html+='<div class="ticket-row"><span>Vencimiento</span><span>'+esc(q.validez)+'</span></div>';
   html+='<div class="ticket-total"><span>TOTAL</span><span>'+fmt(q.monto)+'</span></div>';
   html+='<div class="ticket-thanks">Cotización sujeta a disponibilidad y confirmación.</div></div>';
   document.getElementById('ticket-content').innerHTML=html;
@@ -1364,8 +1442,8 @@ window.addEventListener('resize',function(){
 function updateClock(){ var d=new Date(); document.getElementById('clock').textContent=p2(d.getHours())+':'+p2(d.getMinutes())+':'+p2(d.getSeconds()); }
 setInterval(updateClock,1000); updateClock();
 
-var tabTitles={dashboard:'Panel',ventas:'Nueva Venta',caja:'Caja del Día',historial:'Historial de Ventas',reportes:'Reportes',stock:'Control de Stock',movimientos:'Movimientos',clientes:'Clientes',proveedores:'Proveedores',gastos:'Gastos',alquileres:'Alquileres',directv:'DirecTV',mlventas:'ML Ventas',matafuegos:'Gestión de Matafuegos',renovable:'Energía Renovable'};
-var tabMap={dashboard:0,ventas:1,caja:2,historial:3,reportes:4,stock:5,movimientos:6,clientes:7,proveedores:8,gastos:9,alquileres:10,directv:11,mlventas:12,matafuegos:13,renovable:14};
+var tabTitles={dashboard:'Panel',ventas:'Nueva Venta',caja:'Caja del Día',historial:'Historial de Ventas',reportes:'Reportes',stock:'Control de Stock',movimientos:'Movimientos',clientes:'Clientes',proveedores:'Proveedores',gastos:'Gastos',alquileres:'Alquileres',directv:'DirecTV',mlventas:'ML Ventas',matafuegos:'Gestión de Matafuegos',renovable:'Energía Renovable',reparaciones:'Reparación de Maquinaria'};
+var tabMap={dashboard:0,ventas:1,caja:2,historial:3,reportes:4,stock:5,movimientos:6,clientes:7,proveedores:8,gastos:9,alquileres:10,directv:11,mlventas:12,matafuegos:13,renovable:14,reparaciones:15};
 
 function go(tab){
   document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active');});
@@ -1374,7 +1452,7 @@ function go(tab){
   document.getElementById('topbar-title').textContent=tabTitles[tab]||tab;
   document.querySelectorAll('.nav-item')[tabMap[tab]].classList.add('active');
   if(window.innerWidth<=760) closeSidebarMobile();
-  var renders={dashboard:renderDash,ventas:initVentas,caja:renderCaja,historial:function(){document.getElementById('hist-fecha').value=todayStr();renderHistorial();},reportes:renderReportes,stock:renderStock,movimientos:renderMovimientos,clientes:renderClientes,proveedores:renderProveedores,gastos:renderGastos,alquileres:renderAlquileres,directv:renderDtv,matafuegos:renderMatafuegos,renovable:renderRenovables};
+  var renders={dashboard:renderDash,ventas:initVentas,caja:renderCaja,historial:function(){document.getElementById('hist-fecha').value=todayStr();renderHistorial();},reportes:renderReportes,stock:renderStock,movimientos:renderMovimientos,clientes:renderClientes,proveedores:renderProveedores,gastos:renderGastos,alquileres:renderAlquileres,directv:renderDtv,matafuegos:renderMatafuegos,renovable:renderRenovables,reparaciones:renderReparaciones};
   renders.mlventas = renderMLVentas;
   if(renders[tab]) renders[tab]();
 }
@@ -1405,6 +1483,7 @@ async function loadAll(){
     // Carga segura de nuevas tablas (por si aún no las creaste en Supabase)
     try { DB.matafuegos = await sbGet('matafuegos'); } catch(e) { DB.matafuegos = []; }
     try { DB.renovables = mergeLocalRows(await sbGet('renovables_cotizaciones'), 'renovables_local'); } catch(e) { DB.renovables = mergeLocalRows([], 'renovables_local'); }
+    try { DB.reparaciones = await sbGet('reparaciones'); } catch(e) { DB.reparaciones = []; }
 
     setSyncing(null);
     renderDash();
@@ -1524,6 +1603,43 @@ function renderDash(){
     var over=a.devol<today;
     return '<div class="top-row"><div><div style="font-size:12px;font-weight:600">'+esc(a.maq_nombre)+'</div><div style="color:var(--muted);font-size:10px">'+esc(a.cliente_nombre)+' · dev. <span style="'+(over?'color:var(--red)':'')+'">'+(over?'⚠️ ':'')+a.devol+'</span></div></div><span class="badge badge-orange">Activo</span></div>';
   }).join('')||'<div style="color:var(--muted);font-size:12px">Sin alquileres activos.</div>';
+
+  // Matafuegos próximos a vencer (mes actual y siguiente)
+  var hoySort=mesActual();                      // "YYYY-MM"
+  var proxSort2=mesSiguienteSort(hoySort);      // "YYYY-MM"
+  var matVencidos=DB.matafuegos.filter(function(m){var s=vencToSort(m.validez);return s&&s<hoySort;});
+  var matEste=DB.matafuegos.filter(function(m){return vencToSort(m.validez)===hoySort;});
+  var matProx=DB.matafuegos.filter(function(m){return vencToSort(m.validez)===proxSort2;});
+  var matAlerta=matVencidos.concat(matEste).concat(matProx).sort(function(a,b){
+    return (vencToSort(a.validez)||'').localeCompare(vencToSort(b.validez)||'');
+  });
+  var matEl=document.getElementById('dash-mat-vencer');
+  var matHtml='';
+  if(matVencidos.length){
+    matHtml+='<div style="background:var(--red-glow);border:1px solid #ef444430;border-radius:5px;padding:7px 10px;margin-bottom:8px;font-size:11px;color:var(--red);font-weight:700;display:flex;align-items:center;justify-content:space-between">⛔ '+matVencidos.length+' matafuego'+(matVencidos.length>1?'s':'')+' VENCIDO'+(matVencidos.length>1?'S':'')+' <button class="btn btn-xs btn-danger" onclick="go(\'matafuegos\')">Ver →</button></div>';
+  }
+  if(matEste.length){
+    matHtml+='<div style="background:var(--red-glow);border:1px solid #ef444430;border-radius:5px;padding:7px 10px;margin-bottom:8px;font-size:11px;color:var(--red);font-weight:700;display:flex;align-items:center;justify-content:space-between">⚠️ '+matEste.length+' vence'+(matEste.length>1?'n':'')+' ESTE MES <button class="btn btn-xs btn-danger" onclick="go(\'matafuegos\')">Ver →</button></div>';
+  }
+  if(matProx.length){
+    matHtml+='<div style="background:#eab30820;border:1px solid #eab30840;border-radius:5px;padding:7px 10px;margin-bottom:8px;font-size:11px;color:var(--yellow);font-weight:700;display:flex;align-items:center;justify-content:space-between">📅 '+matProx.length+' vence'+(matProx.length>1?'n':'')+' el próximo mes <button class="btn btn-xs btn-ghost" onclick="go(\'matafuegos\')">Ver →</button></div>';
+  }
+  matHtml+=matAlerta.slice(0,6).map(function(m){
+    var s=vencToSort(m.validez);
+    var isVencido=s&&s<hoySort; var isEste=s===hoySort;
+    var color=isVencido||isEste?'var(--red)':'var(--yellow)';
+    var icon=isVencido?'⛔':isEste?'⚠️':'📅';
+    return '<div class="top-row"><div><div style="font-size:12px;font-weight:600">'+esc(m.cliente_nombre||'—')+'</div><div style="color:var(--muted);font-size:10px">'+icon+' Vence: <span style="color:'+color+';font-weight:700;font-family:var(--mono)">'+esc(m.validez||'—')+'</span>'+(m.telefono?' · '+esc(m.telefono):'')+'</div></div><span class="badge '+(isVencido||isEste?'badge-red':'badge-yellow')+'" style="font-family:var(--mono);letter-spacing:.05em">'+esc(m.validez||'—')+'</span></div>';
+  }).join('');
+  if(!matAlerta.length) matHtml='<div style="color:var(--muted);font-size:12px">✅ Sin matafuegos próximos a vencer.</div>';
+  matEl.innerHTML=matHtml;
+
+  // Últimas reparaciones
+  var repsRecientes=DB.reparaciones.slice(0,5);
+  var badges2={Pendiente:'badge-yellow','En Taller':'badge-blue',Listo:'badge-green',Entregado:'badge-gray',Cancelado:'badge-red'};
+  document.getElementById('dash-reparaciones').innerHTML=repsRecientes.map(function(r){
+    return '<div class="top-row"><div><div style="font-size:12px;font-weight:600">'+esc(r.cliente_nombre||'Sin cliente')+'</div><div style="color:var(--muted);font-size:10px">'+esc(r.tecnico)+' · '+esc(r.descripcion||'').substring(0,40)+'</div></div><span class="badge '+(badges2[r.estado]||'badge-gray')+'">'+esc(r.estado||'—')+'</span></div>';
+  }).join('')||'<div style="color:var(--muted);font-size:12px">Sin reparaciones recientes.</div>';
 }
 function sc(l,c,v,s,i){ return '<div class="stat-card '+c+'"><div class="sc-icon">'+i+'</div><div class="sc-label">'+l+'</div><div class="sc-val '+c+'">'+v+'</div><div class="sc-sub">'+s+'</div></div>'; }
 
@@ -2291,19 +2407,80 @@ async function delDtv(id){
 // ══════════════════════════════════════════
 // MATAFUEGOS
 // ══════════════════════════════════════════
+// ── Vencimiento MM/YY helpers ──
+// Stored as "MM/YY" (e.g. "05/27"). Internally converted to "YYYY-MM" for comparison.
+function fmtVencInput(el){
+  var v=el.value.replace(/\D/g,'');
+  if(v.length>2) v=v.substring(0,2)+'/'+v.substring(2,4);
+  el.value=v;
+}
+function vencToSort(mmyy){
+  // "05/27" → "2027-05" for string comparison
+  if(!mmyy||mmyy.length<5) return '';
+  var p=mmyy.split('/'); if(p.length<2) return '';
+  var mm=p[0].padStart(2,'0'); var yy=p[1].padStart(2,'0');
+  return '20'+yy+'-'+mm;
+}
+function mesActual(){
+  // Returns "YYYY-MM" of today
+  return todayStr().substring(0,7);
+}
+function mesActualMMYY(){
+  // Returns "MM/YY" of today
+  var d=new Date(); var mm=String(d.getMonth()+1).padStart(2,'0'); var yy=String(d.getFullYear()).substring(2);
+  return mm+'/'+yy;
+}
+function mesSiguienteSort(ymSort){
+  // Takes "YYYY-MM", returns next "YYYY-MM"
+  var p=ymSort.split('-'); var y=parseInt(p[0]); var m=parseInt(p[1]);
+  m++; if(m>12){m=1;y++;} return y+'-'+(m<10?'0':'')+m;
+}
+function vencLabel(mmyy){ return mmyy||'—'; }
+function mesLabel(mmyyOrYYYYMM){
+  // accept both formats for backward compat
+  if(!mmyyOrYYYYMM) return '—';
+  if(mmyyOrYYYYMM.indexOf('-')>-1){
+    // YYYY-MM → MM/YY
+    var p=mmyyOrYYYYMM.split('-');
+    return p[1]+'/'+(p[0]||'').substring(2);
+  }
+  return mmyyOrYYYYMM;
+}
+
 function renderMatafuegos(){
   var tb=document.getElementById('matafuegos-tbody'); tb.innerHTML='';
   var badges={Borrador:'badge-gray',Enviada:'badge-blue',Aprobada:'badge-green',Rechazada:'badge-red',Pendiente:'badge-yellow','En Taller':'badge-blue',Listo:'badge-green',Entregado:'badge-gray'};
-  var gastos=DB.matafuegos.slice().sort(function(a,b){return (b.fecha||'').localeCompare(a.fecha||'');});
-  var total= gastos.reduce(function(s,m){return s+parseFloat(matExtra(m).monto||0);},0);
+  var hoySort=mesActual();           // "YYYY-MM"
+  var hoyMMYY=mesActualMMYY();       // "MM/YY"
+  var proxSort=mesSiguienteSort(hoySort); // "YYYY-MM" del mes siguiente
+  // Ordenar por vencimiento: convertir MM/YY → YYYY-MM para comparar
+  var gastos=DB.matafuegos.slice().sort(function(a,b){
+    var va=vencToSort(a.validez)||'9999-99';
+    var vb=vencToSort(b.validez)||'9999-99';
+    return va.localeCompare(vb);
+  });
+  var total=gastos.reduce(function(s,m){return s+parseFloat(matExtra(m).monto||0);},0);
+  var vencidos=gastos.filter(function(m){var s=vencToSort(m.validez);return s&&s<hoySort;}).length;
+  var venceEste=gastos.filter(function(m){return vencToSort(m.validez)===hoySort;}).length;
+  var venceProx=gastos.filter(function(m){return vencToSort(m.validez)===proxSort;}).length;
   document.getElementById('matafuegos-summary').innerHTML=
-    sc('Cotizaciones','orange',gastos.length+' registros','Última fecha: '+(gastos[0]&&gastos[0].fecha?gastos[0].fecha:'—'),'🧯')+
-    sc('Valor estimado','green',fmt(total),'Suma de montos','💰');
+    sc('Registros','orange',gastos.length+' total','Valor total: '+fmt(total),'🧯')+
+    (vencidos?sc('Vencidos','red',vencidos,'Requieren atención','⛔'):'')+
+    (venceEste?sc('Vencen este mes','red',venceEste,'¡Urgente!','⚠️'):'')+
+    (venceProx?sc('Vencen próx. mes','yellow',venceProx,'Avisar pronto','📅'):'');
   gastos.forEach(function(m){
     var extra=matExtra(m);
-    var detalle=quoteDetail(extra.descripcion||'', ((m.peso?m.peso+' Kg':'')+(m.serie?' / Serie '+m.serie:'')));
+    var detalle=quoteDetail(extra.descripcion||'',((m.peso?m.peso+' Kg':'')+(m.serie?' / Serie '+m.serie:'')));
     var telEsc=(m.telefono||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    tb.innerHTML+='<tr><td style="font-size:11px;color:var(--muted)">'+esc(m.fecha||todayStr())+'</td><td style="font-weight:600;font-size:12px">'+esc(m.cliente_nombre||'—')+'</td><td>'+esc(m.telefono||'—')+' <a href="javascript:void(0)" onclick="openWhatsAppNumber(\''+telEsc+'\')" style="text-decoration:none">💬</a></td><td><span class="badge badge-orange">'+esc(m.tipo)+'</span></td><td style="font-size:11px">'+esc(detalle)+'</td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(extra.monto)+'</td><td style="font-family:var(--mono);font-size:11px">'+esc(extra.validez||'—')+'</td><td><span class="badge '+(badges[m.estado]||'badge-gray')+'">'+esc(m.estado||'—')+'</span></td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="printMatQuote('+m.id+')">🧾</button><button class="btn btn-ghost btn-xs" onclick="openMatModal('+m.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delMat('+m.id+')">🗑</button></div></td></tr>';
+    var venc=m.validez||'';
+    var vencS=vencToSort(venc);
+    var vencClass=''; var vencIcon='';
+    if(vencS){
+      if(vencS<hoySort){vencClass='color:var(--red);font-weight:700';vencIcon=' ⛔';}
+      else if(vencS===hoySort){vencClass='color:var(--red);font-weight:700';vencIcon=' ⚠️';}
+      else if(vencS===proxSort){vencClass='color:var(--yellow);font-weight:700';vencIcon=' 📅';}
+    }
+    tb.innerHTML+='<tr><td style="font-size:11px;color:var(--muted)">'+esc(m.fecha||todayStr())+'</td><td style="font-weight:600;font-size:12px">'+esc(m.cliente_nombre||'—')+'</td><td>'+esc(m.telefono||'—')+' <a href="javascript:void(0)" onclick="openWhatsAppNumber(\''+telEsc+'\')" style="text-decoration:none">💬</a></td><td><span class="badge badge-orange">'+esc(m.tipo)+'</span></td><td style="font-size:11px">'+esc(detalle)+'</td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(extra.monto)+'</td><td style="font-family:var(--mono);font-size:13px;letter-spacing:.05em;'+vencClass+'">'+(venc||'—')+vencIcon+'</td><td><span class="badge '+(badges[m.estado]||'badge-gray')+'">'+esc(m.estado||'—')+'</span></td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="printMatQuote('+m.id+')">🧾</button><button class="btn btn-ghost btn-xs" onclick="openMatModal('+m.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delMat('+m.id+')">🗑</button></div></td></tr>';
   });
   document.getElementById('matafuegos-empty').style.display=gastos.length?'none':'block';
 }
@@ -2325,14 +2502,13 @@ function openMatModal(id){
     document.getElementById('mmat-estado').value=m.estado||'Borrador';
     document.getElementById('mmat-desc').value=extra.descripcion||'';
     document.getElementById('mmat-monto').value=extra.monto||0;
-    document.getElementById('mmat-validez').value=extra.validez||'15 días';
+    document.getElementById('mmat-validez').value=extra.validez||'';
     setMatPhotoPreview(extra.foto||'');
   } else {
     document.getElementById('mmat-title').textContent='Nueva Cotización Matafuegos';
-    ['tel','peso','serie','desc','monto'].forEach(function(f){document.getElementById('mmat-'+f).value='';});
+    ['tel','peso','serie','desc','monto','validez'].forEach(function(f){document.getElementById('mmat-'+f).value='';});
     document.getElementById('mmat-tipo').value='Cotización Recarga';
     document.getElementById('mmat-estado').value='Borrador';
-    document.getElementById('mmat-validez').value='15 días';
     clearMatPhoto();
   }
   openModal('modal-matafuegos');
@@ -2530,7 +2706,145 @@ function printRenovQuote(id){
 }
 
 // ══════════════════════════════════════════
-// EDIT VENTAS (Historial)
+// REPARACIÓN DE MAQUINARIA
+// ══════════════════════════════════════════
+function renderReparaciones(){
+  var q=(document.getElementById('rep-search').value||'').toLowerCase();
+  var tecFil=document.getElementById('rep-tec-fil').value;
+  var estFil=document.getElementById('rep-estado-fil').value;
+  var filtered=DB.reparaciones.filter(function(r){
+    return (!q||(r.cliente_nombre||'').toLowerCase().includes(q)||(r.descripcion||'').toLowerCase().includes(q))
+        && (!tecFil||r.tecnico===tecFil)
+        && (!estFil||r.estado===estFil);
+  });
+  var badges={Pendiente:'badge-yellow','En Taller':'badge-blue',Listo:'badge-green',Entregado:'badge-gray',Cancelado:'badge-red'};
+  var total=DB.reparaciones.reduce(function(s,r){return s+(parseFloat(r.monto)||0);},0);
+  var porTec={'CasaLeo':0,'Leo Bobinados':0,'Leo Mecanico':0};
+  DB.reparaciones.forEach(function(r){if(porTec[r.tecnico]!==undefined)porTec[r.tecnico]++;});
+  document.getElementById('rep-summary').innerHTML=
+    sc('Total Reparaciones','orange',DB.reparaciones.length+' registros','Valor total: '+fmt(total),'🔩')+
+    sc('CasaLeo','blue',porTec['CasaLeo'],'Reparaciones','🔧')+
+    sc('Leo Bobinados','green',porTec['Leo Bobinados'],'Reparaciones','⚡')+
+    sc('Leo Mecanico','yellow',porTec['Leo Mecanico'],'Reparaciones','⚙️');
+  var tb=document.getElementById('rep-tbody'); tb.innerHTML='';
+  filtered.forEach(function(r){
+    var fotoBtn=r.foto?'<a class="btn btn-ghost btn-xs" href="'+esc(r.foto)+'" target="_blank">📷</a>':'<span style="color:var(--dim);font-size:11px">—</span>';
+    tb.innerHTML+='<tr><td style="font-size:11px;color:var(--muted)">'+esc(r.fecha||'')+'</td><td style="font-weight:600;font-size:12px">'+esc(r.cliente_nombre||'Sin cliente')+'</td><td><span class="badge badge-blue">'+esc(r.tecnico)+'</span></td><td style="font-size:11px">'+esc(r.descripcion||'')+'</td><td>'+fotoBtn+'</td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(r.monto)+'</td><td><span class="badge '+(badges[r.estado]||'badge-gray')+'">'+esc(r.estado||'—')+'</span></td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="printRepQuote('+r.id+')">🧾</button><button class="btn btn-ghost btn-xs" onclick="openRepModal('+r.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delRep('+r.id+')">🗑</button></div></td></tr>';
+  });
+  document.getElementById('rep-empty').style.display=filtered.length?'none':'block';
+}
+
+function openRepModal(id){
+  var cSel=document.getElementById('mrep-cli'); cSel.innerHTML='<option value="">— Sin cliente —</option>';
+  DB.clientes.forEach(function(c){cSel.innerHTML+='<option value="'+c.id+'">'+esc(c.nombre)+'</option>';});
+  document.getElementById('mrep-id').value=id||'';
+  if(id){
+    var r=DB.reparaciones.find(function(x){return x.id===id;});
+    if(!r){toast('No encontrado','err');return;}
+    document.getElementById('mrep-title').textContent='Editar Reparación';
+    document.getElementById('mrep-fecha').value=r.fecha||todayStr();
+    document.getElementById('mrep-tec').value=r.tecnico||'CasaLeo';
+    cSel.value=r.cliente_id||'';
+    document.getElementById('mrep-monto').value=r.monto||0;
+    document.getElementById('mrep-desc').value=r.descripcion||'';
+    document.getElementById('mrep-estado').value=r.estado||'Pendiente';
+    setRepPhotoPreview(r.foto||'');
+  } else {
+    document.getElementById('mrep-title').textContent='Nueva Reparación';
+    document.getElementById('mrep-fecha').value=todayStr();
+    document.getElementById('mrep-tec').value='CasaLeo';
+    document.getElementById('mrep-monto').value='';
+    document.getElementById('mrep-desc').value='';
+    document.getElementById('mrep-estado').value='Pendiente';
+    clearRepPhoto();
+  }
+  openModal('modal-reparacion');
+}
+
+function setRepPhotoPreview(dataUrl){
+  var input=document.getElementById('mrep-foto');
+  var wrap=document.getElementById('mrep-foto-preview');
+  var img=document.getElementById('mrep-foto-img');
+  if(!input||!wrap||!img) return;
+  input.value=dataUrl||'';
+  if(dataUrl){ img.src=dataUrl; wrap.classList.add('open'); }
+  else { img.removeAttribute('src'); wrap.classList.remove('open'); }
+}
+
+function clearRepPhoto(){
+  ['mrep-foto-camera','mrep-foto-gallery'].forEach(function(id){var f=document.getElementById(id);if(f)f.value='';});
+  setRepPhotoPreview('');
+}
+
+function readRepPhoto(input){
+  var file=input.files&&input.files[0]; if(!file) return;
+  if(!file.type.match(/^image\//)){toast('Seleccioná una imagen','err');return;}
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var img=new Image();
+    img.onload=function(){
+      var max=900; var scale=Math.min(1,max/Math.max(img.width,img.height));
+      var canvas=document.createElement('canvas');
+      canvas.width=Math.max(1,Math.round(img.width*scale));
+      canvas.height=Math.max(1,Math.round(img.height*scale));
+      canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+      setRepPhotoPreview(canvas.toDataURL('image/jpeg',.78));
+    };
+    img.onerror=function(){toast('No se pudo leer la imagen','err');};
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function saveRep(){
+  var id=parseInt(document.getElementById('mrep-id').value)||0;
+  var cliId=parseInt(document.getElementById('mrep-cli').value)||null;
+  var cn=cliId?(DB.clientes.find(function(c){return c.id===cliId;})||{nombre:'Sin cliente'}).nombre:'Sin cliente';
+  var desc=document.getElementById('mrep-desc').value.trim();
+  if(!desc){toast('Ingresá descripción','err');return;}
+  var foto=document.getElementById('mrep-foto').value.trim();
+  if(foto && foto.indexOf('data:image/')===0){
+    try{foto=await uploadStorageImage('reparaciones-fotos',foto,'reparacion');}
+    catch(e){console.error(e);toast('No se pudo subir la foto','warn');}
+  }
+  var obj={
+    fecha:document.getElementById('mrep-fecha').value||todayStr(),
+    tecnico:document.getElementById('mrep-tec').value,
+    cliente_id:cliId,
+    cliente_nombre:cn,
+    descripcion:desc,
+    monto:parseFloat(document.getElementById('mrep-monto').value)||0,
+    estado:document.getElementById('mrep-estado').value,
+    foto:foto
+  };
+  setSyncing(true);
+  try {
+    if(id){await sbUpdate('reparaciones',id,obj);}else{await sbInsert('reparaciones',obj);}
+    await loadAll(); closeModal('modal-reparacion'); renderReparaciones(); toast('Reparación guardada');
+  } catch(e){toast('Error: '+e.message+'. Asegurate de crear la tabla reparaciones en Supabase.','err');}
+  setSyncing(null);
+}
+
+async function delRep(id){
+  if(!confirm('¿Eliminar reparación?'))return;
+  try{await sbDelete('reparaciones',id);await loadAll();renderReparaciones();toast('Eliminado','warn');}
+  catch(e){toast('Error: '+e.message,'err');}
+}
+
+function printRepQuote(id){
+  var r=DB.reparaciones.find(function(x){return x.id===id;});
+  if(!r){toast('No encontrado','err');return;}
+  showQuoteTicket('Presupuesto Reparación Maquinaria',{
+    fecha:r.fecha,
+    cliente_nombre:r.cliente_nombre,
+    tipo:'Técnico: '+r.tecnico,
+    descripcion:r.descripcion,
+    monto:r.monto,
+    foto:r.foto
+  });
+}
+
+// ══════════════════════════════════════════
 // ══════════════════════════════════════════
 function openEditVenta(id){
   var v=DB.ventas.find(function(x){return x.id===id;});
