@@ -998,16 +998,24 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
 
       <!-- Selector de productos del stock -->
       <div class="field" style="margin-top:10px">
-        <label style="margin-bottom:6px;display:block;font-weight:600">Productos del Stock</label>
-        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-          <select id="mren-prod-sel" style="flex:1;min-width:160px">
-            <option value="">— Elegir producto —</option>
-          </select>
-          <input type="number" id="mren-prod-qty" placeholder="Cant." min="1" value="1" style="width:70px"/>
-          <input type="number" id="mren-prod-precio" placeholder="Precio unit." min="0" step="0.01" style="width:110px"/>
-          <button type="button" class="btn btn-primary btn-sm" onclick="addRenovItem()">➕ Agregar</button>
+        <label style="margin-bottom:8px;display:block;font-weight:600">Agregar Productos del Stock</label>
+        <div style="background:var(--s2);border:1px solid var(--border);border-radius:5px;padding:10px;margin-bottom:8px">
+          <div style="display:flex;gap:6px;margin-bottom:6px;align-items:flex-end">
+            <div style="flex:1">
+              <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Buscar producto</label>
+              <input type="text" id="mren-prod-search" placeholder="Nombre o código…" style="width:100%" oninput="updateRenovProductSearch()"/>
+              <div id="mren-prod-dropdown" style="display:none;background:var(--s1);border:1px solid var(--border);border-radius:5px;max-height:180px;overflow-y:auto;margin-top:4px;position:absolute;width:calc(100% - 24px);z-index:10">
+                <div id="mren-prod-list"></div>
+              </div>
+            </div>
+            <div style="width:70px">
+              <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Cant.</label>
+              <input type="number" id="mren-prod-qty" placeholder="1" min="1" value="1" style="width:100%;text-align:center"/>
+            </div>
+            <button type="button" class="btn btn-primary btn-sm" onclick="addRenovItemFromSearch()" style="margin-bottom:0">➕ Agregar</button>
+          </div>
+          <div id="mren-prod-stock-info" style="font-size:10px;color:var(--muted);min-height:16px"></div>
         </div>
-        <div id="mren-prod-stock-info" style="font-size:10px;color:var(--muted);margin-top:3px"></div>
       </div>
 
       <!-- Tabla de ítems -->
@@ -2734,19 +2742,89 @@ function removeRenovItem(idx){
   renderRenovItems();
 }
 
-function openRenovModal(id){
-  var cSel=document.getElementById('mren-cli'); cSel.innerHTML='<option value="">\u2014 Sin cliente \u2014</option>';
-  DB.clientes.forEach(function(c){cSel.innerHTML+='<option value="'+c.id+'">'+esc(c.nombre)+'</option>';});
-  var pSel=document.getElementById('mren-prod-sel'); pSel.innerHTML='<option value="">\u2014 Elegir producto \u2014</option>';
-  DB.productos.filter(function(p){return p.stock>0;}).forEach(function(p){
-    pSel.innerHTML+='<option value="'+p.id+'">'+esc(p.nombre)+' (stock: '+p.stock+') \u2014 '+fmt(p.precio)+'</option>';
+var _renovSelectedProdId = null;
+
+function updateRenovProductSearch(){
+  var q=(document.getElementById('mren-prod-search').value||'').toLowerCase().trim();
+  var dropdown=document.getElementById('mren-prod-dropdown');
+  var list=document.getElementById('mren-prod-list');
+  var info=document.getElementById('mren-prod-stock-info');
+  
+  if(!q){
+    dropdown.style.display='none';
+    info.textContent='';
+    _renovSelectedProdId=null;
+    return;
+  }
+  
+  var filtered=DB.productos.filter(function(p){
+    return (p.nombre.toLowerCase().includes(q) || (p.cod||'').toLowerCase().includes(q)) && p.stock>0;
   });
-  pSel.onchange=function(){
-    var p=DB.productos.find(function(x){return x.id===parseInt(pSel.value);});
-    var info=document.getElementById('mren-prod-stock-info');
-    if(p){document.getElementById('mren-prod-precio').value=p.precio||0;info.textContent='Stock disponible: '+p.stock+' '+(p.unidad||'u.');}
-    else{info.textContent='';}
-  };
+  
+  if(!filtered.length){
+    list.innerHTML='<div style="padding:10px 12px;color:var(--muted);font-size:11px;text-align:center">Sin productos disponibles</div>';
+    dropdown.style.display='block';
+    info.textContent='';
+    _renovSelectedProdId=null;
+    return;
+  }
+  
+  list.innerHTML=filtered.slice(0,10).map(function(p){
+    var selected=_renovSelectedProdId===p.id?'background:var(--orange-glow)':'';
+    return '<div style="padding:10px 12px;border-bottom:1px solid var(--border);cursor:pointer;transition:.1s;'+selected+'" onclick="selectRenovProduct('+p.id+',\''+esc(p.nombre)+'\','+p.precio+')" onmouseover="this.style.background=\'var(--s3)\'" onmouseout="this.style.background=\''+selected.replace('background:','').replace('glow','glow;\' \'')+'\'">'+
+      '<div style="font-weight:600;font-size:12px">'+esc(p.nombre)+'</div>'+
+      '<div style="font-size:10px;color:var(--muted);margin-top:3px">Cod: '+esc(p.cod||'—')+' | Stock: '+p.stock+' '+esc(p.unidad||'u.')+' | $'+fmt(p.precio)+'</div>'+
+      '</div>';
+  }).join('');
+  dropdown.style.display='block';
+}
+
+function selectRenovProduct(prodId,prodName,prodPrice){
+  _renovSelectedProdId=prodId;
+  document.getElementById('mren-prod-search').value=prodName;
+  document.getElementById('mren-prod-dropdown').style.display='none';
+  var prod=DB.productos.find(function(p){return p.id===prodId;});
+  document.getElementById('mren-prod-stock-info').innerHTML='<strong>'+esc(prod.nombre)+'</strong> · Stock: '+prod.stock+' '+esc(prod.unidad||'u.')+' · Precio: $'+fmt(prodPrice)+'<br><em style="color:var(--dim)">Ingresá cantidad y hacé clic en ➕ Agregar</em>';
+  document.getElementById('mren-prod-qty').focus();
+}
+
+function addRenovItemFromSearch(){
+  var prodId=_renovSelectedProdId;
+  if(!prodId){toast('Seleccioná un producto primero','err');return;}
+  
+  var qty=parseInt(document.getElementById('mren-prod-qty').value)||1;
+  if(qty<1){toast('Cantidad debe ser al menos 1','err');return;}
+  
+  var prod=DB.productos.find(function(p){return p.id===prodId;});
+  if(!prod){toast('Producto no encontrado','err');return;}
+  
+  if(qty>prod.stock){toast('Stock insuficiente para '+esc(prod.nombre)+'. Disponible: '+prod.stock,'err');return;}
+  
+  var precio=prod.precio||0;
+  var existing=_renovItems.findIndex(function(i){return i.prod_id===prodId;});
+  
+  if(existing>=0){
+    _renovItems[existing].qty+=qty;
+    toast('Cantidad actualizada de '+esc(prod.nombre));
+  } else {
+    _renovItems.push({prod_id:prodId,nombre:prod.nombre,qty:qty,precio:precio});
+    toast('✅ '+esc(prod.nombre)+' agregado al carrito');
+  }
+  
+  // Limpiar y enfocar en búsqueda para siguiente producto
+  document.getElementById('mren-prod-search').value='';
+  document.getElementById('mren-prod-qty').value='1';
+  document.getElementById('mren-prod-stock-info').textContent='';
+  document.getElementById('mren-prod-dropdown').style.display='none';
+  _renovSelectedProdId=null;
+  document.getElementById('mren-prod-search').focus();
+  
+  renderRenovItems();
+}
+
+function openRenovModal(id){
+  var cSel=document.getElementById('mren-cli'); cSel.innerHTML='<option value="">— Sin cliente —</option>';
+  DB.clientes.forEach(function(c){cSel.innerHTML+='<option value="'+c.id+'">'+esc(c.nombre)+'</option>';});
   _renovItems=[];
   document.getElementById('mren-id').value=id||'';
   if(id){
@@ -2766,9 +2844,11 @@ function openRenovModal(id){
     document.getElementById('mren-tipo').value='Panel Solar';
     document.getElementById('mren-estado').value='Borrador';
   }
+  document.getElementById('mren-prod-search').value='';
   document.getElementById('mren-prod-qty').value=1;
-  document.getElementById('mren-prod-precio').value='';
   document.getElementById('mren-prod-stock-info').textContent='';
+  document.getElementById('mren-prod-dropdown').style.display='none';
+  _renovSelectedProdId=null;
   document.getElementById('mren-stock-warn').style.display='none';
   renderRenovItems();
   openModal('modal-renovable');
