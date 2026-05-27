@@ -282,15 +282,22 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
 .sidebar-footer{padding:16px 18px;border-top:1px solid var(--border);background:var(--s1)}
 
 /* GLOBAL SEARCH MODAL */
-#global-search-modal{position:fixed;inset:0;background:#00000088;z-index:200;display:none;align-items:flex-start;justify-content:center;padding-top:80px}
+#global-search-modal{position:fixed;inset:0;background:#00000088;z-index:200;display:none;align-items:flex-start;justify-content:center;padding-top:60px}
 #global-search-modal.open{display:flex}
-#gs-container{background:var(--s1);border:1px solid var(--border);border-radius:10px;width:90%;max-width:500px;box-shadow:0 20px 60px #00000044}
-#gs-input{width:100%;padding:14px 18px;background:var(--s1);border:none;border-bottom:1px solid var(--border);color:var(--text);font-size:15px;outline:none;font-family:var(--mono)}
-#gs-results{max-height:400px;overflow-y:auto;list-style:none}
-.gs-item{padding:12px 18px;cursor:pointer;border-bottom:1px solid var(--border);transition:.1s}
+#gs-container{background:var(--s1);border:1px solid var(--border);border-radius:10px;width:90%;max-width:620px;box-shadow:0 20px 60px #00000044;display:flex;flex-direction:column}
+#gs-input{width:100%;padding:14px 18px;background:var(--s1);border:none;border-bottom:1px solid var(--border);color:var(--text);font-size:14px;outline:none;font-family:inherit}
+#gs-input::placeholder{color:var(--dim)}
+#gs-results{max-height:480px;overflow-y:auto;list-style:none}
+.gs-category{padding:6px 18px 4px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;margin-bottom:2px;background:var(--s2)}
+.gs-category:first-child{margin-top:0}
+.gs-item{padding:10px 18px;cursor:pointer;border-bottom:1px solid var(--border);transition:.1s;display:flex;gap:10px;align-items:center}
 .gs-item:hover{background:var(--s3)}
-.gs-item-label{color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase}
-.gs-item-text{color:var(--text);font-size:13px}
+.gs-item-icon{width:28px;height:28px;border-radius:5px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.gs-item-content{flex:1;min-width:0}
+.gs-item-label{color:var(--muted);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+.gs-item-text{color:var(--text);font-size:13px;margin-top:2px}
+.gs-item-meta{color:var(--muted);font-size:10px;margin-top:2px}
+#gs-empty{padding:20px 18px;color:var(--muted);text-align:center;font-size:12px}
 
 /* EXPORT BUTTONS */
 .export-btn{background:none;border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:4px;font-size:12px;cursor:pointer;transition:.2s}
@@ -766,7 +773,7 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
       </div>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>Fecha</th><th>Cliente</th><th>Equipo</th><th>Descripción</th><th>Monto</th><th>Validez</th><th>Estado</th><th></th></tr></thead>
+          <thead><tr><th>Fecha</th><th>Cliente</th><th>Equipo</th><th>Descripción</th><th>Productos</th><th>Monto</th><th>Estado</th><th></th></tr></thead>
           <tbody id="renovable-tbody"></tbody>
         </table>
         <div id="renovable-empty" class="empty-row">No hay cotizaciones registradas.</div>
@@ -979,22 +986,59 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
 </div>
 
 <div class="overlay" id="modal-renovable">
-  <div class="modal">
+  <div class="modal" style="max-width:680px;width:96vw">
     <div class="mhead"><div class="mhead-title" id="mren-title">Nueva Cotización Renovable</div><button class="mclose" onclick="closeModal('modal-renovable')">✕</button></div>
     <div class="mbody">
       <input type="hidden" id="mren-id"/>
       <div class="fr2">
         <div class="field"><label>Cliente</label><select id="mren-cli"><option value="">— Seleccionar —</option></select></div>
-        <div class="field"><label>Tipo de Equipo</label><select id="mren-tipo"><option>Panel Solar</option><option>Bomba Solar</option><option>Termo Solar</option></select></div>
+        <div class="field"><label>Tipo de Trabajo</label><select id="mren-tipo"><option>Panel Solar</option><option>Bomba Solar</option><option>Termo Solar</option><option>Instalación</option><option>Otro</option></select></div>
       </div>
-      <div class="field"><label>Descripción / Instalación</label><input type="text" id="mren-desc" placeholder="Ej: Termo 200L atmosférico en Santa Clara..."/></div>
-      <div class="fr2">
-        <div class="field"><label>Monto Total ($)</label><input type="number" id="mren-monto" step="0.01" min="0"/></div>
-        <div class="field"><label>Validez de la oferta</label><select id="mren-validez"><option>7 días</option><option>15 días</option><option>30 días</option></select></div>
+      <div class="field"><label>Descripción / Instalación</label><input type="text" id="mren-desc" placeholder="Ej: Termo 200L atmosférico en Santa Clara…"/></div>
+
+      <!-- Selector de productos del stock -->
+      <div class="field" style="margin-top:10px">
+        <label style="margin-bottom:6px;display:block;font-weight:600">Productos del Stock</label>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <select id="mren-prod-sel" style="flex:1;min-width:160px">
+            <option value="">— Elegir producto —</option>
+          </select>
+          <input type="number" id="mren-prod-qty" placeholder="Cant." min="1" value="1" style="width:70px"/>
+          <input type="number" id="mren-prod-precio" placeholder="Precio unit." min="0" step="0.01" style="width:110px"/>
+          <button type="button" class="btn btn-primary btn-sm" onclick="addRenovItem()">➕ Agregar</button>
+        </div>
+        <div id="mren-prod-stock-info" style="font-size:10px;color:var(--muted);margin-top:3px"></div>
       </div>
-      <div class="field"><label>Estado</label><select id="mren-estado"><option>Borrador</option><option>Enviada</option><option>Aprobada</option><option>Rechazada</option></select></div>
+
+      <!-- Tabla de ítems -->
+      <div id="mren-items-wrap" style="display:none;margin-top:6px">
+        <table style="width:100%;font-size:12px;border-collapse:collapse">
+          <thead><tr style="color:var(--muted);border-bottom:1px solid var(--border)">
+            <th style="text-align:left;padding:4px 6px">Producto</th>
+            <th style="text-align:center;padding:4px 6px">Cant.</th>
+            <th style="text-align:right;padding:4px 6px">Precio u.</th>
+            <th style="text-align:right;padding:4px 6px">Subtotal</th>
+            <th style="padding:4px 6px"></th>
+          </tr></thead>
+          <tbody id="mren-items-tbody"></tbody>
+        </table>
+        <div style="display:flex;justify-content:flex-end;gap:8px;align-items:center;margin-top:8px;padding-top:6px;border-top:1px solid var(--border)">
+          <span style="font-size:12px;color:var(--muted)">Subtotal productos:</span>
+          <span id="mren-items-total" style="font-family:var(--mono);font-weight:700;color:var(--green);font-size:15px">$0</span>
+        </div>
+      </div>
+
+      <div class="fr2" style="margin-top:8px">
+        <div class="field"><label>Monto Total ($) <span style="font-size:10px;color:var(--muted)">(editable)</span></label><input type="number" id="mren-monto" step="0.01" min="0"/></div>
+        <div class="field"><label>Estado</label><select id="mren-estado"><option>Borrador</option><option>Enviada</option><option>Aprobada</option><option>Rechazada</option></select></div>
+      </div>
+      <div id="mren-stock-warn" style="display:none;background:var(--red-glow);border:1px solid #ef444430;border-radius:5px;padding:7px 10px;font-size:11px;color:var(--red);margin-top:4px"></div>
     </div>
-    <div class="mfooter"><button class="btn btn-ghost btn-sm" onclick="closeModal('modal-renovable')">Cancelar</button><button class="btn btn-primary btn-sm" onclick="saveRenov()">Guardar</button></div>
+    <div class="mfooter">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-renovable')">Cancelar</button>
+      <button class="btn btn-primary btn-sm" onclick="saveRenov(false)">💾 Guardar (sin descontar stock)</button>
+      <button class="btn btn-success btn-sm" id="mren-btn-stock" onclick="saveRenov(true)" style="background:var(--green);color:#fff">✅ Aprobar y descontar stock</button>
+    </div>
   </div>
 </div>
 
@@ -1938,7 +1982,7 @@ function renderStock(){
     var pct=p.min>0?Math.min(100,Math.round(p.stock/p.min*100)):100;
     var bc=p.stock===0?'var(--red)':p.stock<=p.min?'var(--yellow)':'var(--green)';
     var sc2=p.stock===0?'stock-zero':p.stock<=p.min?'stock-low':'stock-ok';
-    tb.innerHTML+='<tr><td style="font-family:var(--mono);font-size:10px;color:var(--muted)">'+esc(p.cod||'—')+'</td><td style="font-weight:600;font-size:12px">'+esc(p.nombre)+'</td><td><span class="badge badge-orange">'+esc(p.cat)+'</span></td><td style="font-family:var(--mono);color:var(--muted)">'+fmt(p.costo)+'</td><td style="font-family:var(--mono);color:var(--green);font-weight:600">'+fmt(p.precio)+'</td><td><div class="'+sc2+'">'+p.stock+' '+esc(p.unidad||'')+'</div><div class="stock-bar-wrap"><div class="stock-bar" style="width:'+pct+'%;background:'+bc+'"></div></div></td><td style="font-family:var(--mono);color:var(--muted)">'+p.min+'</td><td><span class="badge '+(p.stock===0?'badge-red':p.stock<=p.min?'badge-yellow':'badge-green')+'">'+(p.stock===0?'Sin stock':p.stock<=p.min?'Bajo':'OK')+'</span></td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="openProdModal('+p.id+')">✏</button><button class="btn btn-ghost btn-xs" onclick="openMovModal('+p.id+')">±</button><button class="btn btn-danger btn-xs" onclick="delProd('+p.id+')">🗑</button></div></td></tr>';
+    tb.innerHTML+='<tr data-id="'+p.id+'"><td style="font-family:var(--mono);font-size:10px;color:var(--muted)">'+esc(p.cod||'—')+'</td><td style="font-weight:600;font-size:12px">'+esc(p.nombre)+'</td><td><span class="badge badge-orange">'+esc(p.cat)+'</span></td><td style="font-family:var(--mono);color:var(--muted)">'+fmt(p.costo)+'</td><td style="font-family:var(--mono);color:var(--green);font-weight:600">'+fmt(p.precio)+'</td><td><div class="'+sc2+'">'+p.stock+' '+esc(p.unidad||'')+'</div><div class="stock-bar-wrap"><div class="stock-bar" style="width:'+pct+'%;background:'+bc+'"></div></div></td><td style="font-family:var(--mono);color:var(--muted)">'+p.min+'</td><td><span class="badge '+(p.stock===0?'badge-red':p.stock<=p.min?'badge-yellow':'badge-green')+'">'+(p.stock===0?'Sin stock':p.stock<=p.min?'Bajo':'OK')+'</span></td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="openProdModal('+p.id+')">✏</button><button class="btn btn-ghost btn-xs" onclick="openMovModal('+p.id+')">±</button><button class="btn btn-danger btn-xs" onclick="delProd('+p.id+')">🗑</button></div></td></tr>';
   });
   document.getElementById('stock-empty').style.display=filtered.length?'none':'block';
 }
@@ -2033,7 +2077,7 @@ function renderClientes(){
   var tb=document.getElementById('cli-tbody'); tb.innerHTML='';
   filtered.forEach(function(c){
     var telEsc = (c.tel||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    tb.innerHTML+='<tr><td><div style="font-weight:600;font-size:12px">'+esc(c.nombre)+'</div><div style="color:var(--muted);font-size:10px">'+esc(c.email||'')+'</div></td><td style="font-family:var(--mono);font-size:12px">'+esc(c.tel||'—')+'</td><td style="color:var(--muted);font-size:11px">'+esc(c.dir||'—')+'</td><td style="font-family:var(--mono)">'+(c.compras||0)+'</td><td style="font-family:var(--mono);color:var(--muted)">'+fmt(c.cc||0)+'</td><td style="font-family:var(--mono);'+(c.deuda_cc>0?'color:var(--red);font-weight:700':'color:var(--muted)')+'">'+fmt(c.deuda_cc||0)+'</td><td style="color:var(--muted);font-size:11px">'+(c.ultimo_pedido||'—')+'</td><td><div class="act"><button class="btn btn-primary btn-xs" onclick="openClientePagoModal('+c.id+')">💰</button><a href="javascript:void(0)" onclick="openWhatsAppNumber(\''+telEsc+'\')" class="btn btn-green btn-xs">💬</a><button class="btn btn-ghost btn-xs" onclick="openClienteModal('+c.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delCliente('+c.id+')">🗑</button></div></td></tr>';
+    tb.innerHTML+='<tr data-id="'+c.id+'"><td><div style="font-weight:600;font-size:12px">'+esc(c.nombre)+'</div><div style="color:var(--muted);font-size:10px">'+esc(c.email||'')+'</div></td><td style="font-family:var(--mono);font-size:12px">'+esc(c.tel||'—')+'</td><td style="color:var(--muted);font-size:11px">'+esc(c.dir||'—')+'</td><td style="font-family:var(--mono)">'+(c.compras||0)+'</td><td style="font-family:var(--mono);color:var(--muted)">'+fmt(c.cc||0)+'</td><td style="font-family:var(--mono);'+(c.deuda_cc>0?'color:var(--red);font-weight:700':'color:var(--muted)')+'">'+fmt(c.deuda_cc||0)+'</td><td style="color:var(--muted);font-size:11px">'+(c.ultimo_pedido||'—')+'</td><td><div class="act"><button class="btn btn-primary btn-xs" onclick="openClientePagoModal('+c.id+')">💰</button><a href="javascript:void(0)" onclick="openWhatsAppNumber(\''+telEsc+'\')" class="btn btn-green btn-xs">💬</a><button class="btn btn-ghost btn-xs" onclick="openClienteModal('+c.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delCliente('+c.id+')">🗑</button></div></td></tr>';
   });
   document.getElementById('cli-empty').style.display=filtered.length?'none':'block';
 }
@@ -2179,7 +2223,7 @@ async function delCliente(id){
 function renderProveedores(){
   var tb=document.getElementById('prov-tbody'); tb.innerHTML='';
   DB.proveedores.forEach(function(p){
-    tb.innerHTML+='<tr><td style="font-weight:600;font-size:12px">'+esc(p.nombre)+'</td><td>'+esc(p.contacto||'—')+'</td><td style="font-family:var(--mono);font-size:12px">'+esc(p.tel||'—')+'</td><td style="color:var(--muted);font-size:11px">'+esc(p.ultima_compra||'—')+'</td><td style="font-family:var(--mono);'+(p.deuda>0?'color:var(--red);font-weight:700':'color:var(--muted)')+'">'+fmt(p.deuda||0)+'</td><td>'+(p.pedido_pend?'<span class="badge badge-yellow">⏳ Sí</span>':'<span style="color:var(--dim)">No</span>')+'</td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="openProvModal('+p.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delProv('+p.id+')">🗑</button></div></td></tr>';
+    tb.innerHTML+='<tr data-id="'+p.id+'"><td style="font-weight:600;font-size:12px">'+esc(p.nombre)+'</td><td>'+esc(p.contacto||'—')+'</td><td style="font-family:var(--mono);font-size:12px">'+esc(p.tel||'—')+'</td><td style="color:var(--muted);font-size:11px">'+esc(p.ultima_compra||'—')+'</td><td style="font-family:var(--mono);'+(p.deuda>0?'color:var(--red);font-weight:700':'color:var(--muted)')+'">'+fmt(p.deuda||0)+'</td><td>'+(p.pedido_pend?'<span class="badge badge-yellow">⏳ Sí</span>':'<span style="color:var(--dim)">No</span>')+'</td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="openProvModal('+p.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delProv('+p.id+')">🗑</button></div></td></tr>';
   });
   document.getElementById('prov-empty').style.display=DB.proveedores.length?'none':'block';
 }
@@ -2609,10 +2653,10 @@ function printMatQuote(id){
 function renderRenovables(){
   var tb=document.getElementById('renovable-tbody'); tb.innerHTML='';
   var badges={Borrador:'badge-gray',Enviada:'badge-blue',Aprobada:'badge-green',Rechazada:'badge-red'};
-  
   DB.renovables.forEach(function(r){
-    var localBadge=r._local?' <span class="badge badge-yellow">Local</span>':'';
-    tb.innerHTML+='<tr><td style="font-size:11px;color:var(--muted)">'+(r.fecha||todayStr())+'</td><td style="font-weight:600;font-size:12px">'+esc(r.cliente_nombre||'—')+'</td><td><span class="badge badge-orange">'+esc(r.tipo)+'</span>'+localBadge+'</td><td style="font-size:11px">'+esc(r.descripcion||'')+'</td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(r.monto)+'</td><td style="font-family:var(--mono);font-size:11px">'+esc(r.validez)+'</td><td><span class="badge '+(badges[r.estado]||'badge-gray')+'">'+r.estado+'</span></td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="printRenovQuote('+r.id+')">🧾</button><button class="btn btn-ghost btn-xs" onclick="openRenovModal('+r.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delRenov('+r.id+')">🗑</button></div></td></tr>';
+    var localBadge=r._local?'<span class="badge badge-yellow" style="margin-left:4px;font-size:9px">local</span>':'';
+    var items=r.items&&r.items.length?r.items.length+' prod.':'—';
+    tb.innerHTML+='<tr><td style="font-size:11px;color:var(--muted)">'+(r.fecha||todayStr())+'</td><td style="font-weight:600;font-size:12px">'+esc(r.cliente_nombre||'—')+'</td><td><span class="badge badge-orange">'+esc(r.tipo)+'</span>'+localBadge+'</td><td style="font-size:11px">'+esc(r.descripcion||'')+'</td><td style="font-size:11px;color:var(--muted)">'+esc(items)+'</td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(r.monto)+'</td><td><span class="badge '+(badges[r.estado]||'badge-gray')+'">'+r.estado+'</span></td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="printRenovQuote('+r.id+')">\u{1F9FE}</button><button class="btn btn-ghost btn-xs" onclick="openRenovModal('+r.id+')">\u270F</button><button class="btn btn-danger btn-xs" onclick="delRenov('+r.id+')">\u{1F5D1}</button></div></td></tr>';
   });
   document.getElementById('renovable-empty').style.display=DB.renovables.length?'none':'block';
 }
@@ -2628,35 +2672,116 @@ function saveRenovLocal(id, obj){
   DB.renovables=mergeLocalRows(DB.renovables.filter(function(r){return !r._local;}), 'renovables_local');
 }
 
+// Renovables: item list state
+var _renovItems = [];
+
+function renovItemsTotal(){
+  return _renovItems.reduce(function(s,i){return s+(i.qty*i.precio);},0);
+}
+
+function renderRenovItems(){
+  var tbody=document.getElementById('mren-items-tbody');
+  var wrap=document.getElementById('mren-items-wrap');
+  if(!tbody) return;
+  if(!_renovItems.length){wrap.style.display='none'; document.getElementById('mren-stock-warn').style.display='none'; return;}
+  wrap.style.display='block';
+  tbody.innerHTML=_renovItems.map(function(item,idx){
+    var prod=DB.productos.find(function(p){return p.id===item.prod_id;})||{};
+    var stockDisp=prod.stock!==undefined?prod.stock:'?';
+    var warn=item.qty>(prod.stock||0)?' \u26A0\uFE0F':'';
+    return '<tr style="border-bottom:1px solid var(--border)">'+
+      '<td style="padding:4px 6px">'+esc(item.nombre)+warn+'<div style="font-size:9px;color:var(--muted)">Stock: '+stockDisp+'</div></td>'+
+      '<td style="text-align:center;padding:4px 6px"><input type="number" min="1" value="'+item.qty+'" style="width:55px;text-align:center" onchange="updateRenovItemQty('+idx+',this.value)"/></td>'+
+      '<td style="text-align:right;padding:4px 6px;font-family:var(--mono)">'+fmt(item.precio)+'</td>'+
+      '<td style="text-align:right;padding:4px 6px;font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(item.qty*item.precio)+'</td>'+
+      '<td style="padding:4px 6px"><button type="button" class="btn btn-danger btn-xs" onclick="removeRenovItem('+idx+')">\u2715</button></td>'+
+      '</tr>';
+  }).join('');
+  document.getElementById('mren-items-total').textContent=fmt(renovItemsTotal());
+  document.getElementById('mren-monto').value=renovItemsTotal().toFixed(2);
+  var warns=_renovItems.filter(function(i){var p=DB.productos.find(function(x){return x.id===i.prod_id;});return p&&i.qty>p.stock;});
+  var wEl=document.getElementById('mren-stock-warn');
+  if(warns.length){
+    wEl.style.display='block';
+    wEl.innerHTML='\u26A0\uFE0F Stock insuficiente: '+warns.map(function(i){var p=DB.productos.find(function(x){return x.id===i.prod_id;})||{stock:0};return esc(i.nombre)+' (necesit\u00E1s '+i.qty+', hay '+p.stock+')';}).join(', ');
+  } else {wEl.style.display='none';}
+}
+
+function addRenovItem(){
+  var sel=document.getElementById('mren-prod-sel');
+  var prodId=parseInt(sel.value); if(!prodId){toast('Eleg\u00ED un producto','err');return;}
+  var qty=parseInt(document.getElementById('mren-prod-qty').value)||1;
+  var precio=parseFloat(document.getElementById('mren-prod-precio').value)||0;
+  if(qty<1){toast('Cantidad inv\u00E1lida','err');return;}
+  var prod=DB.productos.find(function(p){return p.id===prodId;});
+  if(!prod){toast('Producto no encontrado','err');return;}
+  if(!precio) precio=prod.precio||0;
+  var existing=_renovItems.findIndex(function(i){return i.prod_id===prodId;});
+  if(existing>=0){_renovItems[existing].qty+=qty;}
+  else{_renovItems.push({prod_id:prodId,nombre:prod.nombre,qty:qty,precio:precio});}
+  sel.value=''; document.getElementById('mren-prod-qty').value=1; document.getElementById('mren-prod-precio').value='';
+  document.getElementById('mren-prod-stock-info').textContent='';
+  renderRenovItems();
+}
+
+function updateRenovItemQty(idx,val){
+  _renovItems[idx].qty=Math.max(1,parseInt(val)||1);
+  renderRenovItems();
+}
+
+function removeRenovItem(idx){
+  _renovItems.splice(idx,1);
+  renderRenovItems();
+}
+
 function openRenovModal(id){
-  var cSel=document.getElementById('mren-cli'); cSel.innerHTML='<option value="">— Sin cliente —</option>';
+  var cSel=document.getElementById('mren-cli'); cSel.innerHTML='<option value="">\u2014 Sin cliente \u2014</option>';
   DB.clientes.forEach(function(c){cSel.innerHTML+='<option value="'+c.id+'">'+esc(c.nombre)+'</option>';});
-  
+  var pSel=document.getElementById('mren-prod-sel'); pSel.innerHTML='<option value="">\u2014 Elegir producto \u2014</option>';
+  DB.productos.filter(function(p){return p.stock>0;}).forEach(function(p){
+    pSel.innerHTML+='<option value="'+p.id+'">'+esc(p.nombre)+' (stock: '+p.stock+') \u2014 '+fmt(p.precio)+'</option>';
+  });
+  pSel.onchange=function(){
+    var p=DB.productos.find(function(x){return x.id===parseInt(pSel.value);});
+    var info=document.getElementById('mren-prod-stock-info');
+    if(p){document.getElementById('mren-prod-precio').value=p.precio||0;info.textContent='Stock disponible: '+p.stock+' '+(p.unidad||'u.');}
+    else{info.textContent='';}
+  };
+  _renovItems=[];
   document.getElementById('mren-id').value=id||'';
   if(id){
     var r=DB.renovables.find(function(x){return x.id===id;});
-    document.getElementById('mren-title').textContent='Editar Cotización';
+    if(!r){toast('No encontrado','err');return;}
+    document.getElementById('mren-title').textContent='Editar Cotizaci\u00F3n';
     cSel.value=r.cliente_id||'';
     document.getElementById('mren-tipo').value=r.tipo||'Panel Solar';
     document.getElementById('mren-desc').value=r.descripcion||'';
     document.getElementById('mren-monto').value=r.monto||0;
-    document.getElementById('mren-validez').value=r.validez||'15 días';
     document.getElementById('mren-estado').value=r.estado||'Borrador';
+    if(r.items&&r.items.length) _renovItems=JSON.parse(JSON.stringify(r.items));
   } else {
-    document.getElementById('mren-title').textContent='Nueva Cotización Renovable';
+    document.getElementById('mren-title').textContent='Nueva Cotizaci\u00F3n Renovable';
+    cSel.value='';
     ['desc','monto'].forEach(function(f){document.getElementById('mren-'+f).value='';});
     document.getElementById('mren-tipo').value='Panel Solar';
-    document.getElementById('mren-validez').value='15 días';
     document.getElementById('mren-estado').value='Borrador';
   }
+  document.getElementById('mren-prod-qty').value=1;
+  document.getElementById('mren-prod-precio').value='';
+  document.getElementById('mren-prod-stock-info').textContent='';
+  document.getElementById('mren-stock-warn').style.display='none';
+  renderRenovItems();
   openModal('modal-renovable');
 }
 
-async function saveRenov(){
+async function saveRenov(descontarStock){
   var id=parseInt(document.getElementById('mren-id').value)||0;
   var cliId=parseInt(document.getElementById('mren-cli').value)||null;
   var cn=cliId?(DB.clientes.find(function(c){return c.id===cliId;})||{nombre:'Particular'}).nombre:'Particular';
-  
+  if(descontarStock){
+    var insuf=_renovItems.filter(function(i){var p=DB.productos.find(function(x){return x.id===i.prod_id;});return p&&i.qty>p.stock;});
+    if(insuf.length){toast('Stock insuficiente: '+insuf.map(function(i){return i.nombre;}).join(', '),'err');return;}
+  }
   var obj={
     fecha: todayStr(),
     cliente_id: cliId,
@@ -2664,26 +2789,40 @@ async function saveRenov(){
     tipo: document.getElementById('mren-tipo').value,
     descripcion: document.getElementById('mren-desc').value.trim(),
     monto: parseFloat(document.getElementById('mren-monto').value)||0,
-    validez: document.getElementById('mren-validez').value,
-    estado: document.getElementById('mren-estado').value
+    estado: descontarStock?'Aprobada':document.getElementById('mren-estado').value,
+    items: _renovItems.length?JSON.parse(JSON.stringify(_renovItems)):[]
   };
-  
   setSyncing(true);
   try {
     if(id<0){saveRenovLocal(id,obj);}
     else if(id){await sbUpdate('renovables_cotizaciones',id,obj);}
     else{await sbInsert('renovables_cotizaciones',obj);}
-    await loadAll(); closeModal('modal-renovable'); renderRenovables(); toast('Cotización guardada');
+    if(descontarStock && _renovItems.length){
+      for(var i=0;i<_renovItems.length;i++){
+        var item=_renovItems[i];
+        var prod=DB.productos.find(function(p){return p.id===item.prod_id;});
+        if(!prod) continue;
+        var nuevoStock=Math.max(0,prod.stock-item.qty);
+        try{
+          await sbUpdate('productos',prod.id,{stock:nuevoStock});
+          await sbInsert('movimientos',{fecha:todayStr(),hora:new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}),prod_id:prod.id,prod_nombre:prod.nombre,tipo:'Egreso',qty:item.qty,stock_ant:prod.stock,stock_nuevo:nuevoStock,motivo:'Cotizaci\u00F3n Renovable'+(cn&&cn!=='Particular'?' \u2014 '+cn:''),usuario:'Admin'});
+        }catch(se){console.error('Error descontando stock:',se);}
+      }
+      toast('Cotizaci\u00F3n aprobada y stock descontado \u2705');
+    } else {
+      toast('Cotizaci\u00F3n guardada');
+    }
+    await loadAll(); closeModal('modal-renovable'); renderRenovables();
   } catch(e){
     console.error('Error renovables_cotizaciones:', e);
     saveRenovLocal(id,obj);
-    closeModal('modal-renovable'); renderRenovables(); toast('Guardada local: falta corregir Supabase','warn');
+    closeModal('modal-renovable'); renderRenovables(); toast('Guardada local','warn');
   }
   setSyncing(null);
 }
 
 async function delRenov(id){
-  if(!confirm('¿Eliminar cotización?'))return;
+  if(!confirm('\u00BFEliminar cotizaci\u00F3n?'))return;
   if(id<0){
     localSet('renovables_local', localGet('renovables_local').filter(function(r){return r.id!==id;}));
     await loadAll(); renderRenovables(); toast('Eliminada','warn'); return;
@@ -2694,16 +2833,14 @@ async function delRenov(id){
 
 function printRenovQuote(id){
   var r=DB.renovables.find(function(x){return x.id===id;});
-  if(!r){toast('No se encontró la cotización','err');return;}
-  showQuoteTicket('Cotización Energía Renovable', {
-    fecha:r.fecha,
-    cliente_nombre:r.cliente_nombre,
-    tipo:r.tipo,
-    descripcion:r.descripcion,
-    validez:r.validez,
-    monto:r.monto
-  });
+  if(!r){toast('No se encontr\u00F3 la cotizaci\u00F3n','err');return;}
+  var desc=r.descripcion||'';
+  if(r.items&&r.items.length){
+    desc+=(desc?'\n\n':'')+'Productos:\n'+r.items.map(function(i){return '\u2022 '+i.nombre+' x'+i.qty+' \u2014 '+fmt(i.qty*i.precio);}).join('\n');
+  }
+  showQuoteTicket('Cotizaci\u00F3n Energ\u00EDa Renovable', {fecha:r.fecha,cliente_nombre:r.cliente_nombre,tipo:r.tipo,descripcion:desc,monto:r.monto});
 }
+
 
 // ══════════════════════════════════════════
 // REPARACIÓN DE MAQUINARIA
@@ -3001,6 +3138,27 @@ function toggleDarkMode(){
   toast(isDark?'Tema claro activado':'Tema oscuro activado');
 }
 
+function goTo(tab, id){
+  // Navigate to tab and open the specific entity detail/modal
+  go(tab);
+  // Use longer timeout to ensure DOM is ready
+  setTimeout(function(){
+    if(tab==='stock' && typeof openProdModal==='function'){
+      openProdModal(parseInt(id));
+    } else if(tab==='clientes' && typeof openClienteModal==='function'){
+      openClienteModal(parseInt(id));
+    } else if(tab==='proveedores' && typeof openProvModal==='function'){
+      openProvModal(parseInt(id));
+    } else if(tab==='renovable' && typeof openRenovModal==='function'){
+      openRenovModal(parseInt(id));
+    } else if(tab==='matafuegos' && typeof openMatModal==='function'){
+      openMatModal(parseInt(id));
+    } else if(tab==='reparaciones' && typeof openRepModal==='function'){
+      openRepModal(parseInt(id));
+    }
+  },350);
+}
+
 function openGlobalSearch(){
   var modal=document.getElementById('global-search-modal');
   if(!modal){createGlobalSearchModal();}
@@ -3011,38 +3169,149 @@ function openGlobalSearch(){
 
 function createGlobalSearchModal(){
   if(document.getElementById('global-search-modal')) return;
-  var html='<div id="global-search-modal"><div id="gs-container"><input id="gs-input" placeholder="Buscar clientes, productos, ventas..."/><ul id="gs-results"></ul></div></div>';
+  var html='<div id="global-search-modal"><div id="gs-container"><input id="gs-input" placeholder="Buscar productos, clientes, cotizaciones, etc… (Ctrl+K)"/><ul id="gs-results"><div id="gs-empty" style="padding:20px;text-align:center;color:var(--muted);font-size:12px">Empezá a escribir para buscar…</div></ul></div></div>';
   document.body.insertAdjacentHTML('beforeend',html);
   var inp=document.getElementById('gs-input');
   var results=document.getElementById('gs-results');
+  
   inp.oninput=function(){
-    var q=(this.value||'').toLowerCase();
+    var q=(this.value||'').toLowerCase().trim();
     results.innerHTML='';
-    if(!q) return;
-    var hits=[];
-    // Buscar en clientes
-    DB.clientes.forEach(function(c){
-      if(c.nombre.toLowerCase().includes(q) || (c.tel||'').includes(q))
-        hits.push({type:'Cliente',text:c.nombre+' ('+c.tel+')',onclick:'go("clientes")'});
-    });
-    // Buscar en productos
+    if(!q){results.innerHTML='<div id="gs-empty" style="padding:20px;text-align:center;color:var(--muted);font-size:12px">Empezá a escribir para buscar…</div>';return;}
+    
+    // Categorized results: {category: icon, type: label, results: []}
+    var cats={
+      productos:{icon:'📦',label:'Productos',results:[]},
+      clientes:{icon:'👤',label:'Clientes',results:[]},
+      proveedores:{icon:'🏭',label:'Proveedores',results:[]},
+      ventas:{icon:'🧾',label:'Ventas',results:[]},
+      cotizaciones:{icon:'📋',label:'Cotizaciones',results:[]},
+      reparaciones:{icon:'🔩',label:'Reparaciones',results:[]},
+      stock:{icon:'📊',label:'Stock Bajo',results:[]}
+    };
+    
+    // Productos
     DB.productos.forEach(function(p){
-      if(p.nombre.toLowerCase().includes(q) || (p.cod||'').toLowerCase().includes(q))
-        hits.push({type:'Producto',text:p.nombre+' ($'+fmt(p.precio)+')',onclick:'go("stock"); openProdModal('+p.id+')'});
+      if(p.nombre.toLowerCase().includes(q) || (p.cod||'').toLowerCase().includes(q)){
+        cats.productos.results.push({
+          id:p.id,
+          text:esc(p.nombre),
+          meta:'Cod: '+esc(p.cod||'—')+' | Stock: '+p.stock+' | $'+fmt(p.precio),
+          icon:'📦'
+        });
+      }
     });
-    // Buscar en ventas
+    
+    // Clientes
+    DB.clientes.forEach(function(c){
+      if(c.nombre.toLowerCase().includes(q) || (c.tel||'').toLowerCase().includes(q) || (c.email||'').toLowerCase().includes(q)){
+        cats.clientes.results.push({
+          id:c.id,
+          text:esc(c.nombre),
+          meta:(c.tel?'☎ '+esc(c.tel)+' | ':'')+(c.email?'📧 '+esc(c.email):''),
+          icon:'👤'
+        });
+      }
+    });
+    
+    // Proveedores
+    DB.proveedores.forEach(function(pr){
+      if(pr.nombre.toLowerCase().includes(q) || (pr.tel||'').toLowerCase().includes(q) || (pr.rubro||'').toLowerCase().includes(q)){
+        cats.proveedores.results.push({
+          id:pr.id,
+          text:esc(pr.nombre),
+          meta:(pr.rubro?esc(pr.rubro)+' | ':'')+(pr.tel?'☎ '+esc(pr.tel):''),
+          icon:'🏭'
+        });
+      }
+    });
+    
+    // Ventas
     DB.ventas.forEach(function(v){
-      if((v.cliente_nombre||'').toLowerCase().includes(q) || String(v.id).includes(q))
-        hits.push({type:'Venta',text:'#'+v.id+' - '+esc(v.cliente_nombre||'Consumidor')+' ($'+fmt(v.total)+')',onclick:'go("historial")'});
+      if((v.cliente_nombre||'').toLowerCase().includes(q) || String(v.id).includes(q) || (v.ticket||'').toLowerCase().includes(q)){
+        cats.ventas.results.push({
+          id:v.id,
+          text:'Venta #'+v.id+' - '+esc(v.cliente_nombre||'Consumidor'),
+          meta:v.fecha+' | $'+fmt(v.total),
+          icon:'🧾'
+        });
+      }
     });
-    hits.slice(0,15).forEach(function(h){
-      results.innerHTML+='<li class="gs-item" onclick="'+h.onclick+'; document.getElementById(\'global-search-modal\').classList.remove(\'open\')"><div class="gs-item-label">'+h.type+'</div><div class="gs-item-text">'+h.text+'</div></li>';
+    
+    // Cotizaciones Renovables
+    DB.renovables.forEach(function(r){
+      if((r.cliente_nombre||'').toLowerCase().includes(q) || (r.tipo||'').toLowerCase().includes(q) || (r.descripcion||'').toLowerCase().includes(q)){
+        cats.cotizaciones.results.push({
+          id:r.id,
+          text:esc(r.cliente_nombre||'Particular')+' - '+esc(r.tipo),
+          meta:r.fecha+' | $'+fmt(r.monto)+' | '+r.estado,
+          icon:'📋'
+        });
+      }
     });
+    
+    // Cotizaciones Matafuegos
+    DB.matafuegos.forEach(function(m){
+      if((m.cliente_nombre||'').toLowerCase().includes(q) || (m.tipo||'').toLowerCase().includes(q) || (m.serie||'').toLowerCase().includes(q)){
+        cats.cotizaciones.results.push({
+          id:m.id,
+          text:esc(m.cliente_nombre||'—')+' - '+esc(m.tipo)+' ('+esc(m.serie||'—')+')',
+          meta:m.fecha+' | $'+fmt(m.monto)+' | Vence: '+esc(m.validez||'—'),
+          icon:'🧯'
+        });
+      }
+    });
+    
+    // Reparaciones
+    DB.reparaciones.forEach(function(rp){
+      if((rp.cliente_nombre||'').toLowerCase().includes(q) || (rp.descripcion||'').toLowerCase().includes(q) || (rp.tecnico||'').toLowerCase().includes(q)){
+        cats.reparaciones.results.push({
+          id:rp.id,
+          text:esc(rp.cliente_nombre||'Sin cliente')+' - '+esc(rp.tecnico),
+          meta:rp.fecha+' | '+esc(rp.descripcion||'')+' | $'+fmt(rp.monto),
+          icon:'🔩'
+        });
+      }
+    });
+    
+    // Stock bajo
+    var stockBajo=DB.productos.filter(function(p){return p.stock<=p.min && (p.nombre.toLowerCase().includes(q) || (p.cod||'').toLowerCase().includes(q));});
+    stockBajo.forEach(function(p){
+      cats.stock.results.push({
+        id:p.id,
+        text:esc(p.nombre)+' (Mínimo: '+p.min+')',
+        meta:'Stock actual: '+p.stock+' | $'+fmt(p.precio),
+        icon:'⚠️'
+      });
+    });
+    
+    // Renderizar por categoría
+    var tabMap={productos:'stock',clientes:'clientes',proveedores:'proveedores',ventas:'historial',cotizaciones:'renovable',stock:'stock'};
+    var totalHits=0;
+    var html='';
+    for(var cat in cats){
+      var c=cats[cat];
+      if(!c.results.length) continue;
+      var tab=tabMap[cat]||cat;
+      html+='<div class="gs-category">'+c.icon+' '+c.label+'</div>';
+      c.results.slice(0,6).forEach(function(r){
+        totalHits++;
+        html+='<li class="gs-item" data-tab="'+tab+'" data-id="'+r.id+'" onclick="var t=this.getAttribute(\'data-tab\'); var id=this.getAttribute(\'data-id\'); goTo(t,id); document.getElementById(\'global-search-modal\').classList.remove(\'open\')"><div class="gs-item-icon">'+r.icon+'</div><div class="gs-item-content"><div class="gs-item-label">'+c.label+'</div><div class="gs-item-text">'+r.text+'</div>'+(r.meta?'<div class="gs-item-meta">'+r.meta+'</div>':'')+'</div></li>';
+      });
+    }
+    
+    if(!totalHits){
+      results.innerHTML='<div id="gs-empty" style="padding:20px;text-align:center;color:var(--muted);font-size:12px">Sin resultados para "<strong>'+esc(q)+'</strong>"</div>';
+    } else {
+      results.innerHTML=html;
+    }
   };
+  
   document.addEventListener('keydown',function(e){
     if(e.ctrlKey && e.key==='k') { e.preventDefault(); openGlobalSearch(); }
-    if(e.key==='Escape') document.getElementById('global-search-modal').classList.remove('open');
+    if(e.key==='Escape') {var m=document.getElementById('global-search-modal');if(m)m.classList.remove('open');}
   });
+  
   document.getElementById('global-search-modal').onclick=function(e){ if(e.target===this) this.classList.remove('open'); };
 }
 
