@@ -1455,7 +1455,23 @@ function showQuoteTicket(title, q){
   html+='<div class="ticket-row"><span>Cliente</span><span>'+esc(q.cliente_nombre||'Particular')+'</span></div>';
   if(q.telefono) html+='<div class="ticket-row"><span>Teléfono</span><span>'+esc(q.telefono)+'</span></div>';
   html+='<div class="ticket-row"><span>Tipo</span><span>'+esc(q.tipo||'Cotización')+'</span></div>';
-  html+='<div class="ticket-div"></div><div style="white-space:pre-wrap;margin-bottom:8px">'+esc(q.descripcion||'Sin detalle')+'</div>';
+  
+  // Mostrar descripción o tabla de productos
+  if(q.items && q.items.length){
+    html+='<div class="ticket-div"></div><table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr style="border-bottom:1px solid #ddd"><th style="text-align:left;padding:4px">Producto</th><th style="text-align:center;padding:4px">Cant.</th><th style="text-align:right;padding:4px">Precio</th><th style="text-align:right;padding:4px">Subtotal</th></tr></thead><tbody>';
+    var subtotal=0;
+    q.items.forEach(function(item){
+      var st=item.qty*item.precio;
+      subtotal+=st;
+      html+='<tr style="border-bottom:1px solid #eee"><td style="padding:4px">'+esc(item.nombre)+'</td><td style="text-align:center;padding:4px">'+item.qty+'</td><td style="text-align:right;padding:4px;font-family:monospace">$'+fmt(item.precio)+'</td><td style="text-align:right;padding:4px;font-family:monospace;font-weight:600">$'+fmt(st)+'</td></tr>';
+    });
+    html+='</tbody></table>';
+    html+='<div style="text-align:right;margin-top:8px;padding-top:8px;border-top:1px solid #ddd;font-weight:600">Subtotal productos: $'+fmt(subtotal)+'</div>';
+    if(q.descripcion) html+='<div style="margin-top:8px;font-size:10px;color:#666"><strong>Notas:</strong><br>'+esc(q.descripcion)+'</div>';
+  } else {
+    html+='<div class="ticket-div"></div><div style="white-space:pre-wrap;margin-bottom:8px">'+esc(q.descripcion||'Sin detalle')+'</div>';
+  }
+  
   if(q.foto) html+='<img src="'+esc(q.foto)+'" alt="Foto" style="width:100%;max-height:180px;object-fit:cover;margin:6px 0;border:1px solid #ddd"/>';
   if(q.validez) html+='<div class="ticket-row"><span>Vencimiento</span><span>'+esc(q.validez)+'</span></div>';
   html+='<div class="ticket-total"><span>TOTAL</span><span>'+fmt(q.monto)+'</span></div>';
