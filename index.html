@@ -182,13 +182,20 @@ tbody tr:hover td:last-child{background:var(--s3)}
 .change-val{font-family:var(--mono);font-size:18px;color:var(--green);font-weight:600}
 
 /* TICKET */
-.ticket{background:#fff;color:#000;border-radius:var(--r);padding:18px;font-family:var(--mono);font-size:11px;max-width:300px;margin:0 auto}
+.ticket{background:#fff !important;color:#000 !important;border-radius:var(--r);padding:18px;font-family:var(--mono);font-size:11px;max-width:300px;margin:0 auto}
+.ticket *{color:#000 !important;background:transparent;border-color:#ccc !important}
+.ticket table{width:100%;border-collapse:collapse}
+.ticket thead th{background:#f0f0f0 !important;color:#000 !important;border:1px solid #ccc !important;padding:5px 6px;font-size:10px;text-transform:uppercase;letter-spacing:.04em}
+.ticket tbody td{background:#fff !important;color:#000 !important;border:1px solid #ddd !important;padding:5px 6px}
+.ticket tbody tr:nth-child(even) td{background:#f9f9f9 !important}
+.ticket tfoot td{background:#efefef !important;color:#000 !important;border-top:2px solid #999 !important}
+.ticket tfoot tr:last-child td{background:#e2e2e2 !important;font-weight:700;border-top:2px solid #777 !important}
 .ticket-logo{text-align:center;font-size:16px;font-weight:700;margin-bottom:3px}
-.ticket-sub{text-align:center;color:#555;font-size:9px;margin-bottom:10px}
+.ticket-sub{text-align:center;color:#555 !important;font-size:9px;margin-bottom:10px}
 .ticket-div{border-bottom:1px dashed #ccc;margin:8px 0}
 .ticket-row{display:flex;justify-content:space-between;margin-bottom:2px}
 .ticket-total{display:flex;justify-content:space-between;font-weight:700;font-size:13px;padding-top:5px;border-top:2px solid #000;margin-top:5px}
-.ticket-thanks{text-align:center;color:#555;font-size:9px;margin-top:10px}
+.ticket-thanks{text-align:center;color:#555 !important;font-size:9px;margin-top:10px}
 
 /* STOCK BAR */
 .stock-bar-wrap{width:50px;height:4px;background:var(--s3);border-radius:2px;overflow:hidden;margin-top:2px}
@@ -304,12 +311,20 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
 .export-btn:hover{border-color:var(--orange);color:var(--orange)}
 #export-print-wrapper{display:none;}
 @media print {
-  body *{visibility:hidden !important;}
-  #export-print-wrapper, #export-print-wrapper *{visibility:visible !important;}
-  #export-print-wrapper{position:absolute;left:0;top:0;width:100%;padding:20px;display:block !important;background:#fff;color:#000;}
-  #export-print-wrapper table{width:100%;border-collapse:collapse;margin-top:14px;}
-  #export-print-wrapper th,#export-print-wrapper td{border:1px solid #222;padding:8px;text-align:left;}
-  #export-print-wrapper h1{font-size:22px;margin:0 0 12px 0;}
+  /* Ocultar UI de la app */
+  body > *:not(#print-portal){display:none !important}
+  #print-portal{display:block !important;position:fixed;inset:0;background:#fff;color:#000;z-index:99999;padding:24px;overflow:visible}
+
+  /* Export historial/carrito */
+  #export-print-wrapper{display:block !important;background:#fff;color:#000}
+
+  /* Ticket / cotización */
+  .ticket{background:#fff !important;color:#000 !important;max-width:100% !important;border-radius:0 !important;padding:0 !important;font-family:Arial,sans-serif !important}
+  .ticket table{width:100%;border-collapse:collapse;page-break-inside:avoid}
+  .ticket table td,.ticket table th{border:1px solid #ccc;padding:5px 8px;font-size:11px}
+  .ticket thead th{background:#f5f5f5 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .ticket tfoot tr:last-child td{background:#f0f0f0 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-weight:700;font-size:13px}
+  .ticket img{max-width:100%;page-break-inside:avoid}
 }
 
 </style>
@@ -323,6 +338,7 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
 </head>
 <body>
 
+<div id="print-portal" style="display:none"></div>
 <div id="loading">
   <div class="spinner"></div>
   <p>Conectando con Supabase…</p>
@@ -759,7 +775,7 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
       <div class="caja-grid" id="matafuegos-summary"></div>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>Fecha</th><th>Cliente</th><th>Teléfono</th><th>Trabajo</th><th>Detalle</th><th>Monto</th><th>Vencimiento</th><th>Estado</th><th></th></tr></thead>
+          <thead><tr><th style="cursor:pointer;user-select:none" onclick="toggleMatSort()" title="Ordenar por fecha / vencimiento">Fecha ↕</th><th>Cliente</th><th>Teléfono</th><th>Trabajo</th><th>Detalle</th><th style="text-align:center">Año Mat.</th><th>Monto</th><th style="cursor:pointer;user-select:none" onclick="toggleMatSort()" title="Ordenar por vencimiento">Vencimiento ↕</th><th>Estado</th><th></th></tr></thead>
           <tbody id="matafuegos-tbody"></tbody>
         </table>
         <div id="matafuegos-empty" class="empty-row">No hay registros de matafuegos.</div>
@@ -788,7 +804,7 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
     <div class="mhead"><div class="mhead-title">🧾 Ticket</div><button class="mclose" onclick="closeModal('modal-ticket')">✕</button></div>
     <div class="mbody"><div id="ticket-content"></div>
       <div style="margin-top:14px;display:flex;gap:8px;justify-content:center">
-        <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨️ Imprimir</button>
+        <button class="btn btn-ghost btn-sm" onclick="printTicket()">🖨️ Imprimir</button>
         <button class="btn btn-primary btn-sm" onclick="closeModal('modal-ticket')">Cerrar</button>
       </div>
     </div>
@@ -948,8 +964,30 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
     <div class="mbody">
       <input type="hidden" id="mmat-id"/>
       <div class="fr2">
-        <div class="field"><label>Cliente</label><select id="mmat-cli" onchange="fillMatPhone()"><option value="">— Seleccionar —</option></select></div>
+        <div class="field">
+          <label>Cliente</label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <select id="mmat-cli" onchange="fillMatPhone()" style="flex:1"><option value="">— Seleccionar —</option></select>
+            <button type="button" class="btn btn-green btn-sm" onclick="toggleMatNewCli()" title="Agregar nuevo cliente" style="flex-shrink:0;padding:7px 10px">➕</button>
+          </div>
+        </div>
         <div class="field"><label>Teléfono</label><input type="text" id="mmat-tel" placeholder="Nro para avisar..." oninput="updateMatWhatsappButton()"/></div>
+      </div>
+      <!-- Nuevo cliente inline -->
+      <div id="mmat-new-cli-box" style="display:none;background:var(--s3);border:1px solid var(--border);border-radius:var(--r2);padding:12px;margin-bottom:12px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--orange);margin-bottom:8px">Nuevo Cliente</div>
+        <div class="fr2">
+          <div class="field" style="margin-bottom:8px"><label>Nombre *</label><input type="text" id="mmat-new-nombre" placeholder="Nombre completo"/></div>
+          <div class="field" style="margin-bottom:8px"><label>Teléfono</label><input type="text" id="mmat-new-tel" placeholder="Ej: 2235001122"/></div>
+        </div>
+        <div class="fr2">
+          <div class="field" style="margin-bottom:8px"><label>Email</label><input type="email" id="mmat-new-email" placeholder="cliente@email.com"/></div>
+          <div class="field" style="margin-bottom:8px"><label>Dirección</label><input type="text" id="mmat-new-dir" placeholder="Calle y número"/></div>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="toggleMatNewCli()">Cancelar</button>
+          <button type="button" class="btn btn-green btn-sm" onclick="saveMatNewCli()">✔ Crear y seleccionar</button>
+        </div>
       </div>
       <div class="field">
         <label>Foto del matafuego</label>
@@ -968,12 +1006,60 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
         <button type="button" class="btn btn-green btn-sm" id="mmat-send-wa" style="display:none;margin-top:8px" onclick="sendMatPhotoWhatsApp()">📲 Enviar por WhatsApp</button>
       </div>
       <div class="fr2">
-        <div class="field"><label>Tipo de Trabajo</label><select id="mmat-tipo"><option>Cotización Recarga</option><option>Cotización Recambio</option><option>Cotización Venta Nuevo</option><option>Recarga</option><option>Recambio</option><option>Venta Nuevo</option></select></div>
+        <div class="field"><label>Tipo de Trabajo</label><select id="mmat-tipo" onchange="updateMatAnioUI()"><option>Cotización Recarga</option><option>Cotización Recambio</option><option>Cotización Venta Nuevo</option><option>Recarga</option><option>Recambio</option><option>Venta Nuevo</option></select></div>
         <div class="field"><label>Peso (Kg)</label><input type="number" id="mmat-peso" step="0.5" min="0" placeholder="Ej: 5"/></div>
       </div>
       <div class="fr2">
         <div class="field"><label>N° Serie del Cilindro</label><input type="text" id="mmat-serie"/></div>
         <div class="field"><label>Estado</label><select id="mmat-estado"><option>Borrador</option><option>Enviada</option><option>Aprobada</option><option>Rechazada</option><option>Pendiente</option><option>En Taller</option><option>Listo</option><option>Entregado</option></select></div>
+      </div>
+      <!-- Año del Matafuego -->
+      <div id="mmat-anio-wrap">
+        <!-- RECARGA: solo año cliente -->
+        <div class="fr2" id="mmat-anio-row-recarga">
+          <div class="field">
+            <label>Año Matafuego del Cliente</label>
+            <input type="number" id="mmat-anio-cliente" placeholder="Ej: 2023" min="2000" max="2100" oninput="calcMatAnio()"/>
+          </div>
+          <div style="display:flex;align-items:flex-end;padding-bottom:6px;color:var(--muted);font-size:12px">
+            (Recarga: mismo matafuego, no hay recambio)
+          </div>
+        </div>
+        <!-- RECAMBIO: año cliente + año entregado + diferencia -->
+        <div class="fr3" id="mmat-anio-row-recambio" style="display:none">
+          <div class="field">
+            <label>Año Matafuego del Cliente</label>
+            <input type="number" id="mmat-anio-cliente2" placeholder="Ej: 2023" min="2000" max="2100" oninput="syncAnioCliente();calcMatAnio()"/>
+          </div>
+          <div class="field">
+            <label>Año Matafuego Entregado</label>
+            <input type="number" id="mmat-anio-entregado" placeholder="Ej: 2025" min="2000" max="2100" oninput="calcMatAnio()"/>
+          </div>
+          <div class="field">
+            <label>Diferencia de Año</label>
+            <div id="mmat-anio-diff" style="background:var(--s2);border:1px solid var(--border);border-radius:var(--r2);padding:8px 11px;font-family:var(--mono);font-size:18px;font-weight:700;text-align:center;color:var(--muted);min-height:36px;display:flex;align-items:center;justify-content:center">—</div>
+          </div>
+        </div>
+        <!-- VENTA NUEVO: solo año del matafuego vendido -->
+        <div class="fr2" id="mmat-anio-row-venta" style="display:none">
+          <div class="field">
+            <label>Año del Matafuego Vendido</label>
+            <input type="number" id="mmat-anio-vendido" placeholder="Ej: 2025" min="2000" max="2100" oninput="syncAnioVendido()"/>
+          </div>
+          <div style="display:flex;align-items:flex-end;padding-bottom:6px;color:var(--muted);font-size:12px">
+            (Matafuego nuevo, sin diferencia de año)
+          </div>
+        </div>
+      </div>
+      <!-- Producto del stock (Venta Nuevo) -->
+      <div id="mmat-prod-wrap" style="display:none">
+        <div class="field">
+          <label>Matafuego del Stock <span style="color:var(--muted);font-size:11px">(opcional — descuenta stock)</span></label>
+          <div style="display:flex;gap:6px">
+            <select id="mmat-prod-sel" style="flex:1" onchange="onMatProdSelect()"><option value="">— No descontar stock —</option></select>
+            <span id="mmat-prod-stock" style="display:flex;align-items:center;font-family:var(--mono);font-size:12px;color:var(--muted);white-space:nowrap"></span>
+          </div>
+        </div>
       </div>
       <div class="field"><label>Descripción / Detalle</label><input type="text" id="mmat-desc" placeholder="Ej: Recarga ABC 5 kg + prueba hidráulica..."/></div>
       <div class="fr2">
@@ -1225,18 +1311,30 @@ function quoteDetail(desc, extra){
 }
 
 function matExtra(m){
-  var out={descripcion:m.descripcion||'',monto:m.monto||0,validez:m.validez||'',foto:m.foto||''};
-  if(!m.foto || m.descripcion || m.monto || m.validez) return out;
+  // Intentar leer JSON de foto primero (nuevo formato: siempre serializado)
+  var fromJson={};
   try {
-    var parsed=JSON.parse(m.foto);
+    var parsed=JSON.parse(m.foto||'');
     if(parsed && parsed._cotizacion_matafuegos){
-      out.descripcion=parsed.descripcion||'';
-      out.monto=parseFloat(parsed.monto)||0;
-      out.validez=parsed.validez||'';
-      out.foto=parsed.foto||'';
+      fromJson={
+        descripcion: parsed.descripcion||'',
+        monto: parseFloat(parsed.monto)||0,
+        validez: parsed.validez||'',
+        foto: parsed.foto||'',
+        anio_cliente: parsed.anio_cliente||null,
+        anio_entregado: parsed.anio_entregado||null
+      };
     }
   } catch(e) {}
-  return out;
+  // Columnas directas tienen prioridad si existen; JSON como fallback
+  return {
+    descripcion: m.descripcion || fromJson.descripcion || '',
+    monto: m.monto || fromJson.monto || 0,
+    validez: m.validez || fromJson.validez || '',
+    foto: fromJson.foto || (m.foto && m.foto.indexOf('{')!==0 ? m.foto : ''),
+    anio_cliente: m.anio_matafuego_cliente || fromJson.anio_cliente || null,
+    anio_entregado: m.anio_matafuego_entregado || fromJson.anio_entregado || null
+  };
 }
 
 function matFotoValue(obj){
@@ -1245,7 +1343,9 @@ function matFotoValue(obj){
     descripcion:obj.descripcion||'',
     monto:obj.monto||0,
     validez:obj.validez||'',
-    foto:obj.foto||''
+    foto:obj.foto||'',
+    anio_cliente:obj.anio_cliente||null,
+    anio_entregado:obj.anio_entregado||null
   });
 }
 
@@ -1450,32 +1550,74 @@ function readAlqPhoto(input){
 }
 
 function showQuoteTicket(title, q){
+  // Header section (non-table layout)
   var html='<div class="ticket"><div class="ticket-logo">CASA LEO</div><div class="ticket-sub">'+esc(title)+'</div><div class="ticket-div"></div>';
-  html+='<div class="ticket-row"><span>Fecha</span><span>'+esc(q.fecha||todayStr())+'</span></div>';
-  html+='<div class="ticket-row"><span>Cliente</span><span>'+esc(q.cliente_nombre||'Particular')+'</span></div>';
-  if(q.telefono) html+='<div class="ticket-row"><span>Teléfono</span><span>'+esc(q.telefono)+'</span></div>';
-  html+='<div class="ticket-row"><span>Tipo</span><span>'+esc(q.tipo||'Cotización')+'</span></div>';
-  
-  // Mostrar descripción o tabla de productos
+  // Info rows using a proper table
+  html+='<table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:6px">';
+  html+='<tbody>';
+  html+='<tr><td style="padding:2px 4px;color:#555;width:40%">Fecha</td><td style="padding:2px 4px;font-weight:600">'+esc(q.fecha||todayStr())+'</td></tr>';
+  html+='<tr><td style="padding:2px 4px;color:#555">Cliente</td><td style="padding:2px 4px;font-weight:600">'+esc(q.cliente_nombre||'Particular')+'</td></tr>';
+  if(q.telefono) html+='<tr><td style="padding:2px 4px;color:#555">Teléfono</td><td style="padding:2px 4px">'+esc(q.telefono)+'</td></tr>';
+  html+='<tr><td style="padding:2px 4px;color:#555">Tipo</td><td style="padding:2px 4px">'+esc(q.tipo||'Cotización')+'</td></tr>';
+  if(q.anio_cliente&&q.anio_entregado){
+    var anioDiff=parseInt(q.anio_entregado)-parseInt(q.anio_cliente);
+    var anioDiffLabel=anioDiff>=0?'(+'+anioDiff+')':'('+anioDiff+')';
+    html+='<tr><td style="padding:2px 4px;color:#555">Año Matafuego</td><td style="padding:2px 4px;font-weight:700">'+esc(String(q.anio_cliente))+' → '+esc(String(q.anio_entregado))+' <span style="color:'+(anioDiff>0?'#16a34a':anioDiff<0?'#dc2626':'#555')+'">'+anioDiffLabel+'</span></td></tr>';
+  }
+  html+='</tbody></table>';
+  html+='<div style="border-top:1px dashed #ccc;margin:6px 0"></div>';
+
+  // Products table with proper thead/tbody/tfoot
   if(q.items && q.items.length){
-    html+='<div class="ticket-div"></div><table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr style="border-bottom:1px solid #ddd"><th style="text-align:left;padding:4px">Producto</th><th style="text-align:center;padding:4px">Cant.</th><th style="text-align:right;padding:4px">Precio</th><th style="text-align:right;padding:4px">Subtotal</th></tr></thead><tbody>';
     var subtotal=0;
+    var rows='';
     q.items.forEach(function(item){
       var st=item.qty*item.precio;
       subtotal+=st;
-      html+='<tr style="border-bottom:1px solid #eee"><td style="padding:4px">'+esc(item.nombre)+'</td><td style="text-align:center;padding:4px">'+item.qty+'</td><td style="text-align:right;padding:4px;font-family:monospace">$'+fmt(item.precio)+'</td><td style="text-align:right;padding:4px;font-family:monospace;font-weight:600">$'+fmt(st)+'</td></tr>';
+      rows+='<tr style="border-bottom:1px solid #eee">'+
+        '<td style="padding:5px 6px">'+esc(item.nombre)+'</td>'+
+        '<td style="text-align:center;padding:5px 6px">'+item.qty+'</td>'+
+        '<td style="text-align:right;padding:5px 6px;font-family:monospace">'+fmt(item.precio)+'</td>'+
+        '<td style="text-align:right;padding:5px 6px;font-family:monospace;font-weight:600">'+fmt(st)+'</td>'+
+        '</tr>';
     });
-    html+='</tbody></table>';
-    html+='<div style="text-align:right;margin-top:8px;padding-top:8px;border-top:1px solid #ddd;font-weight:600">Subtotal productos: $'+fmt(subtotal)+'</div>';
-    if(q.descripcion) html+='<div style="margin-top:8px;font-size:10px;color:#666"><strong>Notas:</strong><br>'+esc(q.descripcion)+'</div>';
+    html+='<table style="width:100%;border-collapse:collapse;font-size:11px;border:1px solid #ddd">'+
+      '<thead><tr style="background:#f5f5f5;border-bottom:2px solid #ddd">'+
+        '<th style="text-align:left;padding:5px 6px">Producto</th>'+
+        '<th style="text-align:center;padding:5px 6px">Cant.</th>'+
+        '<th style="text-align:right;padding:5px 6px">Precio</th>'+
+        '<th style="text-align:right;padding:5px 6px">Subtotal</th>'+
+      '</tr></thead>'+
+      '<tbody>'+rows+'</tbody>'+
+      '</table>'+
+    '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:4px;border:1px solid #aaa">'+
+      '<tbody>'+
+        '<tr style="background:#f5f5f5"><td colspan="3" style="text-align:right;padding:5px 8px;font-weight:600">Subtotal</td><td style="text-align:right;padding:5px 8px;font-family:monospace;font-weight:700">'+fmt(subtotal)+'</td></tr>'+
+        '<tr style="background:#e8e8e8"><td colspan="3" style="text-align:right;padding:7px 8px;font-size:13px;font-weight:700;border-top:2px solid #888">TOTAL</td><td style="text-align:right;padding:7px 8px;font-family:monospace;font-size:13px;font-weight:700;border-top:2px solid #888">'+fmt(parseFloat(q.monto)>0 ? parseFloat(q.monto) : subtotal)+'</td></tr>'+
+      '</tbody>'+
+    '</table>';
+    if(q.descripcion) html+='<div style="margin-top:8px;font-size:10px;color:#666;padding:4px"><strong>Notas:</strong><br>'+esc(q.descripcion)+'</div>';
   } else {
-    html+='<div class="ticket-div"></div><div style="white-space:pre-wrap;margin-bottom:8px">'+esc(q.descripcion||'Sin detalle')+'</div>';
+    // Single item / description only - still use table for the total
+    html+='<table style="width:100%;border-collapse:collapse;font-size:11px;border:1px solid #ddd">'+
+      '<thead><tr style="background:#f5f5f5;border-bottom:2px solid #ddd">'+
+        '<th style="text-align:left;padding:5px 6px" colspan="2">Detalle del Trabajo</th>'+
+      '</tr></thead>'+
+      '<tbody>'+
+        '<tr><td colspan="2" style="padding:6px 8px;white-space:pre-wrap">'+esc(q.descripcion||'Sin detalle')+'</td></tr>'+
+      '</tbody>'+
+      '<tbody>'+
+        '<tr style="border-top:2px solid #888;background:#e8e8e8">'+
+          '<td style="text-align:right;padding:7px 8px;font-size:14px;font-weight:700">TOTAL:</td>'+
+          '<td style="text-align:right;padding:7px 8px;font-family:monospace;font-size:14px;font-weight:700">'+fmt(parseFloat(q.monto)||0)+'</td>'+
+        '</tr>'+
+      '</tbody>'+
+    '</table>';
   }
-  
-  if(q.foto) html+='<img src="'+esc(q.foto)+'" alt="Foto" style="width:100%;max-height:180px;object-fit:cover;margin:6px 0;border:1px solid #ddd"/>';
-  if(q.validez) html+='<div class="ticket-row"><span>Vencimiento</span><span>'+esc(q.validez)+'</span></div>';
-  html+='<div class="ticket-total"><span>TOTAL</span><span>'+fmt(q.monto)+'</span></div>';
-  html+='<div class="ticket-thanks">Cotización sujeta a disponibilidad y confirmación.</div></div>';
+
+  if(q.foto) html+='<img src="'+esc(q.foto)+'" alt="Foto" style="width:100%;max-height:180px;object-fit:cover;margin:8px 0;border:1px solid #ddd"/>';
+  if(q.validez) html+='<div style="margin-top:6px;text-align:right;font-size:11px;color:#555">Vencimiento: <strong>'+esc(q.validez)+'</strong></div>';
+  html+='<div style="margin-top:10px;text-align:center;font-size:9px;color:#999;border-top:1px dashed #ccc;padding-top:6px">Cotización sujeta a disponibilidad y confirmación.</div></div>';
   document.getElementById('ticket-content').innerHTML=html;
   openModal('modal-ticket');
 }
@@ -1640,11 +1782,11 @@ function renderDash(){
   var alqAct=DB.alquileres.filter(function(a){return a.estado==='Activo';});
 
   document.getElementById('dash-stats').innerHTML=
-    sc('Ventas Hoy','orange',fmt(totalDia),tv.length+' transacciones','💰')+
-    sc('Ganancia Hoy','green',fmt(ganDia),'Margen bruto','📈')+
-    sc('Stock Bajo','red',low.length,'Bajo mínimo','⚠️')+
-    sc('Alquileres','blue',alqAct.length,'Activos','🔧')+
-    sc('Deuda Total','yellow',fmt(deuda),'CC + proveedores','📋');
+    sc('Ventas Hoy','orange',fmt(totalDia),tv.length+' transacciones','💰','historial')+
+    sc('Ganancia Hoy','green',fmt(ganDia),'Margen bruto','📈','reportes')+
+    sc('Stock Bajo','red',low.length,'Bajo mínimo','⚠️','stock')+
+    sc('Alquileres','blue',alqAct.length,'Activos','🔧','alquileres')+
+    sc('Deuda Total','yellow',fmt(deuda),'CC + proveedores','📋','clientes');
 
   var nb=document.getElementById('nb-stock');
   nb.textContent=low.length; nb.style.display=low.length?'inline-block':'none';
@@ -1709,7 +1851,7 @@ function renderDash(){
     return '<div class="top-row"><div><div style="font-size:12px;font-weight:600">'+esc(r.cliente_nombre||'Sin cliente')+'</div><div style="color:var(--muted);font-size:10px">'+esc(r.tecnico)+' · '+esc(r.descripcion||'').substring(0,40)+'</div></div><span class="badge '+(badges2[r.estado]||'badge-gray')+'">'+esc(r.estado||'—')+'</span></div>';
   }).join('')||'<div style="color:var(--muted);font-size:12px">Sin reparaciones recientes.</div>';
 }
-function sc(l,c,v,s,i){ return '<div class="stat-card '+c+'"><div class="sc-icon">'+i+'</div><div class="sc-label">'+l+'</div><div class="sc-val '+c+'">'+v+'</div><div class="sc-sub">'+s+'</div></div>'; }
+function sc(l,c,v,s,i,dest){ var click=dest?'onclick="go(\''+dest+'\')" style="cursor:pointer"':''; return '<div class="stat-card '+c+'" '+click+'><div class="sc-icon">'+i+'</div><div class="sc-label">'+l+'</div><div class="sc-val '+c+'">'+v+'</div><div class="sc-sub">'+s+'</div></div>'; }
 
 // ══════════════════════════════════════════
 // VENTAS
@@ -1855,11 +1997,12 @@ function exportSalePDF(id){
     '<div style="margin-bottom:12px;"><strong>Fecha:</strong> '+v.fecha+' '+v.hora+'<br>'+
     '<strong>Cliente:</strong> '+esc(cn)+'<br>'+
     '<strong>Método:</strong> '+esc(v.metodo||'—')+'</div>'+
-    '<table><thead><tr><th>Producto</th><th>Unidad</th><th style="text-align:right">Cantidad</th><th style="text-align:right">Precio</th><th style="text-align:right">Subtotal</th></tr></thead><tbody>'+rows+'</tbody></table>'+
-    '<div style="margin-top:14px;width:100%;display:flex;justify-content:flex-end;gap:14px;flex-wrap:wrap;">'+
-    '<div style="min-width:220px;"><strong>Subtotal:</strong> '+fmt(sub)+'</div>'+
-    '<div style="min-width:220px;"><strong>Descuento:</strong> -'+fmt(descuento)+'</div>'+
-    '<div style="min-width:220px;font-size:18px;font-weight:700;">Total: '+fmt(total)+'</div></div>';
+    '<table style="width:100%;border-collapse:collapse;border:1px solid #ddd"><thead><tr style="background:#f5f5f5;border-bottom:2px solid #ddd"><th style="text-align:left;padding:5px 8px">Producto</th><th style="padding:5px 8px">Unidad</th><th style="text-align:right;padding:5px 8px">Cantidad</th><th style="text-align:right;padding:5px 8px">Precio</th><th style="text-align:right;padding:5px 8px">Subtotal</th></tr></thead><tbody>'+rows+'</tbody>'+
+    '<tfoot>'+
+    '<tr><td colspan="4" style="text-align:right;padding:6px 8px;font-weight:600">Subtotal:</td><td style="text-align:right;padding:6px 8px;font-family:monospace">'+fmt(sub)+'</td></tr>'+
+    (descuento?'<tr><td colspan="4" style="text-align:right;padding:6px 8px;font-weight:600;color:#dc2626">Descuento:</td><td style="text-align:right;padding:6px 8px;font-family:monospace;color:#dc2626">-'+fmt(descuento)+'</td></tr>':'')+
+    '<tr style="background:#f0f0f0"><td colspan="4" style="text-align:right;padding:8px;font-size:15px;font-weight:700">TOTAL:</td><td style="text-align:right;padding:8px;font-family:monospace;font-size:15px;font-weight:700">'+fmt(total)+'</td></tr>'+
+    '</tfoot></table>';
   showPrintContent(html);
 }
 
@@ -2482,6 +2625,75 @@ function fmtVencInput(el){
   if(v.length>2) v=v.substring(0,2)+'/'+v.substring(2,4);
   el.value=v;
 }
+
+// u2500u2500 Au00F1o del Matafuego u2500u2500
+function tipoMat(tipo){
+  var t=(tipo||document.getElementById('mmat-tipo').value||'').toLowerCase();
+  if(t.indexOf('venta')!==-1) return 'venta';
+  if(t.indexOf('recambio')!==-1) return 'recambio';
+  return 'recarga';
+}
+function isRecarga(tipo){ return tipoMat(tipo)==='recarga'; }
+
+function updateMatAnioUI(){
+  var modo=tipoMat();
+  document.getElementById('mmat-anio-row-recarga').style.display=modo==='recarga'?'':'none';
+  document.getElementById('mmat-anio-row-recambio').style.display=modo==='recambio'?'':'none';
+  document.getElementById('mmat-anio-row-venta').style.display=modo==='venta'?'':'none';
+  document.getElementById('mmat-prod-wrap').style.display=modo==='venta'?'':'none';
+  if(modo==='venta'){
+    // Populate stock select with matafuegos products
+    var sel=document.getElementById('mmat-prod-sel');
+    sel.innerHTML='<option value="">— No descontar stock —</option>';
+    DB.productos.forEach(function(p){
+      if(p.stock>0){
+        sel.innerHTML+='<option value="'+p.id+'">'+esc(p.nombre)+' (stock: '+p.stock+')</option>';
+      }
+    });
+  }
+  calcMatAnio();
+}
+
+function syncAnioCliente(){
+  var v=document.getElementById('mmat-anio-cliente2').value;
+  document.getElementById('mmat-anio-cliente').value=v;
+}
+
+function syncAnioVendido(){
+  // Para venta: el año vendido se guarda en anio-entregado
+  var v=document.getElementById('mmat-anio-vendido').value;
+  document.getElementById('mmat-anio-entregado').value=v;
+}
+
+function onMatProdSelect(){
+  var sel=document.getElementById('mmat-prod-sel');
+  var prodId=parseInt(sel.value)||0;
+  var info=document.getElementById('mmat-prod-stock');
+  if(!prodId){info.textContent='';return;}
+  var p=DB.productos.find(function(x){return x.id===prodId;});
+  if(p) info.textContent='Stock actual: '+p.stock+' '+esc(p.unidad||'u');
+  else info.textContent='';
+}
+
+function calcMatAnio(){
+  var modo=tipoMat();
+  var diffEl=document.getElementById('mmat-anio-diff');
+  if(modo!=='recambio'){
+    if(diffEl){diffEl.textContent='—';diffEl.style.color='var(--muted)';}
+    return;
+  }
+  var clienteEl=document.getElementById('mmat-anio-cliente2');
+  var entregadoEl=document.getElementById('mmat-anio-entregado');
+  if(!clienteEl||!entregadoEl||!diffEl) return;
+  var anioCliente=parseInt(clienteEl.value);
+  var anioEntregado=parseInt(entregadoEl.value);
+  if(isNaN(anioCliente)||isNaN(anioEntregado)){
+    diffEl.textContent='—'; diffEl.style.color='var(--muted)'; return;
+  }
+  var diff=anioEntregado-anioCliente;
+  diffEl.textContent=diff>=0?'(+'+diff+')':'('+diff+')';
+  diffEl.style.color=diff>0?'var(--green)':diff<0?'var(--red)':'var(--muted)';
+}
 function vencToSort(mmyy){
   // "05/27" → "2027-05" for string comparison
   if(!mmyy||mmyy.length<5) return '';
@@ -2515,16 +2727,23 @@ function mesLabel(mmyyOrYYYYMM){
   return mmyyOrYYYYMM;
 }
 
+var _matSort='fecha'; // 'fecha' | 'venc'
+function toggleMatSort(){
+  _matSort=_matSort==='fecha'?'venc':'fecha';
+  renderMatafuegos();
+}
 function renderMatafuegos(){
   var tb=document.getElementById('matafuegos-tbody'); tb.innerHTML='';
   var badges={Borrador:'badge-gray',Enviada:'badge-blue',Aprobada:'badge-green',Rechazada:'badge-red',Pendiente:'badge-yellow','En Taller':'badge-blue',Listo:'badge-green',Entregado:'badge-gray'};
-  var hoySort=mesActual();           // "YYYY-MM"
-  var hoyMMYY=mesActualMMYY();       // "MM/YY"
-  var proxSort=mesSiguienteSort(hoySort); // "YYYY-MM" del mes siguiente
-  // Ordenar por vencimiento: convertir MM/YY → YYYY-MM para comparar
+  var hoySort=mesActual();
+  var hoyMMYY=mesActualMMYY();
+  var proxSort=mesSiguienteSort(hoySort);
   var gastos=DB.matafuegos.slice().sort(function(a,b){
-    var va=vencToSort(a.validez)||'9999-99';
-    var vb=vencToSort(b.validez)||'9999-99';
+    if(_matSort==='fecha'){
+      return (b.fecha||'').localeCompare(a.fecha||''); // más reciente primero
+    }
+    var va=vencToSort(matExtra(a).validez||a.validez)||'9999-99';
+    var vb=vencToSort(matExtra(b).validez||b.validez)||'9999-99';
     return va.localeCompare(vb);
   });
   var total=gastos.reduce(function(s,m){return s+parseFloat(matExtra(m).monto||0);},0);
@@ -2540,7 +2759,7 @@ function renderMatafuegos(){
     var extra=matExtra(m);
     var detalle=quoteDetail(extra.descripcion||'',((m.peso?m.peso+' Kg':'')+(m.serie?' / Serie '+m.serie:'')));
     var telEsc=(m.telefono||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    var venc=m.validez||'';
+    var venc=extra.validez||m.validez||'';
     var vencS=vencToSort(venc);
     var vencClass=''; var vencIcon='';
     if(vencS){
@@ -2548,7 +2767,25 @@ function renderMatafuegos(){
       else if(vencS===hoySort){vencClass='color:var(--red);font-weight:700';vencIcon=' ⚠️';}
       else if(vencS===proxSort){vencClass='color:var(--yellow);font-weight:700';vencIcon=' 📅';}
     }
-    tb.innerHTML+='<tr><td style="font-size:11px;color:var(--muted)">'+esc(m.fecha||todayStr())+'</td><td style="font-weight:600;font-size:12px">'+esc(m.cliente_nombre||'—')+'</td><td>'+esc(m.telefono||'—')+' <a href="javascript:void(0)" onclick="openWhatsAppNumber(\''+telEsc+'\')" style="text-decoration:none">💬</a></td><td><span class="badge badge-orange">'+esc(m.tipo)+'</span></td><td style="font-size:11px">'+esc(detalle)+'</td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(extra.monto)+'</td><td style="font-family:var(--mono);font-size:13px;letter-spacing:.05em;'+vencClass+'">'+(venc||'—')+vencIcon+'</td><td><span class="badge '+(badges[m.estado]||'badge-gray')+'">'+esc(m.estado||'—')+'</span></td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="printMatQuote('+m.id+')">🧾</button><button class="btn btn-ghost btn-xs" onclick="openMatModal('+m.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delMat('+m.id+')">🗑</button></div></td></tr>';
+    // Año matafuego
+    var anioCliM=extra.anio_cliente||m.anio_matafuego_cliente||null;
+    var anioEntM=extra.anio_entregado||m.anio_matafuego_entregado||null;
+    var modoM=tipoMat(m.tipo);
+    var anioCellHtml='<td style="text-align:center;font-family:var(--mono);font-size:12px">';
+    if(modoM==='recambio'&&anioCliM&&anioEntM){
+      var diffM=parseInt(anioEntM)-parseInt(anioCliM);
+      var diffLabel=diffM>=0?'(+'+diffM+')':'('+diffM+')';
+      var diffColor=diffM>0?'var(--green)':diffM<0?'var(--red)':'var(--muted)';
+      anioCellHtml+='<span style="color:var(--muted);font-size:10px">'+anioCliM+'→'+anioEntM+'</span><br><span style="font-weight:700;color:'+diffColor+'">'+diffLabel+'</span>';
+    } else if(modoM==='venta'&&anioEntM){
+      anioCellHtml+='<span style="color:var(--blue);font-weight:700">'+anioEntM+'</span><br><span style="font-size:10px;color:var(--muted)">nuevo</span>';
+    } else if(modoM==='recarga'&&anioCliM){
+      anioCellHtml+='<span style="color:var(--blue);font-weight:600">'+anioCliM+'</span><br><span style="font-size:10px;color:var(--muted)">recarga</span>';
+    } else {
+      anioCellHtml+='<span style="color:var(--dim)">—</span>';
+    }
+    anioCellHtml+='</td>';
+    tb.innerHTML+='<tr><td style="font-size:11px;color:var(--muted)">'+esc(m.fecha||todayStr())+'</td><td style="font-weight:600;font-size:12px">'+esc(m.cliente_nombre||'—')+'</td><td>'+esc(m.telefono||'—')+' <a href="javascript:void(0)" onclick="openWhatsAppNumber(\''+telEsc+'\')" style="text-decoration:none">💬</a></td><td><span class="badge badge-orange">'+esc(m.tipo)+'</span></td><td style="font-size:11px">'+esc(detalle)+'</td>'+anioCellHtml+'<td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(extra.monto)+'</td><td style="font-family:var(--mono);font-size:13px;letter-spacing:.05em;'+vencClass+'">'+(venc||'—')+vencIcon+'</td><td><span class="badge '+(badges[m.estado]||'badge-gray')+'">'+esc(m.estado||'—')+'</span></td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="printMatQuote('+m.id+')">🧾</button><button class="btn btn-ghost btn-xs" onclick="openMatModal('+m.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delMat('+m.id+')">🗑</button></div></td></tr>';
   });
   document.getElementById('matafuegos-empty').style.display=gastos.length?'none':'block';
 }
@@ -2571,14 +2808,29 @@ function openMatModal(id){
     document.getElementById('mmat-desc').value=extra.descripcion||'';
     document.getElementById('mmat-monto').value=extra.monto||0;
     document.getElementById('mmat-validez').value=extra.validez||'';
+    var extraEdit=matExtra(m);
+    var anioCliVal=extraEdit.anio_cliente||m.anio_matafuego_cliente||'';
+    var anioEntVal=extraEdit.anio_entregado||m.anio_matafuego_entregado||'';
+    document.getElementById('mmat-anio-cliente').value=anioCliVal;
+    var ac2=document.getElementById('mmat-anio-cliente2'); if(ac2) ac2.value=anioCliVal;
+    document.getElementById('mmat-anio-entregado').value=anioEntVal;
+    var av=document.getElementById('mmat-anio-vendido'); if(av) av.value=anioEntVal;
     setMatPhotoPreview(extra.foto||'');
+    calcMatAnio();
   } else {
     document.getElementById('mmat-title').textContent='Nueva Cotización Matafuegos';
     ['tel','peso','serie','desc','monto','validez'].forEach(function(f){document.getElementById('mmat-'+f).value='';});
     document.getElementById('mmat-tipo').value='Cotización Recarga';
     document.getElementById('mmat-estado').value='Borrador';
+    document.getElementById('mmat-anio-cliente').value='';
+    var ac2=document.getElementById('mmat-anio-cliente2'); if(ac2) ac2.value='';
+    document.getElementById('mmat-anio-entregado').value='';
+    var av=document.getElementById('mmat-anio-vendido'); if(av) av.value='';
+    var sel2=document.getElementById('mmat-prod-sel'); if(sel2) sel2.value='';
+    var diffEl=document.getElementById('mmat-anio-diff'); if(diffEl){diffEl.textContent='—';diffEl.style.color='var(--muted)';}
     clearMatPhoto();
   }
+  updateMatAnioUI();
   openModal('modal-matafuegos');
 }
 
@@ -2588,6 +2840,49 @@ function fillMatPhone(){
     document.getElementById('mmat-tel').value = sel.selectedOptions[0].dataset.tel;
     updateMatWhatsappButton();
   }
+}
+
+function toggleMatNewCli(){
+  var box=document.getElementById('mmat-new-cli-box');
+  var open=box.style.display==='none';
+  box.style.display=open?'block':'none';
+  if(open){
+    document.getElementById('mmat-new-nombre').value='';
+    document.getElementById('mmat-new-tel').value='';
+    document.getElementById('mmat-new-email').value='';
+    document.getElementById('mmat-new-dir').value='';
+    setTimeout(function(){document.getElementById('mmat-new-nombre').focus();},80);
+  }
+}
+
+async function saveMatNewCli(){
+  var nombre=(document.getElementById('mmat-new-nombre').value||'').trim();
+  if(!nombre){toast('Ingresá el nombre del cliente','warn');return;}
+  var tel=(document.getElementById('mmat-new-tel').value||'').trim();
+  var email=(document.getElementById('mmat-new-email').value||'').trim();
+  var dir=(document.getElementById('mmat-new-dir').value||'').trim();
+  var obj={nombre:nombre,tel:tel,email:email,dir:'',deuda_cc:0,compras:0,ultimo_pedido:todayStr()};
+  setSyncing(true);
+  try{
+    var res=await sbInsert('clientes',obj);
+    var newId=res&&res[0]&&res[0].id;
+    await loadAll();
+    // Rebuild select with new client list and select the new one
+    var cSel=document.getElementById('mmat-cli');
+    cSel.innerHTML='<option value="">— Sin cliente —</option>';
+    DB.clientes.forEach(function(c){
+      cSel.innerHTML+='<option value="'+c.id+'" data-tel="'+(c.tel||'')+'">'+esc(c.nombre)+'</option>';
+    });
+    if(newId) cSel.value=newId;
+    // Fill phone from new client
+    if(tel) document.getElementById('mmat-tel').value=tel;
+    updateMatWhatsappButton();
+    toggleMatNewCli();
+    toast('Cliente "'+nombre+'" creado y seleccionado ✔');
+  } catch(e){
+    toast('Error al crear cliente: '+(e.message||e),'err');
+  }
+  setSyncing(null);
 }
 
 async function saveMat(){
@@ -2606,12 +2901,19 @@ async function saveMat(){
     }
   }
 
+  var _ac2=document.getElementById('mmat-anio-cliente2');
+  var anioCliente=parseInt((_ac2&&_ac2.offsetParent!==null?_ac2:document.getElementById('mmat-anio-cliente')).value)||null;
+  var anioEntregado=parseInt(document.getElementById('mmat-anio-entregado').value)||null;
   var extra={
     descripcion: document.getElementById('mmat-desc').value.trim(),
     monto: parseFloat(document.getElementById('mmat-monto').value)||0,
     validez: document.getElementById('mmat-validez').value,
-    foto: uploadedPhotoUrl
+    foto: uploadedPhotoUrl,
+    anio_cliente: anioCliente,
+    anio_entregado: anioEntregado
   };
+  // Siempre serializar años en el JSON de notas para no depender de columnas Supabase
+  var notasJson=matFotoValue(extra);
   var obj={
     fecha: todayStr(),
     cliente_id: cliId,
@@ -2624,21 +2926,36 @@ async function saveMat(){
     descripcion: extra.descripcion,
     monto: extra.monto,
     validez: extra.validez,
-    foto: extra.foto
+    foto: notasJson,
+    anio_matafuego_cliente: anioCliente,
+    anio_matafuego_entregado: anioEntregado
   };
   
   setSyncing(true);
   try {
     if(id){await sbUpdate('matafuegos',id,obj);}else{await sbInsert('matafuegos',obj);}
+    if(cliId && anioEntregado){
+      try{ await sbUpdate('clientes', cliId, {anio_matafuego_cliente: anioEntregado}); } catch(e2){}
+    }
+    // Descontar stock si es Venta Nuevo y se seleccionó producto
+    var prodSelEl=document.getElementById('mmat-prod-sel');
+    var prodSelId=prodSelEl?parseInt(prodSelEl.value)||0:0;
+    if(tipoMat()==='venta' && prodSelId && !id){
+      var pStock=DB.productos.find(function(x){return x.id===prodSelId;});
+      if(pStock && pStock.stock>0){
+        try{ await sbUpdate('productos',prodSelId,{stock:pStock.stock-1}); toast('Stock de "'+pStock.nombre+'" descontado'); } catch(e3){}
+      }
+    }
     await loadAll(); closeModal('modal-matafuegos'); renderMatafuegos(); toast('Registro guardado');
     if(uploadedPhotoUrl && uploadedPhotoUrl.indexOf('http')===0 && obj.telefono){
       setTimeout(sendMatPhotoWhatsApp, 800);
     }
   } catch(e){
-    if(String(e.message||e).match(/descripcion|monto|validez|schema cache|column/i)){
+    if(String(e.message||e).match(/descripcion|monto|validez|anio_matafuego|schema cache|column/i)){
       try {
-        var fallback=Object.assign({},obj,{foto:matFotoValue(extra)});
-        delete fallback.descripcion; delete fallback.monto; delete fallback.validez;
+        // foto ya contiene el JSON con todos los datos incluidos los años
+        var fallback=Object.assign({},obj);
+        delete fallback.descripcion; delete fallback.monto; delete fallback.validez; delete fallback.anio_matafuego_cliente; delete fallback.anio_matafuego_entregado;
         if(id){await sbUpdate('matafuegos',id,fallback);}else{await sbInsert('matafuegos',fallback);}
         await loadAll(); closeModal('modal-matafuegos'); renderMatafuegos(); toast('Registro guardado');
       } catch(e2){toast('Error: Asegurate de haber creado la tabla matafuegos en Supabase','err');}
@@ -2659,15 +2976,24 @@ function printMatQuote(id){
   var m=DB.matafuegos.find(function(x){return x.id===id;});
   if(!m){toast('No se encontró la cotización','err');return;}
   var extra=matExtra(m);
+  var anioClienteVal=m.anio_matafuego_cliente||extra.anio_cliente;
+  var anioEntregadoVal=m.anio_matafuego_entregado||extra.anio_entregado;
+  var anioDiffStr='';
+  if(anioClienteVal&&anioEntregadoVal){
+    var d=parseInt(anioEntregadoVal)-parseInt(anioClienteVal);
+    anioDiffStr=' | Año cliente: '+anioClienteVal+' → Entregado: '+anioEntregadoVal+' '+(d>=0?'(+'+d+')':'('+d+')');
+  }
   showQuoteTicket('Cotización Matafuegos', {
     fecha:m.fecha,
     cliente_nombre:m.cliente_nombre,
     telefono:m.telefono,
     tipo:m.tipo,
-    descripcion:quoteDetail(extra.descripcion||'', ((m.peso?m.peso+' Kg':'')+(m.serie?' / Serie '+m.serie:''))),
+    descripcion:quoteDetail(extra.descripcion||'', ((m.peso?m.peso+' Kg':'')+(m.serie?' / Serie '+m.serie:'')+anioDiffStr)),
     validez:extra.validez,
     monto:extra.monto,
-    foto:extra.foto
+    foto:extra.foto,
+    anio_cliente:anioClienteVal,
+    anio_entregado:anioEntregadoVal
   });
 }
 
@@ -2929,12 +3255,21 @@ async function delRenov(id){
 
 function printRenovQuote(id){
   var r=DB.renovables.find(function(x){return x.id===id;});
-  if(!r){toast('No se encontr\u00F3 la cotizaci\u00F3n','err');return;}
-  var desc=r.descripcion||'';
-  if(r.items&&r.items.length){
-    desc+=(desc?'\n\n':'')+'Productos:\n'+r.items.map(function(i){return '\u2022 '+i.nombre+' x'+i.qty+' \u2014 '+fmt(i.qty*i.precio);}).join('\n');
+  if(!r){toast('No se encontró la cotización','err');return;}
+  // Calcular monto: usar r.monto si existe, o sumar items
+  var monto=parseFloat(r.monto)||0;
+  if(!monto && r.items && r.items.length){
+    monto=r.items.reduce(function(s,i){return s+(parseFloat(i.precio)||0)*(parseFloat(i.qty)||1);},0);
   }
-  showQuoteTicket('Cotizaci\u00F3n Energ\u00EDa Renovable', {fecha:r.fecha,cliente_nombre:r.cliente_nombre,tipo:r.tipo,descripcion:desc,monto:r.monto});
+  showQuoteTicket('Cotización Energía Renovable', {
+    fecha: r.fecha,
+    cliente_nombre: r.cliente_nombre,
+    tipo: r.tipo,
+    descripcion: r.descripcion||'',
+    items: (r.items && r.items.length) ? r.items : null,
+    monto: monto,
+    validez: r.validez||''
+  });
 }
 
 
@@ -3068,12 +3403,12 @@ function printRepQuote(id){
   var r=DB.reparaciones.find(function(x){return x.id===id;});
   if(!r){toast('No encontrado','err');return;}
   showQuoteTicket('Presupuesto Reparación Maquinaria',{
-    fecha:r.fecha,
-    cliente_nombre:r.cliente_nombre,
-    tipo:'Técnico: '+r.tecnico,
-    descripcion:r.descripcion,
-    monto:r.monto,
-    foto:r.foto
+    fecha: r.fecha,
+    cliente_nombre: r.cliente_nombre,
+    tipo: (r.tecnico ? 'Técnico: '+r.tecnico : 'Reparación'),
+    descripcion: r.descripcion||'',
+    monto: parseFloat(r.monto)||0,
+    foto: r.foto||''
   });
 }
 
@@ -3467,11 +3802,12 @@ function exportCartPDF(){
     '<div style="margin-bottom:12px;"><strong>Fecha:</strong> '+todayStr()+' '+nowTime()+'<br>'+
     '<strong>Cliente:</strong> '+esc(clienteTxt)+'<br>'+
     '<strong>Método:</strong> '+esc(payMethod)+'</div>'+
-    '<table><thead><tr><th>Producto</th><th>Unidad</th><th style="text-align:right">Cantidad</th><th style="text-align:right">Precio</th><th style="text-align:right">Subtotal</th></tr></thead><tbody>'+rows+'</tbody></table>'+
-    '<div style="margin-top:14px;width:100%;display:flex;justify-content:flex-end;gap:14px;flex-wrap:wrap;">'+
-    '<div style="min-width:220px;"><strong>Subtotal:</strong> '+fmt(sub)+'</div>'+
-    '<div style="min-width:220px;"><strong>Descuento:</strong> -'+fmt(descuento)+'</div>'+
-    '<div style="min-width:220px;font-size:18px;font-weight:700;">Total: '+fmt(total)+'</div></div>';
+    '<table style="width:100%;border-collapse:collapse;border:1px solid #ddd"><thead><tr style="background:#f5f5f5;border-bottom:2px solid #ddd"><th style="text-align:left;padding:5px 8px">Producto</th><th style="padding:5px 8px">Unidad</th><th style="text-align:right;padding:5px 8px">Cantidad</th><th style="text-align:right;padding:5px 8px">Precio</th><th style="text-align:right;padding:5px 8px">Subtotal</th></tr></thead><tbody>'+rows+'</tbody>'+
+    '<tfoot>'+
+    '<tr><td colspan="4" style="text-align:right;padding:6px 8px;font-weight:600">Subtotal:</td><td style="text-align:right;padding:6px 8px;font-family:monospace">'+fmt(sub)+'</td></tr>'+
+    (descuento?'<tr><td colspan="4" style="text-align:right;padding:6px 8px;font-weight:600;color:#dc2626">Descuento:</td><td style="text-align:right;padding:6px 8px;font-family:monospace;color:#dc2626">-'+fmt(descuento)+'</td></tr>':'')+
+    '<tr style="background:#f0f0f0"><td colspan="4" style="text-align:right;padding:8px;font-size:15px;font-weight:700">TOTAL:</td><td style="text-align:right;padding:8px;font-family:monospace;font-size:15px;font-weight:700">'+fmt(total)+'</td></tr>'+
+    '</tfoot></table>';
   showPrintContent(html);
 }
 
@@ -3491,7 +3827,7 @@ function exportHistorialPDF(){
   var html='<h1>Historial de Ventas</h1>'+
     '<div style="margin-bottom:12px;"><strong>Filtrado:</strong> '+(fecha?fecha:'Todas las fechas')+' · '+(met?met:'Todos los métodos')+'<br>'+
     '<strong>Buscar:</strong> '+esc(document.getElementById('hist-search').value||'Ninguno')+'</div>'+
-    '<table><thead><tr><th>Ticket</th><th>Fecha</th><th>Cliente</th><th style="text-align:right">Items</th><th>Método</th><th>Desc.</th><th style="text-align:right">Total</th></tr></thead><tbody>'+rows+'</tbody></table>';
+    '<table style="width:100%;border-collapse:collapse;border:1px solid #ddd"><thead><tr style="background:#f5f5f5;border-bottom:2px solid #ddd"><th style="text-align:left;padding:5px 8px">Ticket</th><th style="padding:5px 8px">Fecha</th><th style="padding:5px 8px">Cliente</th><th style="text-align:right;padding:5px 8px">Items</th><th style="padding:5px 8px">Método</th><th style="padding:5px 8px">Desc.</th><th style="text-align:right;padding:5px 8px">Total</th></tr></thead><tbody>'+rows+'</tbody></table>';
   showPrintContent(html);
 }
 
@@ -3511,6 +3847,18 @@ function downloadCSV(csv,filename){
 // ══════════════════════════════════════════
 createGlobalSearchModal();
 loadAll();
+
+// ── printTicket: clona el contenido del modal al print-portal ──
+function printTicket(){
+  var portal=document.getElementById('print-portal');
+  var src=document.getElementById('ticket-content');
+  if(!portal||!src) return window.print();
+  portal.innerHTML='<div class="ticket">'+src.innerHTML+'</div>';
+  portal.style.display='block';
+  window.print();
+  portal.style.display='none';
+  portal.innerHTML='';
+}
 </script>
 </body>
 </html>
