@@ -313,17 +313,22 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
 @media print {
   /* Ocultar UI de la app */
   body > *:not(#print-portal){display:none !important}
-  #print-portal{display:block !important;position:fixed;inset:0;background:#fff;color:#000;z-index:99999;padding:24px;overflow:visible}
+  #print-portal{display:block !important;position:fixed;inset:0;background:#fff !important;color:#000;z-index:99999;padding:24px 40px;overflow:visible;font-family:Arial,sans-serif}
 
   /* Export historial/carrito */
-  #export-print-wrapper{display:block !important;background:#fff;color:#000}
+  #export-print-wrapper{display:block !important;color:#000}
+
+  /* Forzar fondo blanco en TODO el portal */
+  #print-portal *{background:transparent !important;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
+
+  /* Presupuesto renovable */
+  #print-portal table{width:100%;border-collapse:collapse}
+  #print-portal th,#print-portal td{color:#000 !important;background:transparent !important}
 
   /* Ticket / cotización */
   .ticket{background:#fff !important;color:#000 !important;max-width:100% !important;border-radius:0 !important;padding:0 !important;font-family:Arial,sans-serif !important}
   .ticket table{width:100%;border-collapse:collapse;page-break-inside:avoid}
-  .ticket table td,.ticket table th{border:1px solid #ccc;padding:5px 8px;font-size:11px}
-  .ticket thead th{background:#f5f5f5 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .ticket tfoot tr:last-child td{background:#f0f0f0 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-weight:700;font-size:13px}
+  .ticket table td,.ticket table th{border:1px solid #ccc;padding:5px 8px;font-size:11px;color:#000 !important;background:transparent !important}
   .ticket img{max-width:100%;page-break-inside:avoid}
 }
 
@@ -701,6 +706,17 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
         </table>
         <div id="alq-empty" class="empty-row">Sin alquileres.</div>
       </div>
+      <!-- Listado de máquinas -->
+      <div style="margin-top:24px">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:10px">Mis Máquinas</div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Icono</th><th>Nombre</th><th>Precio/día</th><th>Estado</th><th></th></tr></thead>
+            <tbody id="maq-tbody"></tbody>
+          </table>
+          <div id="maq-empty" class="empty-row">Sin máquinas cargadas.</div>
+        </div>
+      </div>
     </div>
 
     <div class="section" id="tab-directv">
@@ -775,7 +791,7 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
       <div class="caja-grid" id="matafuegos-summary"></div>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th style="cursor:pointer;user-select:none" onclick="toggleMatSort()" title="Ordenar por fecha / vencimiento">Fecha ↕</th><th>Cliente</th><th>Teléfono</th><th>Trabajo</th><th>Detalle</th><th style="text-align:center">Año Mat.</th><th>Monto</th><th style="cursor:pointer;user-select:none" onclick="toggleMatSort()" title="Ordenar por vencimiento">Vencimiento ↕</th><th>Estado</th><th></th></tr></thead>
+          <thead><tr><th style="text-align:center;color:var(--orange)">#</th><th style="cursor:pointer;user-select:none" onclick="toggleMatSort()" title="Ordenar por fecha / vencimiento">Fecha ↕</th><th>Cliente</th><th>Teléfono</th><th>Trabajo</th><th>Detalle</th><th style="text-align:center">Año Mat.</th><th>Monto</th><th style="cursor:pointer;user-select:none" onclick="toggleMatSort()" title="Ordenar por vencimiento">Vencimiento ↕</th><th>Estado</th><th></th></tr></thead>
           <tbody id="matafuegos-tbody"></tbody>
         </table>
         <div id="matafuegos-empty" class="empty-row">No hay registros de matafuegos.</div>
@@ -807,6 +823,18 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
         <button class="btn btn-ghost btn-sm" onclick="printTicket()">🖨️ Imprimir</button>
         <button class="btn btn-primary btn-sm" onclick="closeModal('modal-ticket')">Cerrar</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="modal-foto-viewer">
+  <div class="modal" style="max-width:90vw;max-height:90vh;background:#111;padding:8px;border-radius:8px">
+    <div class="mhead" style="background:#111;border-bottom:1px solid #333">
+      <div class="mhead-title" id="foto-viewer-title" style="color:#fff">Foto</div>
+      <button class="mclose" onclick="closeModal('modal-foto-viewer')" style="color:#fff">✕</button>
+    </div>
+    <div class="mbody" style="padding:8px;text-align:center;background:#111">
+      <img id="foto-viewer-img" src="" alt="Foto" style="max-width:100%;max-height:75vh;object-fit:contain;border-radius:4px"/>
     </div>
   </div>
 </div>
@@ -902,12 +930,35 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
     <div class="mhead"><div class="mhead-title" id="malq-title">Nuevo Alquiler</div><button class="mclose" onclick="closeModal('modal-alq')">✕</button></div>
     <div class="mbody">
       <input type="hidden" id="malq-id"/>
-      <div class="fr2"><div class="field"><label>Máquina</label><select id="malq-maq" onchange="onMaqChange()"></select></div><div class="field"><label>Cliente</label><select id="malq-cli"><option value="">— Sin cliente —</option></select></div></div>
+      <div class="fr2">
+        <div class="field"><label>Máquina</label><select id="malq-maq" onchange="onMaqChange()"></select></div>
+        <div class="field">
+          <label>Cliente</label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <select id="malq-cli" style="flex:1"><option value="">— Sin cliente —</option></select>
+            <button type="button" class="btn btn-green btn-sm" onclick="toggleAlqNewCli()" title="Nuevo cliente" style="flex-shrink:0;padding:7px 10px">➕</button>
+          </div>
+        </div>
+      </div>
+      <!-- Nuevo cliente inline -->
+      <div id="malq-new-cli-box" style="display:none;background:var(--s3);border:1px solid var(--border);border-radius:var(--r2);padding:12px;margin-bottom:8px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--orange);margin-bottom:8px">Nuevo Cliente</div>
+        <div class="fr2">
+          <div class="field" style="margin-bottom:8px"><label>Nombre *</label><input type="text" id="malq-new-nombre" placeholder="Nombre completo"/></div>
+          <div class="field" style="margin-bottom:8px"><label>Teléfono</label><input type="text" id="malq-new-tel" placeholder="Ej: 2235001122"/></div>
+        </div>
+        <div class="field" style="margin-bottom:8px"><label>Email</label><input type="email" id="malq-new-email" placeholder="cliente@email.com"/></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="toggleAlqNewCli()">Cancelar</button>
+          <button type="button" class="btn btn-green btn-sm" onclick="saveAlqNewCli()">✔ Crear y seleccionar</button>
+        </div>
+      </div>
       <div class="fr2"><div class="field"><label>Fecha salida</label><input type="date" id="malq-salida" oninput="calcAlqTotal()"/></div><div class="field"><label>Fecha devolución</label><input type="date" id="malq-devol" oninput="calcAlqTotal()"/></div></div>
       <div class="fr2"><div class="field"><label>Precio/día ($)</label><input type="number" id="malq-precio" step="0.01" min="0" oninput="calcAlqTotal()"/></div><div class="field"><label>Seña ($)</label><input type="number" id="malq-sena" step="0.01" min="0"/></div></div>
       <div class="field"><label>Estado del equipo</label><input type="text" id="malq-estadoeq" placeholder="Buen estado, tanque lleno…"/></div>
+      <!-- Foto estado del equipo -->
       <div class="field">
-        <label>Foto del estado</label>
+        <label>📷 Foto del estado del equipo</label>
         <input type="hidden" id="malq-foto"/>
         <div class="photo-picker">
           <label class="btn btn-primary btn-sm" for="malq-foto-camera">📷 Sacar Foto</label>
@@ -921,6 +972,22 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
           <button type="button" onclick="clearAlqPhoto()">Quitar</button>
         </div>
       </div>
+      <!-- Foto DNI / servicio -->
+      <div class="field">
+        <label>🪪 Foto DNI / Servicio a nombre del cliente</label>
+        <input type="hidden" id="malq-dni"/>
+        <div class="photo-picker">
+          <label class="btn btn-primary btn-sm" for="malq-dni-camera">📷 Sacar Foto</label>
+          <input type="file" id="malq-dni-camera" accept="image/*" capture="environment" onchange="readAlqDni(this)"/>
+          <label class="btn btn-ghost btn-sm" for="malq-dni-gallery">🖼 Galería</label>
+          <input type="file" id="malq-dni-gallery" accept="image/*" onchange="readAlqDni(this)"/>
+          <button type="button" class="btn btn-danger btn-sm" onclick="clearAlqDni()">Quitar</button>
+        </div>
+        <div class="photo-preview" id="malq-dni-preview">
+          <img id="malq-dni-img" alt="Foto DNI / servicio"/>
+          <button type="button" onclick="clearAlqDni()">Quitar</button>
+        </div>
+      </div>
       <div style="background:var(--s3);border-radius:var(--r2);padding:10px;font-family:var(--mono);font-size:12px">Total estimado: <span id="malq-total" style="color:var(--orange);font-weight:700">$0.00</span></div>
     </div>
     <div class="mfooter"><button class="btn btn-ghost btn-sm" onclick="closeModal('modal-alq')">Cancelar</button><button class="btn btn-primary btn-sm" onclick="saveAlq()">Guardar</button></div>
@@ -929,7 +996,8 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
 
 <div class="overlay" id="modal-maq">
   <div class="modal">
-    <div class="mhead"><div class="mhead-title">Nueva Máquina</div><button class="mclose" onclick="closeModal('modal-maq')">✕</button></div>
+    <div class="mhead"><div class="mhead-title" id="mmaq-title">Nueva Máquina</div><button class="mclose" onclick="closeModal('modal-maq')">✕</button></div>
+    <input type="hidden" id="mmaq-id"/>
     <div class="mbody">
       <div class="fr2">
         <div class="field"><label>Nombre</label><input type="text" id="mmaq-nombre" placeholder="Ej: Hormigonera 130L"/></div>
@@ -949,7 +1017,28 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
     <div class="mhead"><div class="mhead-title" id="mdtv-title">Nuevo Servicio</div><button class="mclose" onclick="closeModal('modal-dtv')">✕</button></div>
     <div class="mbody">
       <input type="hidden" id="mdtv-id"/>
-      <div class="fr2"><div class="field"><label>Cliente</label><select id="mdtv-cli"><option value="">— Sin cliente —</option></select></div><div class="field"><label>Tipo</label><select id="mdtv-tipo"><option>Instalación</option><option>Reparación</option><option>Repuesto</option><option>Mantenimiento</option></select></div></div>
+      <div class="fr2">
+        <div class="field">
+          <label>Cliente</label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <select id="mdtv-cli" style="flex:1"><option value="">— Sin cliente —</option></select>
+            <button type="button" class="btn btn-green btn-sm" onclick="toggleDtvNewCli()" title="Agregar nuevo cliente" style="flex-shrink:0;padding:7px 10px">➕</button>
+          </div>
+        </div>
+        <div class="field"><label>Tipo</label><select id="mdtv-tipo"><option>Instalación</option><option>Reparación</option><option>Repuesto</option><option>Mantenimiento</option></select></div>
+      </div>
+      <div id="mdtv-new-cli-box" style="display:none;background:var(--s3);border:1px solid var(--border);border-radius:var(--r2);padding:12px;margin-bottom:8px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--orange);margin-bottom:8px">Nuevo Cliente</div>
+        <div class="fr2">
+          <div class="field" style="margin-bottom:8px"><label>Nombre *</label><input type="text" id="mdtv-new-nombre" placeholder="Nombre completo"/></div>
+          <div class="field" style="margin-bottom:8px"><label>Teléfono</label><input type="text" id="mdtv-new-tel" placeholder="Ej: 2235001122"/></div>
+        </div>
+        <div class="field" style="margin-bottom:8px"><label>Email</label><input type="email" id="mdtv-new-email" placeholder="cliente@email.com"/></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="toggleDtvNewCli()">Cancelar</button>
+          <button type="button" class="btn btn-green btn-sm" onclick="saveDtvNewCli()">✔ Crear y seleccionar</button>
+        </div>
+      </div>
       <div class="field"><label>Descripción</label><input type="text" id="mdtv-desc"/></div>
       <div class="fr2"><div class="field"><label>Técnico</label><input type="text" id="mdtv-tec"/></div><div class="field"><label>Monto ($)</label><input type="number" id="mdtv-monto" step="0.01" min="0"/></div></div>
       <div class="fr2"><div class="field"><label>Fecha</label><input type="date" id="mdtv-fecha"/></div><div class="field"><label>Estado</label><select id="mdtv-estado"><option>Pendiente</option><option>En proceso</option><option>Completado</option><option>Cancelado</option></select></div></div>
@@ -1072,7 +1161,7 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
 </div>
 
 <div class="overlay" id="modal-renovable">
-  <div class="modal" style="max-width:680px;width:96vw">
+  <div class="modal" style="max-width:760px;width:96vw">
     <div class="mhead"><div class="mhead-title" id="mren-title">Nueva Cotización Renovable</div><button class="mclose" onclick="closeModal('modal-renovable')">✕</button></div>
     <div class="mbody">
       <input type="hidden" id="mren-id"/>
@@ -1146,7 +1235,27 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
         <div class="field"><label>Técnico</label><select id="mrep-tec"><option>CasaLeo</option><option>Leo Bobinados</option><option>Leo Mecanico</option></select></div>
       </div>
       <div class="fr2">
-        <div class="field"><label>Cliente (opcional)</label><select id="mrep-cli"><option value="">— Sin cliente —</option></select></div>
+        <div class="field">
+          <label>Cliente (opcional)</label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <select id="mrep-cli" style="flex:1"><option value="">— Sin cliente —</option></select>
+            <button type="button" class="btn btn-green btn-sm" onclick="toggleRepNewCli()" title="Agregar nuevo cliente" style="flex-shrink:0;padding:7px 10px">➕</button>
+          </div>
+        </div>
+      </div>
+      <div id="mrep-new-cli-box" style="display:none;background:var(--s3);border:1px solid var(--border);border-radius:var(--r2);padding:12px;margin-bottom:8px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--orange);margin-bottom:8px">Nuevo Cliente</div>
+        <div class="fr2">
+          <div class="field" style="margin-bottom:8px"><label>Nombre *</label><input type="text" id="mrep-new-nombre" placeholder="Nombre completo"/></div>
+          <div class="field" style="margin-bottom:8px"><label>Teléfono</label><input type="text" id="mrep-new-tel" placeholder="Ej: 2235001122"/></div>
+        </div>
+        <div class="field" style="margin-bottom:8px"><label>Email</label><input type="email" id="mrep-new-email" placeholder="cliente@email.com"/></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="toggleRepNewCli()">Cancelar</button>
+          <button type="button" class="btn btn-green btn-sm" onclick="saveRepNewCli()">✔ Crear y seleccionar</button>
+        </div>
+      </div>
+      <div class="fr2" style="display:none"><!-- spacer cierre fr2 original -->
         <div class="field"><label>Monto ($)</label><input type="number" id="mrep-monto" step="0.01" min="0"/></div>
       </div>
       <div class="field"><label>Descripción de la reparación</label><input type="text" id="mrep-desc" placeholder="Ej: Reparación bomba de agua, cambio de rodamiento…"/></div>
@@ -1223,7 +1332,8 @@ var HEADERS = {
 // ── API helper ──
 async function sbGet(table, params) {
   params = params || '';
-  var r = await fetch(SB_URL + '/rest/v1/' + table + '?order=id.desc' + (params ? '&' + params : ''), {headers: HEADERS});
+  var headers = Object.assign({}, HEADERS, {'Range': '0-9999', 'Range-Unit': 'items'});
+  var r = await fetch(SB_URL + '/rest/v1/' + table + '?order=id.desc' + (params ? '&' + params : ''), {headers: headers});
   if (!r.ok) { var e = await r.text(); throw new Error(e); }
   return r.json();
 }
@@ -1311,7 +1421,7 @@ function quoteDetail(desc, extra){
 }
 
 function matExtra(m){
-  // Intentar leer JSON de foto primero (nuevo formato: siempre serializado)
+  // Siempre intentar parsear el JSON de foto para recuperar todos los campos
   var fromJson={};
   try {
     var parsed=JSON.parse(m.foto||'');
@@ -1322,18 +1432,20 @@ function matExtra(m){
         validez: parsed.validez||'',
         foto: parsed.foto||'',
         anio_cliente: parsed.anio_cliente||null,
-        anio_entregado: parsed.anio_entregado||null
+        anio_entregado: parsed.anio_entregado||null,
+        hora: parsed.hora||''
       };
     }
   } catch(e) {}
-  // Columnas directas tienen prioridad si existen; JSON como fallback
+  // Columnas directas tienen prioridad; JSON como fallback para todo
   return {
     descripcion: m.descripcion || fromJson.descripcion || '',
     monto: m.monto || fromJson.monto || 0,
     validez: m.validez || fromJson.validez || '',
     foto: fromJson.foto || (m.foto && m.foto.indexOf('{')!==0 ? m.foto : ''),
     anio_cliente: m.anio_matafuego_cliente || fromJson.anio_cliente || null,
-    anio_entregado: m.anio_matafuego_entregado || fromJson.anio_entregado || null
+    anio_entregado: m.anio_matafuego_entregado || fromJson.anio_entregado || null,
+    hora: m.hora || fromJson.hora || ''
   };
 }
 
@@ -1345,7 +1457,8 @@ function matFotoValue(obj){
     validez:obj.validez||'',
     foto:obj.foto||'',
     anio_cliente:obj.anio_cliente||null,
-    anio_entregado:obj.anio_entregado||null
+    anio_entregado:obj.anio_entregado||null,
+    hora:obj.hora||nowTime()
   });
 }
 
@@ -1526,25 +1639,39 @@ function clearAlqPhoto(){
   setAlqPhotoPreview('');
 }
 
+function compressToBase64(dataUrl, maxPx, quality, callback){
+  var img=new Image();
+  img.onload=function(){
+    // Primera pasada
+    var scale=Math.min(1, maxPx/Math.max(img.width,img.height));
+    var canvas=document.createElement('canvas');
+    canvas.width=Math.max(1,Math.round(img.width*scale));
+    canvas.height=Math.max(1,Math.round(img.height*scale));
+    canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+    var result=canvas.toDataURL('image/jpeg', quality);
+    // Si sigue siendo muy grande (>150KB en base64 ≈ 200KB), comprimir más
+    if(result.length > 200000){
+      var scale2=Math.min(1, 500/Math.max(img.width,img.height));
+      canvas.width=Math.max(1,Math.round(img.width*scale2));
+      canvas.height=Math.max(1,Math.round(img.height*scale2));
+      canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+      result=canvas.toDataURL('image/jpeg', 0.4);
+    }
+    callback(result);
+  };
+  img.onerror=function(){toast('No se pudo leer la imagen','err');};
+  img.src=dataUrl;
+}
+
 function readAlqPhoto(input){
   var file=input.files && input.files[0];
   if(!file) return;
   if(!file.type.match(/^image\//)){toast('Seleccioná una imagen','err');return;}
   var reader=new FileReader();
   reader.onload=function(e){
-    var img=new Image();
-    img.onload=function(){
-      var max=900;
-      var scale=Math.min(1, max/Math.max(img.width,img.height));
-      var canvas=document.createElement('canvas');
-      canvas.width=Math.max(1,Math.round(img.width*scale));
-      canvas.height=Math.max(1,Math.round(img.height*scale));
-      var ctx=canvas.getContext('2d');
-      ctx.drawImage(img,0,0,canvas.width,canvas.height);
-      setAlqPhotoPreview(canvas.toDataURL('image/jpeg', .78));
-    };
-    img.onerror=function(){toast('No se pudo leer la imagen','err');};
-    img.src=e.target.result;
+    compressToBase64(e.target.result, 700, 0.5, function(compressed){
+      setAlqPhotoPreview(compressed);
+    });
   };
   reader.readAsDataURL(file);
 }
@@ -1555,6 +1682,7 @@ function showQuoteTicket(title, q){
   // Info rows using a proper table
   html+='<table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:6px">';
   html+='<tbody>';
+  if(q.num) html+='<tr><td style="padding:2px 4px;color:#555;width:40%">N° Cotización</td><td style="padding:2px 4px;font-weight:700;font-size:15px;color:#e67e00">#'+q.num+'</td></tr>';
   html+='<tr><td style="padding:2px 4px;color:#555;width:40%">Fecha</td><td style="padding:2px 4px;font-weight:600">'+esc(q.fecha||todayStr())+'</td></tr>';
   html+='<tr><td style="padding:2px 4px;color:#555">Cliente</td><td style="padding:2px 4px;font-weight:600">'+esc(q.cliente_nombre||'Particular')+'</td></tr>';
   if(q.telefono) html+='<tr><td style="padding:2px 4px;color:#555">Teléfono</td><td style="padding:2px 4px">'+esc(q.telefono)+'</td></tr>';
@@ -1691,7 +1819,13 @@ async function loadAll(){
     try { DB.gastos = await sbGet('gastos'); } catch(e) { DB.gastos = []; }
     
     // Carga segura de nuevas tablas (por si aún no las creaste en Supabase)
-    try { DB.matafuegos = await sbGet('matafuegos'); } catch(e) { DB.matafuegos = []; }
+    try { DB.matafuegos = await sbGet('matafuegos'); } catch(e) {
+      var msg=String(e.message||e);
+      if(msg.indexOf('matafuegos')!==-1||msg.indexOf('relation')!==-1||msg.indexOf('does not exist')!==-1){
+        console.warn('Tabla matafuegos no existe aún');
+      } else { console.error('matafuegos fetch error:',msg); }
+      DB.matafuegos = [];
+    }
     try { DB.renovables = mergeLocalRows(await sbGet('renovables_cotizaciones'), 'renovables_local'); } catch(e) { DB.renovables = mergeLocalRows([], 'renovables_local'); }
     try { DB.reparaciones = await sbGet('reparaciones'); } catch(e) { DB.reparaciones = []; }
 
@@ -2442,42 +2576,89 @@ function renderAlquileres(){
   var tb=document.getElementById('alq-tbody'); tb.innerHTML='';
   DB.alquileres.forEach(function(a){
     var over=a.estado==='Activo'&&a.devol<todayStr();
-    var foto=a.estado_foto||'';
-    var fotoBtn=foto?'<a class="btn btn-ghost btn-xs" href="'+esc(foto)+'" target="_blank">📷</a>':'';
-    tb.innerHTML+='<tr><td style="font-weight:600;font-size:12px">'+esc(a.maq_nombre)+'</td><td>'+esc(a.cliente_nombre||'—')+'</td><td style="font-family:var(--mono);font-size:11px">'+a.salida+'</td><td style="font-family:var(--mono);font-size:11px;'+(over?'color:var(--red);font-weight:700':'')+'">'+a.devol+(over?' ⚠️':'')+'</td><td style="font-family:var(--mono)">'+(a.salida&&a.devol?diffDays(a.salida,a.devol):1)+'</td><td style="font-family:var(--mono)">'+fmt(a.precio_dia)+'</td><td style="font-family:var(--mono);color:var(--muted)">'+fmt(a.sena||0)+'</td><td style="font-family:var(--mono);color:var(--orange);font-weight:700">'+fmt(a.total)+'</td><td><span class="badge '+(a.estado==='Activo'?'badge-orange':'badge-green')+'">'+a.estado+'</span></td><td><div class="act">'+fotoBtn+(a.estado==='Activo'?'<button class="btn btn-green btn-xs" onclick="devAlq('+a.id+')">✅</button>':'')+'<button class="btn btn-danger btn-xs" onclick="delAlq('+a.id+')">🗑</button></div></td></tr>';
+    var _njR={};try{if(a.notas_json)_njR=JSON.parse(a.notas_json);}catch(e){}
+    var foto=a.estado_foto||_njR.estado_foto||'';
+    var dniUrl=a.dni_foto||_njR.dni_foto||'';
+    var dias=Math.max(1,Math.round((new Date(a.devol)-(new Date(a.salida)))/(1000*60*60*24)));
+    tb.innerHTML+='<tr'+(over?' style="background:rgba(220,38,38,.08)"':'')+'>'+'<td style="font-weight:600;font-size:12px">'+esc(a.maq_nombre)+'</td>'+'<td>'+esc(a.cliente_nombre||'—')+'</td>'+'<td style="font-family:var(--mono);font-size:11px">'+fmtDDMM(a.salida)+'</td>'+'<td style="font-family:var(--mono);font-size:11px;'+(over?'color:var(--red);font-weight:700':'')+'">'+fmtDDMM(a.devol)+(over?' ⚠️':'')+'</td>'+'<td style="text-align:center">'+dias+'</td>'+'<td style="font-family:var(--mono);color:var(--muted)">'+fmt(a.precio_dia||0)+'</td>'+'<td style="font-family:var(--mono)">'+fmt(a.sena||0)+'</td>'+'<td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(a.total||0)+'</td>'+'<td><span class="badge '+(a.estado==="Activo"?'badge-green':a.estado==="Entregado"?'badge-gray':'badge-yellow')+'">'+esc(a.estado||'—')+'</span></td>'+'<td><div class="act">'+(foto?'<button class="btn btn-ghost btn-xs" onclick="verFotoAlqById('+a.id+',&quot;equipo&quot;)" title="Foto equipo">📷</button>':'')+(dniUrl?'<button class="btn btn-ghost btn-xs" onclick="verFotoAlqById('+a.id+',&quot;dni&quot;)" title="Ver DNI">🪪</button>':'')+'<button class="btn btn-ghost btn-xs" onclick="openAlqModal('+a.id+')">✏</button>'+'<button class="btn btn-danger btn-xs" onclick="delAlq('+a.id+')">🗑</button>'+'</div></td></tr>';
   });
   document.getElementById('alq-empty').style.display=DB.alquileres.length?'none':'block';
+  renderMaquinas();
 }
 
-function openAlqModal(){
+function openAlqModal(editId){
+  var a=editId?DB.alquileres.find(function(x){return x.id===editId;}):null;
+  // Máquinas ocupadas = las que tienen alquiler Activo (excluyendo el que se está editando)
+  var maqOcupadas={};
+  DB.alquileres.filter(function(x){return x.estado==='Activo' && x.id!==editId;}).forEach(function(x){maqOcupadas[x.maq_id]=true;});
   var mSel=document.getElementById('malq-maq'); mSel.innerHTML='';
-  DB.maquinas.filter(function(m){return m.disponible;}).forEach(function(m){mSel.innerHTML+='<option value="'+m.id+'" data-precio="'+m.precio_dia+'">'+m.icono+' '+esc(m.nombre)+'</option>';});
-  if(!mSel.options.length){toast('Sin máquinas disponibles. Cargá una máquina primero.','warn'); openMaqModal(); return;}
+  DB.maquinas.forEach(function(m){
+    var ocupada=maqOcupadas[m.id];
+    mSel.innerHTML+='<option value="'+m.id+'" data-precio="'+m.precio_dia+'"'+(ocupada?' disabled style="color:var(--red)"':'')+'>'+m.icono+' '+esc(m.nombre)+(ocupada?' — EN USO':'')+'</option>';
+  });
+  // Solo contar las no ocupadas
+  var libres=Array.from(mSel.options).filter(function(o){return !o.disabled;});
+  if(!libres.length){toast('Todas las máquinas están alquiladas en este momento.','warn'); return;}
   var cSel=document.getElementById('malq-cli'); cSel.innerHTML='<option value="">— Sin cliente —</option>';
   DB.clientes.forEach(function(c){cSel.innerHTML+='<option value="'+c.id+'">'+esc(c.nombre)+'</option>';});
-  document.getElementById('malq-id').value='';
-  document.getElementById('malq-salida').value=todayStr();
-  document.getElementById('malq-devol').value=addDays(todayStr(),1);
-  onMaqChange();
-  document.getElementById('malq-sena').value='';
-  document.getElementById('malq-estadoeq').value='';
-  clearAlqPhoto();
-  document.getElementById('malq-title').textContent='Nuevo Alquiler';
+  if(a){
+    // EDITAR
+    document.getElementById('malq-id').value=a.id;
+    document.getElementById('malq-title').textContent='Editar Alquiler';
+    mSel.value=a.maq_id;
+    cSel.value=a.cliente_id||'';
+    document.getElementById('malq-salida').value=a.salida||todayStr();
+    document.getElementById('malq-devol').value=a.devol||addDays(todayStr(),1);
+    document.getElementById('malq-precio').value=a.precio_dia||'';
+    document.getElementById('malq-sena').value=a.sena||'';
+    document.getElementById('malq-estadoeq').value=a.estado_equipo||'';
+    // Leer fotos: primero columna directa, luego notas_json como fallback
+    var _nj={};
+    try{ if(a.notas_json) _nj=JSON.parse(a.notas_json); }catch(e){}
+    var _fotoSrc=a.estado_foto||_nj.estado_foto||'';
+    var _dniSrc=a.dni_foto||_nj.dni_foto||'';
+    if(_fotoSrc){
+      document.getElementById('malq-foto').value=_fotoSrc;
+      document.getElementById('malq-foto-img').src=_fotoSrc;
+      document.getElementById('malq-foto-preview').style.display='block';
+    } else { clearAlqPhoto(); }
+    if(_dniSrc){
+      document.getElementById('malq-dni').value=_dniSrc;
+      document.getElementById('malq-dni-img').src=_dniSrc;
+      document.getElementById('malq-dni-preview').style.display='block';
+    } else { clearAlqDni(); }
+  } else {
+    // NUEVO
+    document.getElementById('malq-id').value='';
+    document.getElementById('malq-title').textContent='Nuevo Alquiler';
+    document.getElementById('malq-salida').value=todayStr();
+    document.getElementById('malq-devol').value=addDays(todayStr(),1);
+    onMaqChange();
+    document.getElementById('malq-sena').value='';
+    document.getElementById('malq-estadoeq').value='';
+    clearAlqPhoto();
+    clearAlqDni();
+  }
+  var cBox=document.getElementById('malq-new-cli-box'); if(cBox) cBox.style.display='none';
   calcAlqTotal();
   openModal('modal-alq');
 }
 
-function openMaqModal(){
-  document.getElementById('mmaq-nombre').value='';
-  document.getElementById('mmaq-icono').value='🔧';
-  document.getElementById('mmaq-precio').value='';
-  document.getElementById('mmaq-disponible').value='true';
+function openMaqModal(editId){
+  var m=editId?DB.maquinas.find(function(x){return x.id===editId;}):null;
+  document.getElementById('mmaq-id').value=editId||'';
+  document.getElementById('mmaq-title').textContent=m?'Editar Máquina':'Nueva Máquina';
+  document.getElementById('mmaq-nombre').value=m?m.nombre:'';
+  document.getElementById('mmaq-icono').value=m?m.icono:'🔧';
+  document.getElementById('mmaq-precio').value=m?m.precio_dia:'';
+  document.getElementById('mmaq-disponible').value=m?(m.disponible?'true':'false'):'true';
   openModal('modal-maq');
 }
 
 async function saveMaq(){
   var nombre=document.getElementById('mmaq-nombre').value.trim();
   if(!nombre){toast('Ingresá el nombre de la máquina','err');return;}
+  var maqId=parseInt(document.getElementById('mmaq-id').value)||0;
   var obj={
     nombre:nombre,
     icono:document.getElementById('mmaq-icono').value.trim()||'🔧',
@@ -2486,11 +2667,42 @@ async function saveMaq(){
   };
   setSyncing(true);
   try{
-    await sbInsert('maquinas',obj);
+    if(maqId){ await sbUpdate('maquinas',maqId,obj); }
+    else { await sbInsert('maquinas',obj); }
     await loadAll();
     closeModal('modal-maq');
-    toast('Máquina guardada');
+    renderAlquileres();
+    toast(maqId?'Máquina actualizada':'Máquina guardada');
   }catch(e){toast('Error: '+e.message,'err');}
+  setSyncing(null);
+}
+
+function renderMaquinas(){
+  var tb=document.getElementById('maq-tbody'); if(!tb) return;
+  tb.innerHTML='';
+  DB.maquinas.forEach(function(m){
+    var enUso=DB.alquileres.some(function(a){return a.maq_id===m.id && a.estado==='Activo';});
+    tb.innerHTML+='<tr>'+
+      '<td style="font-size:20px;text-align:center">'+esc(m.icono||'🔧')+'</td>'+
+      '<td style="font-weight:600">'+esc(m.nombre)+'</td>'+
+      '<td style="font-family:var(--mono);color:var(--green)">'+fmt(m.precio_dia||0)+'/día</td>'+
+      '<td><span class="badge '+(enUso?'badge-red':m.disponible?'badge-green':'badge-yellow')+'">'+(enUso?'En uso':m.disponible?'Disponible':'No disponible')+'</span></td>'+
+      '<td><div class="act">'+
+        '<button class="btn btn-ghost btn-xs" onclick="openMaqModal('+m.id+')">✏</button>'+
+        '<button class="btn btn-danger btn-xs" onclick="delMaq('+m.id+')">🗑</button>'+
+      '</div></td></tr>';
+  });
+  var empty=document.getElementById('maq-empty');
+  if(empty) empty.style.display=DB.maquinas.length?'none':'block';
+}
+
+async function delMaq(id){
+  var enUso=DB.alquileres.some(function(a){return a.maq_id===id && a.estado==='Activo';});
+  if(enUso){toast('No se puede eliminar: máquina en uso','warn');return;}
+  if(!confirm('¿Eliminar esta máquina?')) return;
+  setSyncing(true);
+  try{ await sbDelete('maquinas',id); await loadAll(); renderAlquileres(); toast('Máquina eliminada'); }
+  catch(e){ toast('Error: '+e.message,'err'); }
   setSyncing(null);
 }
 
@@ -2508,6 +2720,73 @@ function calcAlqTotal(){
   document.getElementById('malq-total').textContent=fmt(dias*p)+' ('+dias+' día'+(dias!==1?'s':'')+')';
 }
 
+
+// ── Alquiler: nuevo cliente inline ──
+
+function verFotoAlq(src, titulo){
+  document.getElementById('foto-viewer-img').src=src;
+  document.getElementById('foto-viewer-title').textContent=titulo||'Foto';
+  openModal('modal-foto-viewer');
+}
+function verFotoAlqById(id, tipo){
+  var a=DB.alquileres.find(function(x){return x.id===id;});
+  if(!a) return;
+  var nj={};try{if(a.notas_json)nj=JSON.parse(a.notas_json);}catch(e){}
+  var src=tipo==='dni'?(a.dni_foto||nj.dni_foto||''):(a.estado_foto||nj.estado_foto||'');
+  var titulo=tipo==='dni'?'DNI / Servicio':'Foto del equipo';
+  if(!src){toast('No hay foto guardada','warn');return;}
+  verFotoAlq(src, titulo);
+}
+function toggleAlqNewCli(){
+  var box=document.getElementById('malq-new-cli-box');
+  var open=box.style.display==='none';
+  box.style.display=open?'block':'none';
+  if(open){
+    document.getElementById('malq-new-nombre').value='';
+    document.getElementById('malq-new-tel').value='';
+    document.getElementById('malq-new-email').value='';
+    setTimeout(function(){document.getElementById('malq-new-nombre').focus();},80);
+  }
+}
+async function saveAlqNewCli(){
+  var nombre=(document.getElementById('malq-new-nombre').value||'').trim();
+  if(!nombre){toast('Ingresá el nombre del cliente','warn');return;}
+  var tel=(document.getElementById('malq-new-tel').value||'').trim();
+  var email=(document.getElementById('malq-new-email').value||'').trim();
+  setSyncing(true);
+  try{
+    var res=await sbInsert('clientes',{nombre:nombre,tel:tel,email:email,dir:'',deuda_cc:0,compras:0,ultimo_pedido:todayStr()});
+    var newId=res&&res[0]&&res[0].id;
+    await loadAll();
+    var sel=document.getElementById('malq-cli');
+    sel.innerHTML='<option value="">— Sin cliente —</option>';
+    DB.clientes.forEach(function(c){sel.innerHTML+='<option value="'+c.id+'">'+esc(c.nombre)+'</option>';});
+    if(newId) sel.value=newId;
+    toggleAlqNewCli();
+    toast('Cliente "'+nombre+'" creado ✔');
+  } catch(e){ toast('Error: '+(e.message||e),'err'); }
+  setSyncing(null);
+}
+
+// ── Alquiler: foto DNI ──
+function readAlqDni(input){
+  var f=input.files&&input.files[0]; if(!f) return;
+  var r=new FileReader();
+  r.onload=function(e){
+    compressToBase64(e.target.result, 700, 0.5, function(compressed){
+      document.getElementById('malq-dni').value=compressed;
+      document.getElementById('malq-dni-img').src=compressed;
+      document.getElementById('malq-dni-preview').style.display='block';
+    });
+  };
+  r.readAsDataURL(f);
+}
+function clearAlqDni(){
+  document.getElementById('malq-dni').value='';
+  document.getElementById('malq-dni-img').src='';
+  document.getElementById('malq-dni-preview').style.display='none';
+}
+
 async function saveAlq(){
   var maqId=parseInt(document.getElementById('malq-maq').value);
   var maq=DB.maquinas.find(function(x){return x.id===maqId;});
@@ -2520,23 +2799,68 @@ async function saveAlq(){
   var cn=cliId?(DB.clientes.find(function(c){return c.id===cliId;})||{nombre:'Sin cliente'}).nombre:'Sin cliente';
   var dias=(salida&&devol&&devol>salida)?diffDays(salida,devol):1;
   var foto=document.getElementById('malq-foto').value.trim();
+  console.log('Foto size:', foto ? Math.round(foto.length/1024)+'KB' : 'vacía');
   if(foto && foto.indexOf('data:image/')===0){
     try{foto=await uploadStorageImage('alquileres-fotos', foto, 'alquiler');}
-    catch(upErr){console.error('Error subiendo foto de alquiler:',upErr);toast('No se pudo subir la foto, se guarda en el registro','warn');}
+    catch(upErr){console.warn('Storage no disponible, guardando foto en base64:',upErr);}
+  }
+  var dniFoto=document.getElementById('malq-dni').value.trim();
+  console.log('DNI size:', dniFoto ? Math.round(dniFoto.length/1024)+'KB' : 'vacía');
+  if(dniFoto && dniFoto.indexOf('data:image/')===0){
+    try{dniFoto=await uploadStorageImage('alquileres-fotos', dniFoto, 'dni');}
+    catch(upErr){console.warn('Storage DNI no disponible:',upErr);}
   }
   setSyncing(true);
   try {
-    var obj={maq_id:maqId,maq_nombre:maq.nombre,cliente_id:cliId,cliente_nombre:cn,salida:salida||todayStr(),devol:devol||addDays(todayStr(),1),precio_dia:precio,sena:sena,total:dias*precio,estado:'Activo',estado_equipo:document.getElementById('malq-estadoeq').value.trim(),estado_foto:foto};
-    try{await sbInsert('alquileres',obj);}
-    catch(e){
-      if(String(e.message||e).match(/estado_foto|schema cache|column/i)){
-        delete obj.estado_foto;
-        await sbInsert('alquileres',obj);
-        toast('Alquiler guardado. Falta crear columna estado_foto en Supabase','warn');
-      } else { throw e; }
+    var alqId=parseInt(document.getElementById('malq-id').value)||0;
+    // Objeto base SIN fotos (siempre funciona)
+    var objBase={
+      maq_nombre:maq.nombre, cliente_nombre:cn,
+      salida:salida||todayStr(), devol:devol||addDays(todayStr(),1),
+      precio_dia:precio, sena:sena, total:dias*precio,
+      estado_equipo:document.getElementById('malq-estadoeq').value.trim()
+    };
+    if(!alqId) objBase.estado='Activo';
+    // Intentar incluir IDs opcionales
+    try{ objBase.maq_id=maqId; objBase.cliente_id=cliId; } catch(e){}
+
+    var savedId=alqId;
+    // 1. Guardar datos base
+    try{
+      if(alqId){ await sbUpdate('alquileres',alqId,objBase); }
+      else {
+        var res=await sbInsert('alquileres',objBase);
+        savedId=res&&res[0]&&res[0].id;
+      }
+    } catch(e){
+      // Fallback sin IDs
+      delete objBase.maq_id; delete objBase.cliente_id;
+      if(alqId){ await sbUpdate('alquileres',alqId,objBase); }
+      else {
+        var res2=await sbInsert('alquileres',objBase);
+        savedId=res2&&res2[0]&&res2[0].id;
+      }
     }
-    await sbUpdate('maquinas',maqId,{disponible:false});
-    await loadAll(); closeModal('modal-alq'); renderAlquileres(); toast('Alquiler registrado');
+
+    // 2. Guardar fotos por separado (UPDATE independiente)
+    if(savedId && (foto||dniFoto)){
+      var fotoObj={};
+      if(foto) fotoObj.estado_foto=foto;
+      if(dniFoto) fotoObj.dni_foto=dniFoto;
+      console.log('Guardando fotos en id:',savedId,'fotoObj keys:',Object.keys(fotoObj),'fotoSize:',foto?Math.round(foto.length/1024)+'KB':'—','dniSize:',dniFoto?Math.round(dniFoto.length/1024)+'KB':'—');
+      try{
+        await sbUpdate('alquileres',savedId,fotoObj);
+        console.log('Fotos guardadas OK');
+      } catch(ef){
+        console.error('Error guardando fotos:',ef.message||ef);
+        // Intentar de a una
+        if(foto){ try{ await sbUpdate('alquileres',savedId,{estado_foto:foto}); console.log('estado_foto OK'); } catch(ef2){ console.error('estado_foto falló:',ef2.message||ef2); } }
+        if(dniFoto){ try{ await sbUpdate('alquileres',savedId,{dni_foto:dniFoto}); console.log('dni_foto OK'); } catch(ef3){ console.error('dni_foto falló:',ef3.message||ef3); } }
+      }
+    }
+
+    if(!alqId) try{ await sbUpdate('maquinas',maqId,{disponible:false}); } catch(e){}
+    await loadAll(); closeModal('modal-alq'); renderAlquileres(); toast(alqId?'Alquiler actualizado':'Alquiler registrado');
   } catch(e){toast('Error: '+e.message,'err');}
   setSyncing(null);
 }
@@ -2547,7 +2871,7 @@ async function devAlq(id){
   setSyncing(true);
   try {
     await sbUpdate('alquileres',id,{estado:'Devuelto'});
-    await sbUpdate('maquinas',a.maq_id,{disponible:true});
+    try{ await sbUpdate('maquinas',a.maq_id,{disponible:true}); } catch(e){}
     await loadAll(); renderAlquileres(); toast('Equipo devuelto ✅');
   } catch(e){toast('Error: '+e.message,'err');}
   setSyncing(null);
@@ -2560,6 +2884,70 @@ async function delAlq(id){
 }
 
 // ══════════════════════════════════════════
+
+// ── Nuevo cliente desde DirecTV ──
+function toggleDtvNewCli(){
+  var box=document.getElementById('mdtv-new-cli-box');
+  var open=box.style.display==='none';
+  box.style.display=open?'block':'none';
+  if(open){
+    document.getElementById('mdtv-new-nombre').value='';
+    document.getElementById('mdtv-new-tel').value='';
+    document.getElementById('mdtv-new-email').value='';
+    setTimeout(function(){document.getElementById('mdtv-new-nombre').focus();},80);
+  }
+}
+async function saveDtvNewCli(){
+  var nombre=(document.getElementById('mdtv-new-nombre').value||'').trim();
+  if(!nombre){toast('Ingresá el nombre del cliente','warn');return;}
+  var tel=(document.getElementById('mdtv-new-tel').value||'').trim();
+  var email=(document.getElementById('mdtv-new-email').value||'').trim();
+  setSyncing(true);
+  try{
+    var res=await sbInsert('clientes',{nombre:nombre,tel:tel,email:email,dir:'',deuda_cc:0,compras:0,ultimo_pedido:todayStr()});
+    var newId=res&&res[0]&&res[0].id;
+    await loadAll();
+    var sel=document.getElementById('mdtv-cli');
+    sel.innerHTML='<option value="">— Sin cliente —</option>';
+    DB.clientes.forEach(function(c){sel.innerHTML+='<option value="'+c.id+'">'+esc(c.nombre)+'</option>';});
+    if(newId) sel.value=newId;
+    toggleDtvNewCli();
+    toast('Cliente "'+nombre+'" creado ✔');
+  } catch(e){ toast('Error: '+(e.message||e),'err'); }
+  setSyncing(null);
+}
+
+// ── Nuevo cliente desde Reparación ──
+function toggleRepNewCli(){
+  var box=document.getElementById('mrep-new-cli-box');
+  var open=box.style.display==='none';
+  box.style.display=open?'block':'none';
+  if(open){
+    document.getElementById('mrep-new-nombre').value='';
+    document.getElementById('mrep-new-tel').value='';
+    document.getElementById('mrep-new-email').value='';
+    setTimeout(function(){document.getElementById('mrep-new-nombre').focus();},80);
+  }
+}
+async function saveRepNewCli(){
+  var nombre=(document.getElementById('mrep-new-nombre').value||'').trim();
+  if(!nombre){toast('Ingresá el nombre del cliente','warn');return;}
+  var tel=(document.getElementById('mrep-new-tel').value||'').trim();
+  var email=(document.getElementById('mrep-new-email').value||'').trim();
+  setSyncing(true);
+  try{
+    var res=await sbInsert('clientes',{nombre:nombre,tel:tel,email:email,dir:'',deuda_cc:0,compras:0,ultimo_pedido:todayStr()});
+    var newId=res&&res[0]&&res[0].id;
+    await loadAll();
+    var sel=document.getElementById('mrep-cli');
+    sel.innerHTML='<option value="">— Sin cliente —</option>';
+    DB.clientes.forEach(function(c){sel.innerHTML+='<option value="'+c.id+'">'+esc(c.nombre)+'</option>';});
+    if(newId) sel.value=newId;
+    toggleRepNewCli();
+    toast('Cliente "'+nombre+'" creado ✔');
+  } catch(e){ toast('Error: '+(e.message||e),'err'); }
+  setSyncing(null);
+}
 // DIRECTV
 // ══════════════════════════════════════════
 function renderDtv(){
@@ -2591,6 +2979,7 @@ function openDtvModal(id){
     document.getElementById('mdtv-fecha').value=todayStr();
     document.getElementById('mdtv-estado').value='Pendiente';
   }
+  var dBox=document.getElementById('mdtv-new-cli-box'); if(dBox) dBox.style.display='none';
   openModal('modal-dtv');
 }
 
@@ -2620,6 +3009,12 @@ async function delDtv(id){
 // ══════════════════════════════════════════
 // ── Vencimiento MM/YY helpers ──
 // Stored as "MM/YY" (e.g. "05/27"). Internally converted to "YYYY-MM" for comparison.
+function fmtDDMM(yyyy_mm_dd){
+  if(!yyyy_mm_dd) return '—';
+  var p=yyyy_mm_dd.split('-');
+  if(p.length<3) return yyyy_mm_dd;
+  return p[2]+'/'+p[1];
+}
 function fmtVencInput(el){
   var v=el.value.replace(/\D/g,'');
   if(v.length>2) v=v.substring(0,2)+'/'+v.substring(2,4);
@@ -2740,11 +3135,28 @@ function renderMatafuegos(){
   var proxSort=mesSiguienteSort(hoySort);
   var gastos=DB.matafuegos.slice().sort(function(a,b){
     if(_matSort==='fecha'){
-      return (b.fecha||'').localeCompare(a.fecha||''); // más reciente primero
+      // Ordenar por fecha+hora descendente, todos sin excepción
+      var bdt=(b.fecha||'0000-00-00')+'T'+(b.hora||matExtra(b).hora||'00:00');
+      var adt=(a.fecha||'0000-00-00')+'T'+(a.hora||matExtra(a).hora||'00:00');
+      var cmp=bdt.localeCompare(adt);
+      if(cmp!==0) return cmp;
+      return (b.id||0)-(a.id||0);
     }
-    var va=vencToSort(matExtra(a).validez||a.validez)||'9999-99';
-    var vb=vencToSort(matExtra(b).validez||b.validez)||'9999-99';
-    return va.localeCompare(vb);
+    // Modo vencimiento: con vencimiento primero (más próximo), sin vencimiento al fondo por fecha
+    var vaRaw=vencToSort(matExtra(a).validez||a.validez);
+    var vbRaw=vencToSort(matExtra(b).validez||b.validez);
+    var aNoVenc=!vaRaw?1:0;
+    var bNoVenc=!vbRaw?1:0;
+    if(aNoVenc!==bNoVenc) return aNoVenc-bNoVenc; // sin vencimiento al fondo
+    if(aNoVenc&&bNoVenc){
+      // ambos sin venc: ordenar por fecha desc
+      var bdt2=(b.fecha||'0000-00-00')+'T'+(b.hora||matExtra(b).hora||'00:00');
+      var adt2=(a.fecha||'0000-00-00')+'T'+(a.hora||matExtra(a).hora||'00:00');
+      return bdt2.localeCompare(adt2);
+    }
+    var cmpV=(vaRaw||'9999-99').localeCompare(vbRaw||'9999-99');
+    if(cmpV!==0) return cmpV;
+    return (b.id||0)-(a.id||0);
   });
   var total=gastos.reduce(function(s,m){return s+parseFloat(matExtra(m).monto||0);},0);
   var vencidos=gastos.filter(function(m){var s=vencToSort(m.validez);return s&&s<hoySort;}).length;
@@ -2785,7 +3197,7 @@ function renderMatafuegos(){
       anioCellHtml+='<span style="color:var(--dim)">—</span>';
     }
     anioCellHtml+='</td>';
-    tb.innerHTML+='<tr><td style="font-size:11px;color:var(--muted)">'+esc(m.fecha||todayStr())+'</td><td style="font-weight:600;font-size:12px">'+esc(m.cliente_nombre||'—')+'</td><td>'+esc(m.telefono||'—')+' <a href="javascript:void(0)" onclick="openWhatsAppNumber(\''+telEsc+'\')" style="text-decoration:none">💬</a></td><td><span class="badge badge-orange">'+esc(m.tipo)+'</span></td><td style="font-size:11px">'+esc(detalle)+'</td>'+anioCellHtml+'<td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(extra.monto)+'</td><td style="font-family:var(--mono);font-size:13px;letter-spacing:.05em;'+vencClass+'">'+(venc||'—')+vencIcon+'</td><td><span class="badge '+(badges[m.estado]||'badge-gray')+'">'+esc(m.estado||'—')+'</span></td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="printMatQuote('+m.id+')">🧾</button><button class="btn btn-ghost btn-xs" onclick="openMatModal('+m.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delMat('+m.id+')">🗑</button></div></td></tr>';
+    tb.innerHTML+='<tr><td style="text-align:center;font-family:var(--mono);font-weight:700;font-size:13px;color:var(--orange);white-space:nowrap" title="N° cotización">#'+m.id+'</td><td style="font-size:11px;color:var(--muted)">'+fmtDDMM(m.fecha||todayStr())+'<br><span style="font-size:10px;color:var(--dim)">'+esc(extra.hora||m.hora||'—')+'</span></td><td style="font-weight:600;font-size:12px">'+esc(m.cliente_nombre||'—')+'</td><td>'+esc(m.telefono||'—')+' <a href="javascript:void(0)" onclick="openWhatsAppNumber(\''+telEsc+'\')" style="text-decoration:none">💬</a></td><td><span class="badge badge-orange">'+esc(m.tipo)+'</span></td><td style="font-size:11px">'+esc(detalle)+'</td>'+anioCellHtml+'<td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(extra.monto)+'</td><td style="font-family:var(--mono);font-size:13px;letter-spacing:.05em;'+vencClass+'">'+(venc||'—')+vencIcon+'</td><td><span class="badge '+(badges[m.estado]||'badge-gray')+'">'+esc(m.estado||'—')+'</span></td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="printMatQuote('+m.id+')">🧾</button><button class="btn btn-ghost btn-xs" onclick="openMatModal('+m.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delMat('+m.id+')">🗑</button></div></td></tr>';
   });
   document.getElementById('matafuegos-empty').style.display=gastos.length?'none':'block';
 }
@@ -2897,7 +3309,7 @@ async function saveMat(){
       uploadedPhotoUrl=await uploadStorageImage('matafuegos-fotos', photoValue, 'matafuego');
     } catch(upErr) {
       console.error('Error subiendo foto a Supabase Storage:', upErr);
-      toast('No se pudo subir la foto a Supabase, se guarda en el registro','warn');
+      console.warn('Storage matafuegos no disponible, guardando en base64');
     }
   }
 
@@ -2916,6 +3328,7 @@ async function saveMat(){
   var notasJson=matFotoValue(extra);
   var obj={
     fecha: todayStr(),
+    hora: nowTime(),
     cliente_id: cliId,
     cliente_nombre: cn,
     telefono: document.getElementById('mmat-tel').value.trim(),
@@ -2931,13 +3344,22 @@ async function saveMat(){
     anio_matafuego_entregado: anioEntregado
   };
   
-  setSyncing(true);
-  try {
-    if(id){await sbUpdate('matafuegos',id,obj);}else{await sbInsert('matafuegos',obj);}
+  // Columnas mínimas garantizadas en la tabla matafuegos
+  var objBase={
+    fecha: obj.fecha,
+    cliente_nombre: obj.cliente_nombre,
+    telefono: obj.telefono,
+    tipo: obj.tipo,
+    peso: obj.peso,
+    serie: obj.serie,
+    estado: obj.estado,
+    foto: obj.foto  // contiene el JSON con todo lo demás
+  };
+
+  async function afterSave(){
     if(cliId && anioEntregado){
       try{ await sbUpdate('clientes', cliId, {anio_matafuego_cliente: anioEntregado}); } catch(e2){}
     }
-    // Descontar stock si es Venta Nuevo y se seleccionó producto
     var prodSelEl=document.getElementById('mmat-prod-sel');
     var prodSelId=prodSelEl?parseInt(prodSelEl.value)||0:0;
     if(tipoMat()==='venta' && prodSelId && !id){
@@ -2950,17 +3372,27 @@ async function saveMat(){
     if(uploadedPhotoUrl && uploadedPhotoUrl.indexOf('http')===0 && obj.telefono){
       setTimeout(sendMatPhotoWhatsApp, 800);
     }
+  }
+
+  setSyncing(true);
+  try {
+    // Intentar con objeto completo primero
+    if(id){await sbUpdate('matafuegos',id,obj);}else{await sbInsert('matafuegos',obj);}
+    await afterSave();
   } catch(e){
-    if(String(e.message||e).match(/descripcion|monto|validez|anio_matafuego|schema cache|column/i)){
+    // Alguna columna no existe — reintentar con columnas mínimas
+    try {
+      if(id){await sbUpdate('matafuegos',id,objBase);}else{await sbInsert('matafuegos',objBase);}
+      await afterSave();
+    } catch(e2){
+      // Último intento: solo lo más básico posible
       try {
-        // foto ya contiene el JSON con todos los datos incluidos los años
-        var fallback=Object.assign({},obj);
-        delete fallback.descripcion; delete fallback.monto; delete fallback.validez; delete fallback.anio_matafuego_cliente; delete fallback.anio_matafuego_entregado;
-        if(id){await sbUpdate('matafuegos',id,fallback);}else{await sbInsert('matafuegos',fallback);}
-        await loadAll(); closeModal('modal-matafuegos'); renderMatafuegos(); toast('Registro guardado');
-      } catch(e2){toast('Error: Asegurate de haber creado la tabla matafuegos en Supabase','err');}
-    } else {
-      toast('Error: '+e.message,'err');
+        var objMin={fecha:obj.fecha,cliente_nombre:obj.cliente_nombre,tipo:obj.tipo,estado:obj.estado,foto:obj.foto};
+        if(id){await sbUpdate('matafuegos',id,objMin);}else{await sbInsert('matafuegos',objMin);}
+        await afterSave();
+      } catch(e3){
+        toast('Error al guardar: '+(e3.message||e3),'err');
+      }
     }
   }
   setSyncing(null);
@@ -2993,7 +3425,8 @@ function printMatQuote(id){
     monto:extra.monto,
     foto:extra.foto,
     anio_cliente:anioClienteVal,
-    anio_entregado:anioEntregadoVal
+    anio_entregado:anioEntregadoVal,
+    num:m.id
   });
 }
 
@@ -3254,25 +3687,245 @@ async function delRenov(id){
 }
 
 function printRenovQuote(id){
-  var r=DB.renovables.find(function(x){return x.id===id;});
-  if(!r){toast('No se encontró la cotización','err');return;}
-  // Calcular monto: usar r.monto si existe, o sumar items
-  var monto=parseFloat(r.monto)||0;
-  if(!monto && r.items && r.items.length){
-    monto=r.items.reduce(function(s,i){return s+(parseFloat(i.precio)||0)*(parseFloat(i.qty)||1);},0);
+  var r = DB.renovables.find(function(x){ return x.id === id; });
+  if(!r){
+    toast('No se encontró la cotización','err');
+    return;
   }
-  showQuoteTicket('Cotización Energía Renovable', {
-    fecha: r.fecha,
-    cliente_nombre: r.cliente_nombre,
-    tipo: r.tipo,
-    descripcion: r.descripcion||'',
-    items: (r.items && r.items.length) ? r.items : null,
-    monto: monto,
-    validez: r.validez||''
-  });
+
+  var monto = parseFloat(r.monto) || 0;
+
+  if(!monto && r.items && r.items.length){
+    monto = r.items.reduce(function(s,i){
+      return s + ((parseFloat(i.precio)||0) * (parseFloat(i.qty)||1));
+    },0);
+  }
+
+  var itemsHtml = '';
+
+  if(r.items && r.items.length){
+    r.items.forEach(function(item){
+      var qty = parseFloat(item.qty) || 1;
+      var precio = parseFloat(item.precio) || 0;
+      var subtotal = qty * precio;
+
+      itemsHtml += `
+        <tr>
+          <td style="padding:10px;border:1px solid #999;">
+            ${esc(item.nombre || '')}
+          </td>
+          <td style="padding:10px;border:1px solid #999;text-align:center;">
+            ${qty}
+          </td>
+          <td style="padding:10px;border:1px solid #999;text-align:right;font-family:monospace;white-space:nowrap;font-size:12px;">
+            ${fmt(precio)}
+          </td>
+          <td style="padding:10px;border:1px solid #999;text-align:right;font-family:monospace;font-weight:bold;white-space:nowrap;font-size:10px;">
+            ${fmt(subtotal)}
+          </td>
+        </tr>
+      `;
+    });
+  } else {
+    itemsHtml = `
+      <tr>
+        <td colspan="4" style="padding:15px;border:1px solid #999;text-align:center;color:#666;">
+          Sin productos cargados
+        </td>
+      </tr>
+    `;
+  }
+
+  var presNum = r.id || '—';
+  var fechaBase = r.fecha || todayStr();
+  var fechaFmt = fmtDDMM(fechaBase) + '/' + fechaBase.split('-')[0];
+
+  var html = `
+<div style="
+font-family:Arial,sans-serif;
+width:100%;
+margin:0;
+padding:10px;
+box-sizing:border-box;
+">
+
+
+    <table style="width:100%;margin-bottom:20px;table-layout:fixed;">
+      <tr>
+        <td style="vertical-align:top;">
+          <div style="font-size:30px;font-weight:800;">
+            CASA LEO
+          </div>
+          <div style="font-size:11px;color:#555;">
+            Servicios MDQ — Santa Clara del Mar
+          </div>
+        </td>
+
+        <td style="text-align:right;vertical-align:top;width:220px;">
+          <div style="font-size:20px;font-weight:700;">
+            Presupuesto Nº ${presNum}
+          </div>
+          <div style="font-size:13px;">
+            ${fechaFmt}
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    <div style="
+      border:1px solid #999;
+      padding:12px;
+      margin-bottom:20px;
+    ">
+      <div style="
+        font-size:11px;
+        font-weight:bold;
+        text-transform:uppercase;
+        margin-bottom:8px;
+      ">
+        Datos del cliente
+      </div>
+
+      <div>
+        <strong>Cliente:</strong>
+        ${esc(r.cliente_nombre || 'Particular')}
+      </div>
+
+      <div>
+        <strong>Tipo:</strong>
+        ${esc(r.tipo || 'Cotización')}
+      </div>
+    </div>
+
+    <div style="
+      font-size:11px;
+      font-weight:bold;
+      text-transform:uppercase;
+      margin-bottom:8px;
+    ">
+      Detalles del presupuesto
+    </div>
+
+    <table style="
+      width:100%;
+      border-collapse:collapse;
+      table-layout:fixed;
+      border:2px solid #333;
+      margin-bottom:20px;
+    ">
+
+      <thead>
+        <tr style="background:#f2f2f2;">
+        <th style="padding:10px;border:1px solid #999;text-align:left;width:50%;">
+  Descripción
+</th>
+
+<th style="padding:10px;border:1px solid #999;text-align:center;width:10%;">
+  Cant.
+</th>
+
+<th style="padding:10px;border:1px solid #999;text-align:right;width:18%;">
+  Precio Unit.
+</th>
+
+<th style="padding:10px;border:1px solid #999;text-align:right;width:22%;">
+  Importe
+</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        ${itemsHtml}
+      </tbody>
+
+      <tfoot>
+        <tr>
+          <td colspan="3"
+              style="
+                padding:12px;
+                border:1px solid #999;
+                text-align:right;
+                font-weight:bold;
+              ">
+            TOTAL
+          </td>
+
+          <td style="
+                padding:12px;
+                border:1px solid #999;
+                text-align:right;
+                font-family:monospace;
+                font-weight:800;
+              ">
+            ${fmt(monto)}
+          </td>
+        </tr>
+      </tfoot>
+
+    </table>
+
+    ${
+      r.descripcion
+      ? `
+      <div style="
+        border:1px solid #ddd;
+        padding:12px;
+        margin-bottom:20px;
+      ">
+        <div style="
+          font-size:11px;
+          font-weight:bold;
+          text-transform:uppercase;
+          margin-bottom:6px;
+        ">
+          Notas
+        </div>
+
+        <div style="white-space:pre-wrap;color:#000;font-size:13px;">
+          ${esc(r.descripcion)}
+        </div>
+      </div>
+      `
+      : ''
+    }
+
+    <div style="
+      margin-top:25px;
+      padding-top:15px;
+      border-top:1px solid #ccc;
+      text-align:center;
+      font-size:10px;
+      color:#555;
+    ">
+      Recicle · Reutilice · Sea sustentable<br>
+      Presupuesto sujeto a disponibilidad y confirmación de stock
+    </div>
+
+  </div>
+  `;
+
+  var portal = document.getElementById('print-portal');
+
+  if(!portal){
+    toast('No existe #print-portal','err');
+    return;
+  }
+
+  portal.innerHTML = html;
+  portal.style.display = 'block';
+ portal.style.position = 'static';
+ portal.style.height = 'auto';
+ portal.style.maxHeight = 'none';
+ portal.style.overflow = 'visible';
+ portal.style.width = '100%';
+
+  window.print();
+
+  setTimeout(function(){
+    portal.style.display = 'none';
+    portal.innerHTML = '';
+  }, 1000);
 }
-
-
 // ══════════════════════════════════════════
 // REPARACIÓN DE MAQUINARIA
 // ══════════════════════════════════════════
@@ -3326,6 +3979,7 @@ function openRepModal(id){
     document.getElementById('mrep-estado').value='Pendiente';
     clearRepPhoto();
   }
+  var rBox=document.getElementById('mrep-new-cli-box'); if(rBox) rBox.style.display='none';
   openModal('modal-reparacion');
 }
 
@@ -3373,7 +4027,7 @@ async function saveRep(){
   var foto=document.getElementById('mrep-foto').value.trim();
   if(foto && foto.indexOf('data:image/')===0){
     try{foto=await uploadStorageImage('reparaciones-fotos',foto,'reparacion');}
-    catch(e){console.error(e);toast('No se pudo subir la foto','warn');}
+    catch(e){console.warn('Storage reparaciones no disponible:',e);}
   }
   var obj={
     fecha:document.getElementById('mrep-fecha').value||todayStr(),
