@@ -861,7 +861,13 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
     <div class="mhead"><div class="mhead-title" id="mprod-title">Nuevo Producto</div><button class="mclose" onclick="closeModal('modal-prod')">✕</button></div>
     <div class="mbody">
       <input type="hidden" id="mprod-id"/>
-      <div class="fr2"><div class="field"><label>Código</label><input type="text" id="mprod-cod" placeholder="FER-001"/></div><div class="field"><label>Categoría</label><input type="text" id="mprod-cat"/></div></div>
+      <div class="fr2">
+        <div class="field"><label>Código</label><input type="text" id="mprod-cod" placeholder="FER-001"/></div>
+        <div class="field"><label>Categoría</label>
+          <input type="text" id="mprod-cat" list="mprod-cat-list" oninput="toggleMatProdFields()" autocomplete="off" placeholder="Seleccioná o escribí nueva…"/>
+          <datalist id="mprod-cat-list"></datalist>
+        </div>
+      </div>
       <div class="field"><label>Nombre</label><input type="text" id="mprod-nombre"/></div>
       <div class="fr3">
         <div class="field"><label>Costo ($)</label><input type="number" id="mprod-costo" step="0.01" min="0"/></div>
@@ -869,6 +875,15 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
         <div class="field"><label>Unidad</label><input type="text" id="mprod-unidad" placeholder="c/u"/></div>
       </div>
       <div class="fr2"><div class="field"><label>Stock actual</label><input type="number" id="mprod-stock" min="0"/></div><div class="field"><label>Stock mínimo</label><input type="number" id="mprod-min" min="0"/></div></div>
+      <!-- Campos exclusivos para categoría Matafuego -->
+      <div id="mprod-mat-fields" style="display:none;background:var(--s3);border:1px solid var(--border);border-radius:var(--r2);padding:12px;margin-top:4px">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">🧯 Datos del Matafuego</div>
+        <div class="fr3">
+          <div class="field"><label>Año Fabricación</label><input type="number" id="mprod-mat-anio" placeholder="Ej: 2025" min="2000" max="2100"/></div>
+          <div class="field"><label>Peso (Kg)</label><input type="number" id="mprod-mat-peso" step="0.5" min="0" placeholder="Ej: 5"/></div>
+          <div class="field"><label>N° Cilindro</label><input type="text" id="mprod-mat-cilindro" placeholder="Ej: A-1234"/></div>
+        </div>
+      </div>
     </div>
     <div class="mfooter"><button class="btn btn-ghost btn-sm" onclick="closeModal('modal-prod')">Cancelar</button><button class="btn btn-primary btn-sm" onclick="saveProd()">Guardar</button></div>
   </div>
@@ -1157,13 +1172,28 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
           </div>
         </div>
       </div>
-      <!-- Producto del stock (Venta Nuevo) -->
+      <!-- Producto del stock (Recambio / Venta Nuevo) -->
       <div id="mmat-prod-wrap" style="display:none">
         <div class="field">
-          <label>Matafuego del Stock <span style="color:var(--muted);font-size:11px">(opcional — descuenta stock)</span></label>
-          <div style="display:flex;gap:6px">
-            <select id="mmat-prod-sel" style="flex:1" onchange="onMatProdSelect()"><option value="">— No descontar stock —</option></select>
-            <span id="mmat-prod-stock" style="display:flex;align-items:center;font-family:var(--mono);font-size:12px;color:var(--muted);white-space:nowrap"></span>
+          <label>Matafuego del Stock <span style="color:var(--muted);font-size:11px">(descuenta stock y carga datos)</span></label>
+          <div style="background:var(--s3);border:1px solid var(--border);border-radius:var(--r2);padding:10px">
+            <div style="display:flex;gap:6px;align-items:flex-end;margin-bottom:6px">
+              <div style="flex:1;position:relative">
+                <input type="text" id="mmat-prod-search" placeholder="Buscar matafuego por nombre o código…" style="width:100%" oninput="updateMatProdSearch()"/>
+                <div id="mmat-prod-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--s1);border:1px solid var(--border);border-radius:5px;max-height:180px;overflow-y:auto;z-index:20;margin-top:2px">
+                  <div id="mmat-prod-list"></div>
+                </div>
+              </div>
+              <button type="button" class="btn btn-danger btn-sm" onclick="clearMatProdSel()" title="Quitar selección">✕</button>
+            </div>
+            <div id="mmat-prod-selected" style="display:none;background:var(--s2);border:1px solid var(--border);border-radius:5px;padding:8px 10px;font-size:12px">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span id="mmat-prod-selected-nombre" style="font-weight:600"></span>
+                <span id="mmat-prod-selected-stock" style="font-family:var(--mono);color:var(--muted)"></span>
+              </div>
+              <div id="mmat-prod-selected-info" style="color:var(--muted);font-size:11px;margin-top:3px"></div>
+            </div>
+            <input type="hidden" id="mmat-prod-sel-id"/>
           </div>
         </div>
       </div>
@@ -2322,7 +2352,18 @@ function renderStock(){
   document.getElementById('stock-empty').style.display=filtered.length?'none':'block';
 }
 
+function toggleMatProdFields(){
+  var cat=(document.getElementById('mprod-cat').value||'').toLowerCase();
+  var show=cat.indexOf('matafuego')!==-1;
+  document.getElementById('mprod-mat-fields').style.display=show?'':'none';
+}
+
 function openProdModal(id){
+  // Poblar datalist con categorías únicas existentes
+  var cats=[...new Set(DB.productos.map(function(p){return p.cat||'';}).filter(Boolean))].sort();
+  var dl=document.getElementById('mprod-cat-list');
+  dl.innerHTML=cats.map(function(c){return '<option value="'+esc(c)+'"/>';}).join('');
+
   document.getElementById('mprod-id').value=id||'';
   if(id){
     var p=DB.productos.find(function(x){return x.id===id;});
@@ -2335,20 +2376,45 @@ function openProdModal(id){
     document.getElementById('mprod-unidad').value=p.unidad||'c/u';
     document.getElementById('mprod-stock').value=p.stock||0;
     document.getElementById('mprod-min').value=p.min||5;
+    document.getElementById('mprod-mat-anio').value=p.mat_anio||'';
+    document.getElementById('mprod-mat-peso').value=p.mat_peso||'';
+    document.getElementById('mprod-mat-cilindro').value=p.mat_cilindro||'';
   } else {
     document.getElementById('mprod-title').textContent='Nuevo Producto';
     ['cod','cat','nombre','costo','precio'].forEach(function(f){document.getElementById('mprod-'+f).value='';});
     document.getElementById('mprod-unidad').value='c/u';
     document.getElementById('mprod-stock').value='0';
     document.getElementById('mprod-min').value='5';
+    document.getElementById('mprod-mat-anio').value='';
+    document.getElementById('mprod-mat-peso').value='';
+    document.getElementById('mprod-mat-cilindro').value='';
   }
+  toggleMatProdFields();
   openModal('modal-prod');
 }
 
 async function saveProd(){
   var nombre=document.getElementById('mprod-nombre').value.trim();
   if(!nombre){toast('Ingresá el nombre','err');return;}
-  var obj={cod:document.getElementById('mprod-cod').value.trim(),cat:document.getElementById('mprod-cat').value.trim(),nombre:nombre,costo:parseFloat(document.getElementById('mprod-costo').value)||0,precio:parseFloat(document.getElementById('mprod-precio').value)||0,unidad:document.getElementById('mprod-unidad').value.trim()||'c/u',stock:parseInt(document.getElementById('mprod-stock').value)||0,min:parseInt(document.getElementById('mprod-min').value)||5};
+  var cat=document.getElementById('mprod-cat').value.trim();
+  var obj={
+    cod:document.getElementById('mprod-cod').value.trim(),
+    cat:cat,
+    nombre:nombre,
+    costo:parseFloat(document.getElementById('mprod-costo').value)||0,
+    precio:parseFloat(document.getElementById('mprod-precio').value)||0,
+    unidad:document.getElementById('mprod-unidad').value.trim()||'c/u',
+    stock:parseInt(document.getElementById('mprod-stock').value)||0,
+    min:parseInt(document.getElementById('mprod-min').value)||5
+  };
+  if(cat.toLowerCase().indexOf('matafuego')!==-1){
+    var anioVal=parseInt(document.getElementById('mprod-mat-anio').value)||null;
+    var pesoVal=parseFloat(document.getElementById('mprod-mat-peso').value)||null;
+    var cilVal=document.getElementById('mprod-mat-cilindro').value.trim()||null;
+    if(anioVal) obj.mat_anio=anioVal;
+    if(pesoVal) obj.mat_peso=pesoVal;
+    if(cilVal) obj.mat_cilindro=cilVal;
+  }
   setSyncing(true);
   try {
     var id=parseInt(document.getElementById('mprod-id').value)||0;
@@ -3108,19 +3174,74 @@ function updateMatAnioUI(){
   document.getElementById('mmat-anio-row-recarga').style.display=modo==='recarga'?'':'none';
   document.getElementById('mmat-anio-row-recambio').style.display=modo==='recambio'?'':'none';
   document.getElementById('mmat-anio-row-venta').style.display=modo==='venta'?'':'none';
-  document.getElementById('mmat-prod-wrap').style.display=modo==='venta'?'':'none';
-  if(modo==='venta'){
-    // Populate stock select with matafuegos products
-    var sel=document.getElementById('mmat-prod-sel');
-    sel.innerHTML='<option value="">— No descontar stock —</option>';
-    DB.productos.forEach(function(p){
-      if(p.stock>0){
-        sel.innerHTML+='<option value="'+p.id+'">'+esc(p.nombre)+' (stock: '+p.stock+')</option>';
-      }
-    });
-  }
+  document.getElementById('mmat-prod-wrap').style.display=(modo==='venta'||modo==='recambio')?'':'none';
   calcMatAnio();
 }
+
+function updateMatProdSearch(){
+  var q=(document.getElementById('mmat-prod-search').value||'').toLowerCase().trim();
+  var list=document.getElementById('mmat-prod-list');
+  var dd=document.getElementById('mmat-prod-dropdown');
+  if(!q){dd.style.display='none';list.innerHTML='';return;}
+  var prods=DB.productos.filter(function(p){
+    var catOk=(p.cat||'').toLowerCase().indexOf('matafuego')!==-1;
+    var match=(p.nombre||'').toLowerCase().indexOf(q)!==-1||(p.cod||'').toLowerCase().indexOf(q)!==-1;
+    return match; // mostrar todos si se busca, pero priorizar matafuegos
+  }).slice(0,10);
+  if(!prods.length){list.innerHTML='<div style="padding:10px;color:var(--muted);font-size:12px">Sin resultados</div>';dd.style.display='block';return;}
+  list.innerHTML=prods.map(function(p){
+    var esMat=(p.cat||'').toLowerCase().indexOf('matafuego')!==-1;
+    var anio=p.mat_anio?(' · '+p.mat_anio):'';
+    var peso=p.mat_peso?(p.mat_peso+'kg'):'';
+    var cil=p.mat_cilindro?(' · Cil: '+p.mat_cilindro):'';
+    var extra=[peso,cil].filter(Boolean).join('');
+    return '<div onclick="selectMatProd('+p.id+')" style="padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:12px" onmouseenter="this.style.background=\'var(--s3)\'" onmouseleave="this.style.background=\'\'">'+
+      '<div style="font-weight:600">'+(esMat?'🧯 ':'')+esc(p.nombre)+(anio?'<span style="color:var(--muted);font-weight:400"> '+anio+'</span>':'')+'</div>'+
+      '<div style="color:var(--muted);font-size:10px">Stock: '+p.stock+' '+esc(p.unidad||'u')+(extra?' · '+extra:'')+'</div>'+
+      '</div>';
+  }).join('');
+  dd.style.display='block';
+}
+
+function selectMatProd(id){
+  var p=DB.productos.find(function(x){return x.id===id;});
+  if(!p) return;
+  document.getElementById('mmat-prod-sel-id').value=id;
+  document.getElementById('mmat-prod-search').value=p.nombre;
+  document.getElementById('mmat-prod-dropdown').style.display='none';
+  // Mostrar resumen seleccionado
+  var sel=document.getElementById('mmat-prod-selected');
+  sel.style.display='block';
+  document.getElementById('mmat-prod-selected-nombre').textContent=p.nombre;
+  document.getElementById('mmat-prod-selected-stock').textContent='Stock: '+p.stock+' '+(p.unidad||'u');
+  var info=[];
+  if(p.mat_anio) info.push('Año: '+p.mat_anio);
+  if(p.mat_peso) info.push('Peso: '+p.mat_peso+' kg');
+  if(p.mat_cilindro) info.push('Cilindro: '+p.mat_cilindro);
+  document.getElementById('mmat-prod-selected-info').textContent=info.join(' · ')||'Sin datos de matafuego cargados';
+  // Autocompletar campos de la cotización
+  var modo=tipoMat();
+  if(p.mat_anio){
+    if(modo==='venta'){
+      document.getElementById('mmat-anio-vendido').value=p.mat_anio;
+      document.getElementById('mmat-anio-entregado').value=p.mat_anio;
+    } else if(modo==='recambio'){
+      document.getElementById('mmat-anio-entregado').value=p.mat_anio;
+      calcMatAnio();
+    }
+  }
+  if(p.mat_peso) document.getElementById('mmat-peso').value=p.mat_peso;
+  if(p.mat_cilindro) document.getElementById('mmat-serie').value=p.mat_cilindro;
+}
+
+function clearMatProdSel(){
+  document.getElementById('mmat-prod-sel-id').value='';
+  document.getElementById('mmat-prod-search').value='';
+  document.getElementById('mmat-prod-dropdown').style.display='none';
+  document.getElementById('mmat-prod-selected').style.display='none';
+}
+
+function onMatProdSelect(){ /* legacy — reemplazado por selectMatProd */ }
 
 function syncAnioCliente(){
   var v=document.getElementById('mmat-anio-cliente2').value;
@@ -3128,19 +3249,8 @@ function syncAnioCliente(){
 }
 
 function syncAnioVendido(){
-  // Para venta: el año vendido se guarda en anio-entregado
   var v=document.getElementById('mmat-anio-vendido').value;
   document.getElementById('mmat-anio-entregado').value=v;
-}
-
-function onMatProdSelect(){
-  var sel=document.getElementById('mmat-prod-sel');
-  var prodId=parseInt(sel.value)||0;
-  var info=document.getElementById('mmat-prod-stock');
-  if(!prodId){info.textContent='';return;}
-  var p=DB.productos.find(function(x){return x.id===prodId;});
-  if(p) info.textContent='Stock actual: '+p.stock+' '+esc(p.unidad||'u');
-  else info.textContent='';
 }
 
 function calcMatAnio(){
@@ -3311,7 +3421,8 @@ function openMatModal(id){
     var ac2=document.getElementById('mmat-anio-cliente2'); if(ac2) ac2.value='';
     document.getElementById('mmat-anio-entregado').value='';
     var av=document.getElementById('mmat-anio-vendido'); if(av) av.value='';
-    var sel2=document.getElementById('mmat-prod-sel'); if(sel2) sel2.value='';
+    var sel2=document.getElementById('mmat-prod-sel-id'); if(sel2) sel2.value='';
+    clearMatProdSel();
     var diffEl=document.getElementById('mmat-anio-diff'); if(diffEl){diffEl.textContent='—';diffEl.style.color='var(--muted)';}
     clearMatPhoto();
   }
@@ -3433,7 +3544,7 @@ async function saveMat(){
     if(cliId && anioEntregado){
       try{ await sbUpdate('clientes', cliId, {anio_matafuego_cliente: anioEntregado}); } catch(e2){}
     }
-    var prodSelEl=document.getElementById('mmat-prod-sel');
+    var prodSelEl=document.getElementById('mmat-prod-sel-id');
     var prodSelId=prodSelEl?parseInt(prodSelEl.value)||0:0;
     if(tipoMat()==='venta' && prodSelId && !id){
       var pStock=DB.productos.find(function(x){return x.id===prodSelId;});
