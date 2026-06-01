@@ -3711,16 +3711,16 @@ function printRenovQuote(id){
 
       itemsHtml += `
         <tr>
-          <td style="padding:10px;border:1px solid #999;">
+          <td style="padding:10px;border:1px solid #999;font-size:13px;">
             ${esc(item.nombre || '')}
           </td>
-          <td style="padding:10px;border:1px solid #999;text-align:center;">
+          <td style="padding:10px;border:1px solid #999;text-align:center;font-size:13px;">
             ${qty}
           </td>
-          <td style="padding:10px;border:1px solid #999;text-align:right;font-family:monospace;white-space:nowrap;font-size:12px;">
+          <td style="padding:10px;border:1px solid #999;text-align:right;font-family:monospace;white-space:nowrap;font-size:13px;">
             ${fmt(precio)}
           </td>
-          <td style="padding:10px;border:1px solid #999;text-align:right;font-family:monospace;font-weight:bold;white-space:nowrap;font-size:10px;">
+          <td style="padding:10px;border:1px solid #999;text-align:right;font-family:monospace;font-weight:bold;white-space:nowrap;font-size:13px;">
             ${fmt(subtotal)}
           </td>
         </tr>
@@ -3753,11 +3753,14 @@ box-sizing:border-box;
     <table style="width:100%;margin-bottom:20px;table-layout:fixed;">
       <tr>
         <td style="vertical-align:top;">
-          <div style="font-size:30px;font-weight:800;">
+          <div style="font-size:38px;font-weight:800;letter-spacing:-1px;">
             CASA LEO
           </div>
-          <div style="font-size:11px;color:#555;">
+          <div style="font-size:12px;color:#333;margin-top:4px;">
             Servicios MDQ — Santa Clara del Mar
+          </div>
+          <div style="font-size:12px;color:#333;margin-top:2px;">
+            Tel Leo: 223 454-5967 &nbsp;|&nbsp; Tel Juan: 11 2246-3344
           </div>
         </td>
 
@@ -3773,12 +3776,12 @@ box-sizing:border-box;
     </table>
 
     <div style="
-      border:1px solid #999;
-      padding:12px;
+      border-left:4px solid #000;
+      padding:10px 14px;
       margin-bottom:20px;
     ">
       <div style="
-        font-size:11px;
+        font-size:13px;
         font-weight:bold;
         text-transform:uppercase;
         margin-bottom:8px;
@@ -3798,7 +3801,7 @@ box-sizing:border-box;
     </div>
 
     <div style="
-      font-size:11px;
+      font-size:13px;
       font-weight:bold;
       text-transform:uppercase;
       margin-bottom:8px;
@@ -3816,19 +3819,19 @@ box-sizing:border-box;
 
       <thead>
         <tr style="background:#f2f2f2;">
-        <th style="padding:10px;border:1px solid #999;text-align:left;width:50%;">
+        <th style="padding:10px;border:1px solid #999;text-align:left;width:55%;font-size:13px;">
   Descripción
 </th>
 
-<th style="padding:10px;border:1px solid #999;text-align:center;width:10%;">
+<th style="padding:10px;border:1px solid #999;text-align:center;width:10%;font-size:13px;">
   Cant.
 </th>
 
-<th style="padding:10px;border:1px solid #999;text-align:right;width:18%;">
+<th style="padding:10px;border:1px solid #999;text-align:right;width:15%;font-size:13px;white-space:nowrap;">
   Precio Unit.
 </th>
 
-<th style="padding:10px;border:1px solid #999;text-align:right;width:22%;">
+<th style="padding:10px;border:1px solid #999;text-align:right;width:20%;font-size:13px;white-space:nowrap;">
   Importe
 </th>
         </tr>
@@ -3844,8 +3847,12 @@ box-sizing:border-box;
               style="
                 padding:12px;
                 border:1px solid #999;
+                border-top:3px solid #000;
                 text-align:right;
-                font-weight:bold;
+                font-weight:800;
+                font-size:18px;
+                background:#ffffff;
+                color:#000000;
               ">
             TOTAL
           </td>
@@ -3853,9 +3860,14 @@ box-sizing:border-box;
           <td style="
                 padding:12px;
                 border:1px solid #999;
+                border-top:3px solid #000;
                 text-align:right;
                 font-family:monospace;
                 font-weight:800;
+                font-size:18px;
+                background:#ffffff;
+                color:#000000;
+                white-space:nowrap;
               ">
             ${fmt(monto)}
           </td>
@@ -3869,11 +3881,12 @@ box-sizing:border-box;
       ? `
       <div style="
         border:1px solid #ddd;
-        padding:12px;
+        padding:15px;
+        min-height:90px;
         margin-bottom:20px;
       ">
         <div style="
-          font-size:11px;
+          font-size:13px;
           font-weight:bold;
           text-transform:uppercase;
           margin-bottom:6px;
@@ -3904,27 +3917,14 @@ box-sizing:border-box;
   </div>
   `;
 
-  var portal = document.getElementById('print-portal');
+  var popup = window.open('', '_blank', 'width=900,height=700,scrollbars=yes,resizable=yes');
+  if(!popup){ toast('El navegador bloqueó el popup. Permitir popups para este sitio.','err'); return; }
 
-  if(!portal){
-    toast('No existe #print-portal','err');
-    return;
-  }
-
-  portal.innerHTML = html;
-  portal.style.display = 'block';
- portal.style.position = 'static';
- portal.style.height = 'auto';
- portal.style.maxHeight = 'none';
- portal.style.overflow = 'visible';
- portal.style.width = '100%';
-
-  window.print();
-
-  setTimeout(function(){
-    portal.style.display = 'none';
-    portal.innerHTML = '';
-  }, 1000);
+  popup.document.write('<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Presupuesto</title><style>body{margin:0;padding:20px 40px;font-family:Arial,sans-serif;background:#fff;color:#000}@media print{body{padding:10px 20px}}</style></head><body>');
+  popup.document.write(html);
+  popup.document.write('<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};}<\/script>');
+  popup.document.write('</body></html>');
+  popup.document.close();
 }
 // ══════════════════════════════════════════
 // REPARACIÓN DE MAQUINARIA
