@@ -543,7 +543,10 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
     <div class="section" id="tab-caja">
       <div class="ph">
         <div><div class="ph-title">Caja del Día</div><div class="ph-sub" id="caja-fecha"></div></div>
-        <div class="ph-actions"><button class="btn btn-ghost btn-sm" onclick="renderCaja()">🔄 Actualizar</button></div>
+        <div class="ph-actions">
+          <button class="btn btn-ghost btn-sm" onclick="renderCaja()">🔄 Actualizar</button>
+          <button class="btn btn-primary btn-sm" onclick="go('reparaciones');setTimeout(function(){openRepModal();},300)">🔩 Agregar Reparación</button>
+        </div>
       </div>
       <div class="caja-grid" id="caja-stats"></div>
       <div class="tbl-wrap">
@@ -1255,9 +1258,7 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
           <button type="button" class="btn btn-green btn-sm" onclick="saveRepNewCli()">✔ Crear y seleccionar</button>
         </div>
       </div>
-      <div class="fr2" style="display:none"><!-- spacer cierre fr2 original -->
-        <div class="field"><label>Monto ($)</label><input type="number" id="mrep-monto" step="0.01" min="0"/></div>
-      </div>
+      <div class="field"><label>Monto ($)</label><input type="number" id="mrep-monto" step="0.01" min="0" placeholder="0.00"/></div>
       <div class="field"><label>Descripción de la reparación</label><input type="text" id="mrep-desc" placeholder="Ej: Reparación bomba de agua, cambio de rodamiento…"/></div>
       <div class="field"><label>Estado</label><select id="mrep-estado"><option>Pendiente</option><option>En Taller</option><option>Listo</option><option>Entregado</option><option>Cancelado</option></select></div>
       <div class="field">
@@ -2175,16 +2176,21 @@ function renderCaja(){
   var ml=DB.ml_ventas.filter(function(x){return x.fecha===today;});
   var totalMl=ml.reduce(function(s,x){return s+(parseFloat(x.neto)||0);},0);
 
+  // Reparaciones del día
+  var rep=DB.reparaciones.filter(function(x){return x.fecha===today;});
+  var totalRep=rep.reduce(function(s,x){return s+(parseFloat(x.monto)||0);},0);
+
   document.getElementById('caja-stats').innerHTML=
-    sc('Total Ventas','orange',fmt(total),v.length+' ventas','💰')+
-    sc('Efectivo','green',fmt(por['Efectivo']||0),'','💵')+
-    sc('Transferencia','blue',fmt(por['Transferencia']||0),'','📲')+
-    sc('Tarjetas','yellow',fmt((por['Débito']||0)+(por['Crédito']||0)),'','💳')+
-    sc('Matafuegos','red',fmt(totalMat),mat.length+' cotizaciones','🧯')+
-    sc('ML Ventas','blue',fmt(totalMl),ml.length+' ventas','🛒')+
-    sc('Alquileres','blue',fmt(totalAlq),alq.length+' alquileres','🔧')+
-    sc('Energía Renovable','green',fmt(totalRen),ren.length+' cotizaciones','☀️')+
-    sc('DirecTV','yellow',fmt(totalDtv),dtv.length+' servicios','📡');
+    sc('Total Ventas','orange',fmt(total),v.length+' ventas','💰','historial')+
+    sc('Efectivo','green',fmt(por['Efectivo']||0),'','💵','historial')+
+    sc('Transferencia','blue',fmt(por['Transferencia']||0),'','📲','historial')+
+    sc('Tarjetas','yellow',fmt((por['Débito']||0)+(por['Crédito']||0)),'','💳','historial')+
+    sc('Matafuegos','red',fmt(totalMat),mat.length+' cotizaciones','🧯','matafuegos')+
+    sc('ML Ventas','blue',fmt(totalMl),ml.length+' ventas','🛒','mlventas')+
+    sc('Alquileres','blue',fmt(totalAlq),alq.length+' alquileres','🔧','alquileres')+
+    sc('Energía Renovable','green',fmt(totalRen),ren.length+' cotizaciones','☀️','renovable')+
+    sc('DirecTV','yellow',fmt(totalDtv),dtv.length+' servicios','📡','directv')+
+    sc('Reparaciones','red',fmt(totalRep),rep.length+' reparaciones','🔩','reparaciones');
 
   var tb=document.getElementById('caja-tbody'); tb.innerHTML='';
 
@@ -2236,7 +2242,15 @@ function renderCaja(){
     });
   }
 
-  document.getElementById('caja-empty').style.display=(v.length||mat.length||alq.length||ren.length||dtv.length||ml.length)?'none':'block';
+  // Separador + filas de Reparaciones
+  if(rep.length){
+    tb.innerHTML+='<tr><td colspan="7" style="background:var(--s3);color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:6px 13px">🔩 Reparaciones del Día</td></tr>';
+    rep.forEach(function(x){
+      tb.innerHTML+='<tr><td style="font-family:var(--mono);color:var(--muted);font-size:11px">—</td><td>—</td><td>'+esc(x.cliente_nombre||'—')+'</td><td>'+esc(x.descripcion||'—')+'</td><td><span class="badge badge-red">Reparación</span></td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(x.monto||0)+'</td><td><button class="btn btn-ghost btn-xs" onclick="printRepQuote('+x.id+')">🧾</button></td></tr>';
+    });
+  }
+
+  document.getElementById('caja-empty').style.display=(v.length||mat.length||alq.length||ren.length||dtv.length||ml.length||rep.length)?'none':'block';
 }
 
 // ══════════════════════════════════════════
@@ -2736,6 +2750,13 @@ function verFotoAlqById(id, tipo){
   var titulo=tipo==='dni'?'DNI / Servicio':'Foto del equipo';
   if(!src){toast('No hay foto guardada','warn');return;}
   verFotoAlq(src, titulo);
+}
+function verFotoRep(id){
+  var r=DB.reparaciones.find(function(x){return x.id===id;});
+  if(!r||!r.foto){toast('No hay foto guardada','warn');return;}
+  document.getElementById('foto-viewer-img').src=r.foto;
+  document.getElementById('foto-viewer-title').textContent='Foto de reparación'+(r.cliente_nombre?' — '+r.cliente_nombre:'');
+  openModal('modal-foto-viewer');
 }
 function toggleAlqNewCli(){
   var box=document.getElementById('malq-new-cli-box');
@@ -3949,7 +3970,7 @@ function renderReparaciones(){
     sc('Leo Mecanico','yellow',porTec['Leo Mecanico'],'Reparaciones','⚙️');
   var tb=document.getElementById('rep-tbody'); tb.innerHTML='';
   filtered.forEach(function(r){
-    var fotoBtn=r.foto?'<a class="btn btn-ghost btn-xs" href="'+esc(r.foto)+'" target="_blank">📷</a>':'<span style="color:var(--dim);font-size:11px">—</span>';
+    var fotoBtn=r.foto?'<button class="btn btn-ghost btn-xs" onclick="verFotoRep('+r.id+')">📷</button>':'<span style="color:var(--dim);font-size:11px">—</span>';
     tb.innerHTML+='<tr><td style="font-size:11px;color:var(--muted)">'+esc(r.fecha||'')+'</td><td style="font-weight:600;font-size:12px">'+esc(r.cliente_nombre||'Sin cliente')+'</td><td><span class="badge badge-blue">'+esc(r.tecnico)+'</span></td><td style="font-size:11px">'+esc(r.descripcion||'')+'</td><td>'+fotoBtn+'</td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(r.monto)+'</td><td><span class="badge '+(badges[r.estado]||'badge-gray')+'">'+esc(r.estado||'—')+'</span></td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="printRepQuote('+r.id+')">🧾</button><button class="btn btn-ghost btn-xs" onclick="openRepModal('+r.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delRep('+r.id+')">🗑</button></div></td></tr>';
   });
   document.getElementById('rep-empty').style.display=filtered.length?'none':'block';
