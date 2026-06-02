@@ -110,7 +110,7 @@ nav{flex:1 1 auto;min-height:0;min-width:0;padding:18px 12px 12px;overflow-y:aut
 
 /* TABLE */
 .tbl-wrap{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);overflow:auto;-webkit-overflow-scrolling:touch;position:relative}
-.tbl-wrap::after{content:'';position:absolute;top:0;right:0;bottom:0;width:18px;pointer-events:none;background:linear-gradient(90deg,transparent,var(--s2))}
+.tbl-wrap::after{content:'';position:absolute;top:0;right:0;bottom:0;width:18px;pointer-events:none;background:linear-gradient(90deg,transparent,var(--s2));opacity:0}
 table{width:100%;min-width:760px;border-collapse:collapse}
 thead th{background:var(--s3);color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:9px 13px;text-align:left;white-space:nowrap;border-bottom:1px solid var(--border)}
 tbody td{padding:9px 13px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
@@ -248,6 +248,7 @@ tbody tr:hover td:last-child{background:var(--s3)}
   .dash-grid{grid-template-columns:1fr}
   .fr2,.fr3{grid-template-columns:1fr}
   .tbl-wrap{margin-left:-4px;margin-right:-4px;border-radius:6px}
+  .tbl-wrap::after{display:none}
   table{min-width:820px}
   thead th,tbody td{padding:8px 10px}
   .act{gap:4px}
@@ -681,6 +682,23 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
         </table>
         <div id="cli-empty" class="empty-row">Sin clientes.</div>
       </div>
+      <!-- Historial de pagos cuenta corriente -->
+      <div style="margin-top:24px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="font-weight:700;font-size:14px">💰 Historial de pagos CC</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <select id="cli-pago-fil" onchange="renderCliPagoHistorial()" style="font-size:12px;padding:5px 8px;background:var(--s2);border:1px solid var(--border);border-radius:5px;color:var(--text)"><option value="">— Todos los clientes —</option></select>
+            <button class="btn btn-danger btn-xs" onclick="if(confirm('¿Borrar todo el historial de pagos CC?')){localStorage.removeItem('pagos_clientes_cc');renderCliPagoHistorial();}" title="Limpiar">🗑 Limpiar</button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Fecha</th><th>Cliente</th><th>Monto abonado</th><th>Saldo anterior</th><th>Saldo nuevo</th><th>Detalle</th><th></th></tr></thead>
+            <tbody id="cli-pago-tbody"></tbody>
+          </table>
+          <div id="cli-pago-empty" class="empty-row">Sin pagos registrados.</div>
+        </div>
+      </div>
     </div>
 
     <div class="section" id="tab-proveedores">
@@ -948,11 +966,7 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
       <div class="field"><label>Dirección</label><input type="text" id="mcli-dir"/></div>
       <div class="fr2">
         <div class="field"><label>Email</label><input type="text" id="mcli-email"/></div>
-        <div class="field"><label>Límite CC ($)</label><input type="number" id="mcli-cc" min="0"/></div>
-      </div>
-      <div id="mcli-deuda-info" style="background:var(--s3);border:1px solid var(--border);border-radius:var(--r2);padding:10px;margin-top:8px;display:none">
-        <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Deuda actual (solo lectura — usá 💰 para abonar)</div>
-        <div id="mcli-deuda-val" style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--red)">$0.00</div>
+        <div class="field"><label>Deuda CC ($)</label><input type="number" id="mcli-deuda-cc" step="0.01" min="0" placeholder="0.00"/></div>
       </div>
     </div>
     <div class="mfooter"><button class="btn btn-ghost btn-sm" onclick="closeModal('modal-cliente')">Cancelar</button><button class="btn btn-primary btn-sm" onclick="saveCliente()">Guardar</button></div>
@@ -2547,11 +2561,11 @@ function renderClientes(){
     tb.innerHTML+='<tr data-id="'+c.id+'"><td><div style="font-weight:600;font-size:12px">'+esc(c.nombre)+'</div><div style="color:var(--muted);font-size:10px">'+esc(c.email||'')+'</div></td><td style="font-family:var(--mono);font-size:12px">'+esc(c.tel||'—')+'</td><td style="color:var(--muted);font-size:11px">'+esc(c.dir||'—')+'</td><td style="font-family:var(--mono)">'+(c.compras||0)+'</td><td style="font-family:var(--mono);color:var(--muted)">'+fmt(c.cc||0)+'</td><td style="font-family:var(--mono);'+(c.deuda_cc>0?'color:var(--red);font-weight:700':'color:var(--muted)')+'">'+fmt(c.deuda_cc||0)+'</td><td style="color:var(--muted);font-size:11px">'+(c.ultimo_pedido||'—')+'</td><td><div class="act"><button class="btn btn-primary btn-xs" onclick="openClientePagoModal('+c.id+')">💰</button><a href="javascript:void(0)" onclick="openWhatsAppNumber(\''+telEsc+'\')" class="btn btn-green btn-xs">💬</a><button class="btn btn-ghost btn-xs" onclick="openClienteModal('+c.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delCliente('+c.id+')">🗑</button></div></td></tr>';
   });
   document.getElementById('cli-empty').style.display=filtered.length?'none':'block';
+  renderCliPagoHistorial();
 }
 
 function openClienteModal(id){
   document.getElementById('mcli-id').value=id||'';
-  var deudaInfo=document.getElementById('mcli-deuda-info');
   if(id){
     var c=DB.clientes.find(function(x){return x.id===id;});
     document.getElementById('mcli-title').textContent='Editar Cliente';
@@ -2559,15 +2573,11 @@ function openClienteModal(id){
     document.getElementById('mcli-tel').value=c.tel||'';
     document.getElementById('mcli-dir').value=c.dir||'';
     document.getElementById('mcli-email').value=c.email||'';
-    document.getElementById('mcli-cc').value=c.cc||0;
-    if((c.deuda_cc||0)>0){
-      deudaInfo.style.display='block';
-      document.getElementById('mcli-deuda-val').textContent=fmt(c.deuda_cc||0);
-    } else { deudaInfo.style.display='none'; }
+    document.getElementById('mcli-deuda-cc').value=c.deuda_cc||0;
   } else {
     document.getElementById('mcli-title').textContent='Nuevo Cliente';
-    ['nombre','tel','dir','email','cc'].forEach(function(f){document.getElementById('mcli-'+f).value='';});
-    deudaInfo.style.display='none';
+    ['nombre','tel','dir','email'].forEach(function(f){document.getElementById('mcli-'+f).value='';});
+    document.getElementById('mcli-deuda-cc').value='';
   }
   openModal('modal-cliente');
 }
@@ -2576,10 +2586,11 @@ async function saveCliente(){
   var nombre=document.getElementById('mcli-nombre').value.trim();
   if(!nombre){toast('Ingresá el nombre','err');return;}
   var id=parseInt(document.getElementById('mcli-id').value)||0;
-  var obj={nombre:nombre,tel:document.getElementById('mcli-tel').value.trim(),dir:document.getElementById('mcli-dir').value.trim(),email:document.getElementById('mcli-email').value.trim(),cc:parseFloat(document.getElementById('mcli-cc').value)||0};
+  var deuda=parseFloat(document.getElementById('mcli-deuda-cc').value)||0;
+  var obj={nombre:nombre,tel:document.getElementById('mcli-tel').value.trim(),dir:document.getElementById('mcli-dir').value.trim(),email:document.getElementById('mcli-email').value.trim(),deuda_cc:deuda};
   setSyncing(true);
   try {
-    if(id){await sbUpdate('clientes',id,obj);}else{await sbInsert('clientes',{...obj,deuda_cc:0,compras:0,ultimo_pedido:todayStr()});}
+    if(id){await sbUpdate('clientes',id,obj);}else{await sbInsert('clientes',{...obj,compras:0,ultimo_pedido:todayStr()});}
     await loadAll(); closeModal('modal-cliente'); renderClientes(); toast('Cliente guardado');
   } catch(e){toast('Error: '+e.message,'err');}
   setSyncing(null);
@@ -2602,13 +2613,62 @@ async function saveClientePago(){
   if(!id||monto<=0){toast('Ingresá un monto válido','err');return;}
   var c=DB.clientes.find(function(x){return x.id===id;});
   if(!c){toast('Cliente no encontrado','err');return;}
-  var nuevoSaldo=Math.max(0,(c.deuda_cc||0)-monto);
+  var saldoAnterior=c.deuda_cc||0;
+  var nuevoSaldo=Math.max(0,saldoAnterior-monto);
+  var detalle=(document.getElementById('mpago-detalle').value||'').trim();
   setSyncing(true);
   try {
     await sbUpdate('clientes',id,{deuda_cc:nuevoSaldo});
-    await loadAll(); closeModal('modal-clientepago'); renderClientes(); renderReportes(); toast('Pago registrado');
+    // Guardar en historial localStorage
+    var hist=JSON.parse(localStorage.getItem('pagos_clientes_cc')||'[]');
+    hist.unshift({
+      id: Date.now(),
+      fecha: todayStr(),
+      cli_id: id,
+      cli_nombre: c.nombre,
+      monto: monto,
+      saldo_anterior: saldoAnterior,
+      saldo_nuevo: nuevoSaldo,
+      detalle: detalle||'—'
+    });
+    localStorage.setItem('pagos_clientes_cc', JSON.stringify(hist));
+    await loadAll(); closeModal('modal-clientepago'); renderClientes(); renderReportes(); toast('Pago registrado ✅');
   } catch(e){toast('Error: '+e.message,'err');}
   setSyncing(null);
+}
+
+function renderCliPagoHistorial(){
+  var hist=JSON.parse(localStorage.getItem('pagos_clientes_cc')||'[]');
+  var fil=document.getElementById('cli-pago-fil');
+  var selVal=fil.value;
+  var nombres=[...new Set(hist.map(function(h){return h.cli_nombre;}))].sort();
+  fil.innerHTML='<option value="">— Todos los clientes —</option>'+nombres.map(function(n){return '<option value="'+esc(n)+'"'+(selVal===n?' selected':'')+'>'+esc(n)+'</option>';}).join('');
+  if(selVal) hist=hist.filter(function(h){return h.cli_nombre===selVal;});
+  var tb=document.getElementById('cli-pago-tbody');
+  var empty=document.getElementById('cli-pago-empty');
+  tb.innerHTML='';
+  if(!hist.length){empty.style.display='block';return;}
+  empty.style.display='none';
+  hist.forEach(function(h){
+    tb.innerHTML+='<tr>'+
+      '<td style="font-family:var(--mono);font-size:11px;color:var(--muted)">'+esc(h.fecha)+'</td>'+
+      '<td style="font-weight:600;font-size:12px">'+esc(h.cli_nombre)+'</td>'+
+      '<td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(h.monto)+'</td>'+
+      '<td style="font-family:var(--mono);color:var(--red)">'+fmt(h.saldo_anterior)+'</td>'+
+      '<td style="font-family:var(--mono);color:'+(h.saldo_nuevo>0?'var(--yellow)':'var(--green)')+'">'+fmt(h.saldo_nuevo)+'</td>'+
+      '<td style="color:var(--muted);font-size:11px">'+esc(h.detalle)+'</td>'+
+      '<td><button class="btn btn-danger btn-xs" onclick="delCliPago('+h.id+')" title="Eliminar">🗑</button></td>'+
+    '</tr>';
+  });
+}
+
+function delCliPago(id){
+  if(!confirm('¿Eliminar este registro?')) return;
+  var hist=JSON.parse(localStorage.getItem('pagos_clientes_cc')||'[]');
+  hist=hist.filter(function(h){return h.id!==id;});
+  localStorage.setItem('pagos_clientes_cc', JSON.stringify(hist));
+  renderCliPagoHistorial();
+  toast('Registro eliminado','warn');
 }
 
 function openGastoModal(id){
