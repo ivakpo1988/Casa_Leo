@@ -128,6 +128,7 @@ tbody tr:hover td:last-child{background:var(--s3)}
 .badge-red{background:var(--red-glow);color:var(--red);border:1px solid #ef444440}
 .badge-blue{background:var(--blu-glow);color:var(--blue);border:1px solid #3b82f640}
 .badge-yellow{background:#eab30820;color:var(--yellow);border:1px solid #eab30840}
+.badge-purple{background:#a855f720;color:#a855f7;border:1px solid #a855f740}
 .badge-gray{background:var(--s3);color:var(--muted);border:1px solid var(--border)}
 
 /* MODAL */
@@ -694,6 +695,23 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
         </table>
         <div id="prov-empty" class="empty-row">Sin proveedores.</div>
       </div>
+      <!-- Historial de pagos a proveedores -->
+      <div style="margin-top:24px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="font-weight:700;font-size:14px">📋 Historial de pagos a proveedores</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <select id="prov-hist-fil" onchange="renderProvHistorial()" style="font-size:12px;padding:5px 8px;background:var(--s2);border:1px solid var(--border);border-radius:5px;color:var(--text)"><option value="">— Todos —</option></select>
+            <button class="btn btn-danger btn-xs" onclick="if(confirm('¿Borrar TODO el historial?')){localStorage.removeItem('pagos_proveedores');renderProvHistorial();}" title="Limpiar historial">🗑 Limpiar</button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Fecha</th><th>Proveedor</th><th>Monto</th><th>N° Recibo/Factura</th><th>Detalle</th><th></th></tr></thead>
+            <tbody id="prov-hist-tbody"></tbody>
+          </table>
+          <div id="prov-hist-empty" class="empty-row">Sin pagos registrados.</div>
+        </div>
+      </div>
     </div>
 
     <div class="section" id="tab-gastos">
@@ -723,7 +741,24 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
         </table>
         <div id="alq-empty" class="empty-row">Sin alquileres.</div>
       </div>
-      <!-- Listado de máquinas -->
+      <!-- Historial de devoluciones -->
+      <div style="margin-top:24px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)">📦 Historial de Devoluciones</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <select id="alq-dev-fil" onchange="renderDevHistorial()" style="font-size:12px;padding:5px 8px;background:var(--s2);border:1px solid var(--border);border-radius:5px;color:var(--text)"><option value="">— Todas las máquinas —</option></select>
+            <button class="btn btn-danger btn-xs" onclick="if(confirm('¿Borrar todo el historial de devoluciones?')){localStorage.removeItem('devoluciones_alq');renderDevHistorial();}" title="Limpiar">🗑 Limpiar</button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Fecha devolución</th><th>Máquina</th><th>Cliente</th><th>Salida</th><th>Días</th><th>Total</th><th></th></tr></thead>
+            <tbody id="alq-dev-tbody"></tbody>
+          </table>
+          <div id="alq-dev-empty" class="empty-row">Sin devoluciones registradas.</div>
+        </div>
+      </div>
+
       <div style="margin-top:24px">
         <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:10px">Mis Máquinas</div>
         <div class="tbl-wrap">
@@ -911,8 +946,14 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
       <input type="hidden" id="mcli-id"/>
       <div class="fr2"><div class="field"><label>Nombre</label><input type="text" id="mcli-nombre"/></div><div class="field"><label>Teléfono</label><input type="text" id="mcli-tel"/></div></div>
       <div class="field"><label>Dirección</label><input type="text" id="mcli-dir"/></div>
-      <div class="fr2"><div class="field"><label>Email</label><input type="text" id="mcli-email"/></div><div class="field"><label>Límite CC ($)</label><input type="number" id="mcli-cc" min="0"/></div></div>
-      <div id="mcli-deuda-info" style="color:var(--muted);font-size:11px;margin-top:8px"></div>
+      <div class="fr2">
+        <div class="field"><label>Email</label><input type="text" id="mcli-email"/></div>
+        <div class="field"><label>Límite CC ($)</label><input type="number" id="mcli-cc" min="0"/></div>
+      </div>
+      <div id="mcli-deuda-info" style="background:var(--s3);border:1px solid var(--border);border-radius:var(--r2);padding:10px;margin-top:8px;display:none">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Deuda actual (solo lectura — usá 💰 para abonar)</div>
+        <div id="mcli-deuda-val" style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--red)">$0.00</div>
+      </div>
     </div>
     <div class="mfooter"><button class="btn btn-ghost btn-sm" onclick="closeModal('modal-cliente')">Cancelar</button><button class="btn btn-primary btn-sm" onclick="saveCliente()">Guardar</button></div>
   </div>
@@ -928,6 +969,25 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
       <div class="field"><label>Detalle</label><input type="text" id="mpago-detalle" placeholder="Ej: Pago factura 123"/></div>
     </div>
     <div class="mfooter"><button class="btn btn-ghost btn-sm" onclick="closeModal('modal-clientepago')">Cancelar</button><button class="btn btn-primary btn-sm" onclick="saveClientePago()">Registrar pago</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="modal-provpago">
+  <div class="modal">
+    <div class="mhead"><div class="mhead-title">Abonar deuda con proveedor</div><button class="mclose" onclick="closeModal('modal-provpago')">✕</button></div>
+    <div class="mbody">
+      <input type="hidden" id="mppago-prov-id"/>
+      <div class="field"><label>Proveedor</label><div id="mppago-prov-name" style="font-weight:600;color:var(--text)">—</div></div>
+      <div class="fr2">
+        <div class="field"><label>Monto a abonar ($)</label><input type="number" id="mppago-monto" min="0" step="0.01"/></div>
+        <div class="field"><label>Deuda actual</label><input type="text" id="mppago-saldo" readonly style="background:var(--s2);color:var(--red);font-weight:700;font-family:var(--mono)"/></div>
+      </div>
+      <div class="fr2">
+        <div class="field"><label>N° Recibo / Factura</label><input type="text" id="mppago-recibo" placeholder="Ej: F-0001, R-123"/></div>
+        <div class="field"><label>Detalle</label><input type="text" id="mppago-detalle" placeholder="Ej: Pago factura 456"/></div>
+      </div>
+    </div>
+    <div class="mfooter"><button class="btn btn-ghost btn-sm" onclick="closeModal('modal-provpago')">Cancelar</button><button class="btn btn-primary btn-sm" onclick="saveProvPago()">Registrar pago</button></div>
   </div>
 </div>
 
@@ -951,7 +1011,13 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
       <input type="hidden" id="mprov-id"/>
       <div class="fr2"><div class="field"><label>Empresa</label><input type="text" id="mprov-nombre"/></div><div class="field"><label>Contacto</label><input type="text" id="mprov-contacto"/></div></div>
       <div class="fr2"><div class="field"><label>Teléfono</label><input type="text" id="mprov-tel"/></div><div class="field"><label>Rubro</label><input type="text" id="mprov-rubro"/></div></div>
-      <div class="fr2"><div class="field"><label>Deuda ($)</label><input type="number" id="mprov-deuda" step="0.01" min="0"/></div><div class="field"><label>Pedido pendiente</label><select id="mprov-pedido"><option value="false">No</option><option value="true">Sí</option></select></div></div>
+      <div class="fr2">
+        <div class="field"><label>Deuda ($)</label><input type="number" id="mprov-deuda" step="0.01" min="0" placeholder="0.00"/></div>
+        <div class="field"><label>Pedido pendiente</label><select id="mprov-pedido"><option value="false">No</option><option value="true">Sí</option></select></div>
+      </div>
+      <div id="mprov-deuda-info" style="display:none;background:var(--s3);border:1px solid var(--border);border-radius:var(--r2);padding:8px 10px;margin-top:-4px">
+        <div style="font-size:11px;color:var(--muted)">Para descontar pagos usá el botón 💰 en la tabla — este campo permite ajustar el saldo manualmente.</div>
+      </div>
     </div>
     <div class="mfooter"><button class="btn btn-ghost btn-sm" onclick="closeModal('modal-prov')">Cancelar</button><button class="btn btn-primary btn-sm" onclick="saveProv()">Guardar</button></div>
   </div>
@@ -1127,7 +1193,7 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
         <button type="button" class="btn btn-green btn-sm" id="mmat-send-wa" style="display:none;margin-top:8px" onclick="sendMatPhotoWhatsApp()">📲 Enviar por WhatsApp</button>
       </div>
       <div class="fr2">
-        <div class="field"><label>Tipo de Trabajo</label><select id="mmat-tipo" onchange="updateMatAnioUI()"><option>Cotización Recarga</option><option>Cotización Recambio</option><option>Cotización Venta Nuevo</option><option>Recarga</option><option>Recambio</option><option>Venta Nuevo</option></select></div>
+        <div class="field"><label>Tipo de Trabajo</label><select id="mmat-tipo" onchange="updateMatAnioUI()"><option>Recarga</option><option>Recambio</option><option>Venta Nuevo</option></select></div>
         <div class="field"><label>Peso (Kg)</label><input type="number" id="mmat-peso" step="0.5" min="0" placeholder="Ej: 5"/></div>
       </div>
       <div class="fr2">
@@ -2485,6 +2551,7 @@ function renderClientes(){
 
 function openClienteModal(id){
   document.getElementById('mcli-id').value=id||'';
+  var deudaInfo=document.getElementById('mcli-deuda-info');
   if(id){
     var c=DB.clientes.find(function(x){return x.id===id;});
     document.getElementById('mcli-title').textContent='Editar Cliente';
@@ -2493,9 +2560,14 @@ function openClienteModal(id){
     document.getElementById('mcli-dir').value=c.dir||'';
     document.getElementById('mcli-email').value=c.email||'';
     document.getElementById('mcli-cc').value=c.cc||0;
+    if((c.deuda_cc||0)>0){
+      deudaInfo.style.display='block';
+      document.getElementById('mcli-deuda-val').textContent=fmt(c.deuda_cc||0);
+    } else { deudaInfo.style.display='none'; }
   } else {
     document.getElementById('mcli-title').textContent='Nuevo Cliente';
     ['nombre','tel','dir','email','cc'].forEach(function(f){document.getElementById('mcli-'+f).value='';});
+    deudaInfo.style.display='none';
   }
   openModal('modal-cliente');
 }
@@ -2624,13 +2696,15 @@ async function delCliente(id){
 function renderProveedores(){
   var tb=document.getElementById('prov-tbody'); tb.innerHTML='';
   DB.proveedores.forEach(function(p){
-    tb.innerHTML+='<tr data-id="'+p.id+'"><td style="font-weight:600;font-size:12px">'+esc(p.nombre)+'</td><td>'+esc(p.contacto||'—')+'</td><td style="font-family:var(--mono);font-size:12px">'+esc(p.tel||'—')+'</td><td style="color:var(--muted);font-size:11px">'+esc(p.ultima_compra||'—')+'</td><td style="font-family:var(--mono);'+(p.deuda>0?'color:var(--red);font-weight:700':'color:var(--muted)')+'">'+fmt(p.deuda||0)+'</td><td>'+(p.pedido_pend?'<span class="badge badge-yellow">⏳ Sí</span>':'<span style="color:var(--dim)">No</span>')+'</td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="openProvModal('+p.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delProv('+p.id+')">🗑</button></div></td></tr>';
+    tb.innerHTML+='<tr data-id="'+p.id+'"><td style="font-weight:600;font-size:12px">'+esc(p.nombre)+'</td><td>'+esc(p.contacto||'—')+'</td><td style="font-family:var(--mono);font-size:12px">'+esc(p.tel||'—')+'</td><td style="color:var(--muted);font-size:11px">'+esc(p.ultima_compra||'—')+'</td><td style="font-family:var(--mono);'+(p.deuda>0?'color:var(--red);font-weight:700':'color:var(--muted)')+'">'+fmt(p.deuda||0)+'</td><td>'+(p.pedido_pend?'<span class="badge badge-yellow">⏳ Sí</span>':'<span style="color:var(--dim)">No</span>')+'</td><td><div class="act">'+(p.deuda>0?'<button class="btn btn-primary btn-xs" onclick="openProvPagoModal('+p.id+')" title="Abonar deuda">💰</button>':'')+'<button class="btn btn-ghost btn-xs" onclick="openProvModal('+p.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delProv('+p.id+')">🗑</button></div></td></tr>';
   });
   document.getElementById('prov-empty').style.display=DB.proveedores.length?'none':'block';
+  renderProvHistorial();
 }
 
 function openProvModal(id){
   document.getElementById('mprov-id').value=id||'';
+  var di=document.getElementById('mprov-deuda-info');
   if(id){
     var p=DB.proveedores.find(function(x){return x.id===id;});
     document.getElementById('mprov-title').textContent='Editar Proveedor';
@@ -2640,12 +2714,94 @@ function openProvModal(id){
     document.getElementById('mprov-rubro').value=p.rubro||'';
     document.getElementById('mprov-deuda').value=p.deuda||0;
     document.getElementById('mprov-pedido').value=p.pedido_pend?'true':'false';
+    di.style.display=(p.deuda||0)>0?'block':'none';
   } else {
     document.getElementById('mprov-title').textContent='Nuevo Proveedor';
-    ['nombre','contacto','tel','rubro','deuda'].forEach(function(f){document.getElementById('mprov-'+f).value='';});
+    ['nombre','contacto','tel','rubro'].forEach(function(f){document.getElementById('mprov-'+f).value='';});
+    document.getElementById('mprov-deuda').value='';
     document.getElementById('mprov-pedido').value='false';
+    di.style.display='none';
   }
   openModal('modal-prov');
+}
+
+function openProvPagoModal(id){
+  var p=DB.proveedores.find(function(x){return x.id===id;});
+  if(!p){toast('Proveedor no encontrado','err');return;}
+  document.getElementById('mppago-prov-id').value=p.id;
+  document.getElementById('mppago-prov-name').textContent=p.nombre||'—';
+  document.getElementById('mppago-saldo').value=fmt(p.deuda||0);
+  document.getElementById('mppago-monto').value='';
+  document.getElementById('mppago-detalle').value='';
+  document.getElementById('mppago-recibo').value='';
+  openModal('modal-provpago');
+}
+
+async function saveProvPago(){
+  var id=parseInt(document.getElementById('mppago-prov-id').value)||0;
+  var monto=parseFloat(document.getElementById('mppago-monto').value)||0;
+  if(!id||monto<=0){toast('Ingresá un monto válido','err');return;}
+  var p=DB.proveedores.find(function(x){return x.id===id;});
+  if(!p){toast('Proveedor no encontrado','err');return;}
+  var nuevoSaldo=Math.max(0,(p.deuda||0)-monto);
+  var recibo=(document.getElementById('mppago-recibo').value||'').trim();
+  var detalle=(document.getElementById('mppago-detalle').value||'').trim();
+  setSyncing(true);
+  try{
+    await sbUpdate('proveedores',id,{deuda:nuevoSaldo});
+    // Guardar en historial localStorage
+    var hist=JSON.parse(localStorage.getItem('pagos_proveedores')||'[]');
+    hist.unshift({
+      id: Date.now(),
+      fecha: todayStr(),
+      prov_id: id,
+      prov_nombre: p.nombre,
+      monto: monto,
+      recibo: recibo||'—',
+      detalle: detalle||'—'
+    });
+    localStorage.setItem('pagos_proveedores', JSON.stringify(hist));
+    await loadAll();
+    closeModal('modal-provpago');
+    renderProveedores();
+    toast('Pago a proveedor registrado ✅');
+  } catch(e){toast('Error: '+e.message,'err');}
+  setSyncing(null);
+}
+
+function renderProvHistorial(){
+  var hist=JSON.parse(localStorage.getItem('pagos_proveedores')||'[]');
+  // Poblar filtro de proveedores
+  var fil=document.getElementById('prov-hist-fil');
+  var selVal=fil.value;
+  var nombres=[...new Set(hist.map(function(h){return h.prov_nombre;}))].sort();
+  fil.innerHTML='<option value="">— Todos —</option>'+nombres.map(function(n){return '<option value="'+esc(n)+'"'+(selVal===n?' selected':'')+'>'+esc(n)+'</option>';}).join('');
+  // Filtrar
+  if(selVal) hist=hist.filter(function(h){return h.prov_nombre===selVal;});
+  var tb=document.getElementById('prov-hist-tbody');
+  var empty=document.getElementById('prov-hist-empty');
+  tb.innerHTML='';
+  if(!hist.length){empty.style.display='block';return;}
+  empty.style.display='none';
+  hist.forEach(function(h){
+    tb.innerHTML+='<tr>'+
+      '<td style="font-family:var(--mono);font-size:11px;color:var(--muted)">'+esc(h.fecha)+'</td>'+
+      '<td style="font-weight:600;font-size:12px">'+esc(h.prov_nombre)+'</td>'+
+      '<td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(h.monto)+'</td>'+
+      '<td style="font-family:var(--mono);color:var(--orange)">'+esc(h.recibo)+'</td>'+
+      '<td style="color:var(--muted);font-size:11px">'+esc(h.detalle)+'</td>'+
+      '<td><button class="btn btn-danger btn-xs" onclick="delProvPago('+h.id+')" title="Eliminar registro">🗑</button></td>'+
+    '</tr>';
+  });
+}
+
+function delProvPago(id){
+  if(!confirm('¿Eliminar este registro del historial?')) return;
+  var hist=JSON.parse(localStorage.getItem('pagos_proveedores')||'[]');
+  hist=hist.filter(function(h){return h.id!==id;});
+  localStorage.setItem('pagos_proveedores', JSON.stringify(hist));
+  renderProvHistorial();
+  toast('Registro eliminado','warn');
 }
 
 async function saveProv(){
@@ -2653,6 +2809,7 @@ async function saveProv(){
   if(!nombre){toast('Ingresá el nombre','err');return;}
   var id=parseInt(document.getElementById('mprov-id').value)||0;
   var obj={nombre:nombre,contacto:document.getElementById('mprov-contacto').value.trim(),tel:document.getElementById('mprov-tel').value.trim(),rubro:document.getElementById('mprov-rubro').value.trim(),ultima_compra:todayStr(),deuda:parseFloat(document.getElementById('mprov-deuda').value)||0,pedido_pend:document.getElementById('mprov-pedido').value==='true'};
+
   setSyncing(true);
   try {
     if(id){await sbUpdate('proveedores',id,obj);}else{await sbInsert('proveedores',obj);}
@@ -2680,10 +2837,12 @@ function renderAlquileres(){
     var foto=a.estado_foto||_njR.estado_foto||'';
     var dniUrl=a.dni_foto||_njR.dni_foto||'';
     var dias=Math.max(1,Math.round((new Date(a.devol)-(new Date(a.salida)))/(1000*60*60*24)));
-    tb.innerHTML+='<tr'+(over?' style="background:rgba(220,38,38,.08)"':'')+'>'+'<td style="font-weight:600;font-size:12px">'+esc(a.maq_nombre)+'</td>'+'<td>'+esc(a.cliente_nombre||'—')+'</td>'+'<td style="font-family:var(--mono);font-size:11px">'+fmtDDMM(a.salida)+'</td>'+'<td style="font-family:var(--mono);font-size:11px;'+(over?'color:var(--red);font-weight:700':'')+'">'+fmtDDMM(a.devol)+(over?' ⚠️':'')+'</td>'+'<td style="text-align:center">'+dias+'</td>'+'<td style="font-family:var(--mono);color:var(--muted)">'+fmt(a.precio_dia||0)+'</td>'+'<td style="font-family:var(--mono)">'+fmt(a.sena||0)+'</td>'+'<td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(a.total||0)+'</td>'+'<td><span class="badge '+(a.estado==="Activo"?'badge-green':a.estado==="Entregado"?'badge-gray':'badge-yellow')+'">'+esc(a.estado||'—')+'</span></td>'+'<td><div class="act">'+(foto?'<button class="btn btn-ghost btn-xs" onclick="verFotoAlqById('+a.id+',&quot;equipo&quot;)" title="Foto equipo">📷</button>':'')+(dniUrl?'<button class="btn btn-ghost btn-xs" onclick="verFotoAlqById('+a.id+',&quot;dni&quot;)" title="Ver DNI">🪪</button>':'')+'<button class="btn btn-ghost btn-xs" onclick="openAlqModal('+a.id+')">✏</button>'+'<button class="btn btn-danger btn-xs" onclick="delAlq('+a.id+')">🗑</button>'+'</div></td></tr>';
+    tb.innerHTML+='<tr'+(over?' style="background:rgba(220,38,38,.08)"':'')+'>'+'<td style="font-weight:600;font-size:12px">'+esc(a.maq_nombre)+'</td>'+'<td>'+esc(a.cliente_nombre||'—')+'</td>'+'<td style="font-family:var(--mono);font-size:11px">'+fmtDDMM(a.salida)+'</td>'+'<td style="font-family:var(--mono);font-size:11px;'+(over?'color:var(--red);font-weight:700':'')+'">'+fmtDDMM(a.devol)+(over?' ⚠️':'')+'</td>'+'<td style="text-align:center">'+dias+'</td>'+'<td style="font-family:var(--mono);color:var(--muted)">'+fmt(a.precio_dia||0)+'</td>'+'<td style="font-family:var(--mono)">'+fmt(a.sena||0)+'</td>'+'<td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(a.total||0)+'</td>'+'<td><span class="badge '+(a.estado==="Activo"?'badge-green':a.estado==="Entregado"?'badge-gray':'badge-yellow')+'">'+esc(a.estado||'—')+'</span></td>'+'<td><div class="act">'+(foto?'<button class="btn btn-ghost btn-xs" onclick="verFotoAlqById('+a.id+',&quot;equipo&quot;)" title="Foto equipo">📷</button>':'')+  (dniUrl?'<button class="btn btn-ghost btn-xs" onclick="verFotoAlqById('+a.id+',&quot;dni&quot;)" title="Ver DNI">🪪</button>':'')+
+      (a.estado==='Activo'?'<button class="btn btn-green btn-xs" onclick="confirmarDevolucion('+a.id+')" title="Marcar como devuelta">✅ Devolver</button>':'')+'<button class="btn btn-ghost btn-xs" onclick="openAlqModal('+a.id+')">✏</button>'+'<button class="btn btn-danger btn-xs" onclick="delAlq('+a.id+')">🗑</button>'+'</div></td></tr>';
   });
   document.getElementById('alq-empty').style.display=DB.alquileres.length?'none':'block';
   renderMaquinas();
+  renderDevHistorial();
 }
 
 function openAlqModal(editId){
@@ -2694,11 +2853,14 @@ function openAlqModal(editId){
   var mSel=document.getElementById('malq-maq'); mSel.innerHTML='';
   DB.maquinas.forEach(function(m){
     var ocupada=maqOcupadas[m.id];
-    mSel.innerHTML+='<option value="'+m.id+'" data-precio="'+m.precio_dia+'"'+(ocupada?' disabled style="color:var(--red)"':'')+'>'+m.icono+' '+esc(m.nombre)+(ocupada?' — EN USO':'')+'</option>';
+    var noDisp=!m.disponible;
+    var bloq=ocupada||noDisp;
+    var label=m.icono+' '+esc(m.nombre)+(ocupada?' — EN USO':noDisp?' — NO DISPONIBLE':'');
+    mSel.innerHTML+='<option value="'+m.id+'" data-precio="'+m.precio_dia+'"'+(bloq?' disabled style="color:var(--red)"':'')+'>'+label+'</option>';
   });
   // Solo contar las no ocupadas
   var libres=Array.from(mSel.options).filter(function(o){return !o.disabled;});
-  if(!libres.length){toast('Todas las máquinas están alquiladas en este momento.','warn'); return;}
+  if(!libres.length){toast('No hay máquinas disponibles para alquilar en este momento.','warn'); return;}
   var cSel=document.getElementById('malq-cli'); cSel.innerHTML='<option value="">— Sin cliente —</option>';
   DB.clientes.forEach(function(c){cSel.innerHTML+='<option value="'+c.id+'">'+esc(c.nombre)+'</option>';});
   if(a){
@@ -2898,6 +3060,17 @@ async function saveAlq(){
   var maqId=parseInt(document.getElementById('malq-maq').value);
   var maq=DB.maquinas.find(function(x){return x.id===maqId;});
   if(!maq){toast('Seleccioná máquina','err');return;}
+  // BLOQUEO: verificar que la máquina no esté activa en otro alquiler
+  var alqId=parseInt(document.getElementById('malq-id').value)||0;
+  var maqOcupada=DB.alquileres.some(function(x){return x.maq_id===maqId && x.estado==='Activo' && x.id!==alqId;});
+  if(maqOcupada){
+    toast('"'+maq.nombre+'" ya está alquilada. Registrá la devolución antes de alquilarla nuevamente.','err');
+    return;
+  }
+  if(!maq.disponible && !alqId){
+    toast('"'+maq.nombre+'" está marcada como No disponible. Cambiá su estado antes de alquilarla.','err');
+    return;
+  }
   var salida=document.getElementById('malq-salida').value;
   var devol=document.getElementById('malq-devol').value;
   var precio=parseFloat(document.getElementById('malq-precio').value)||0;
@@ -2972,16 +3145,75 @@ async function saveAlq(){
   setSyncing(null);
 }
 
+async function confirmarDevolucion(id){
+  var a=DB.alquileres.find(function(x){return x.id===id;});
+  if(!a) return;
+  if(!confirm('¿Confirmar devolución de "'+a.maq_nombre+'"?\nSe marcará como Devuelta y quedará disponible para alquilar.')) return;
+  await devAlq(id);
+}
+
 async function devAlq(id){
   var a=DB.alquileres.find(function(x){return x.id===id;});
   if(!a)return;
   setSyncing(true);
   try {
+    var fechaDev=todayStr();
     await sbUpdate('alquileres',id,{estado:'Devuelto'});
     try{ await sbUpdate('maquinas',a.maq_id,{disponible:true}); } catch(e){}
-    await loadAll(); renderAlquileres(); toast('Equipo devuelto ✅');
+    // Guardar en historial localStorage
+    var hist=JSON.parse(localStorage.getItem('devoluciones_alq')||'[]');
+    var dias=Math.max(1,Math.round((new Date(a.devol)-(new Date(a.salida)))/(1000*60*60*24)));
+    hist.unshift({
+      id: Date.now(),
+      fecha_devolucion: fechaDev,
+      alq_id: id,
+      maq_nombre: a.maq_nombre,
+      cliente_nombre: a.cliente_nombre||'—',
+      salida: a.salida,
+      devol_prevista: a.devol,
+      dias: dias,
+      total: a.total||0
+    });
+    localStorage.setItem('devoluciones_alq', JSON.stringify(hist));
+    await loadAll(); renderAlquileres(); toast('Equipo "'+a.maq_nombre+'" devuelto ✅');
   } catch(e){toast('Error: '+e.message,'err');}
   setSyncing(null);
+}
+
+function renderDevHistorial(){
+  var hist=JSON.parse(localStorage.getItem('devoluciones_alq')||'[]');
+  // Poblar filtro de máquinas
+  var fil=document.getElementById('alq-dev-fil');
+  var selVal=fil.value;
+  var maquinas=[...new Set(hist.map(function(h){return h.maq_nombre;}))].sort();
+  fil.innerHTML='<option value="">— Todas las máquinas —</option>'+maquinas.map(function(n){return '<option value="'+esc(n)+'"'+(selVal===n?' selected':'')+'>'+esc(n)+'</option>';}).join('');
+  if(selVal) hist=hist.filter(function(h){return h.maq_nombre===selVal;});
+  var tb=document.getElementById('alq-dev-tbody');
+  var empty=document.getElementById('alq-dev-empty');
+  tb.innerHTML='';
+  if(!hist.length){empty.style.display='block';return;}
+  empty.style.display='none';
+  hist.forEach(function(h){
+    var devOnTime=h.fecha_devolucion<=h.devol_prevista;
+    tb.innerHTML+='<tr>'+
+      '<td style="font-family:var(--mono);font-size:12px;color:var(--green);font-weight:700">'+esc(h.fecha_devolucion)+'</td>'+
+      '<td style="font-weight:600;font-size:12px">'+esc(h.maq_nombre)+'</td>'+
+      '<td style="font-size:12px">'+esc(h.cliente_nombre)+'</td>'+
+      '<td style="font-family:var(--mono);font-size:11px;color:var(--muted)">'+esc(h.salida||'—')+'</td>'+
+      '<td style="text-align:center;font-family:var(--mono)">'+h.dias+'</td>'+
+      '<td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(h.total)+'</td>'+
+      '<td><button class="btn btn-danger btn-xs" onclick="delDevRegistro('+h.id+')" title="Eliminar registro">🗑</button></td>'+
+    '</tr>';
+  });
+}
+
+function delDevRegistro(id){
+  if(!confirm('¿Eliminar este registro?')) return;
+  var hist=JSON.parse(localStorage.getItem('devoluciones_alq')||'[]');
+  hist=hist.filter(function(h){return h.id!==id;});
+  localStorage.setItem('devoluciones_alq', JSON.stringify(hist));
+  renderDevHistorial();
+  toast('Registro eliminado','warn');
 }
 
 async function delAlq(id){
@@ -3312,7 +3544,8 @@ function toggleMatSort(){
 }
 function renderMatafuegos(){
   var tb=document.getElementById('matafuegos-tbody'); tb.innerHTML='';
-  var badges={Borrador:'badge-gray',Enviada:'badge-blue',Aprobada:'badge-green',Rechazada:'badge-red',Pendiente:'badge-yellow','En Taller':'badge-blue',Listo:'badge-green',Entregado:'badge-gray'};
+  var badges={Borrador:'badge-gray',Enviada:'badge-blue',Aprobada:'badge-green',Rechazada:'badge-red',Pendiente:'badge-yellow','En Taller':'badge-blue',Listo:'badge-green',Entregado:'badge-blue'};
+  var tiposBadge={'Recarga':'badge-yellow','Recambio':'badge-green','Venta Nuevo':'badge-purple'};
   var hoySort=mesActual();
   var hoyMMYY=mesActualMMYY();
   var proxSort=mesSiguienteSort(hoySort);
@@ -3380,7 +3613,7 @@ function renderMatafuegos(){
       anioCellHtml+='<span style="color:var(--dim)">—</span>';
     }
     anioCellHtml+='</td>';
-    tb.innerHTML+='<tr><td style="text-align:center;font-family:var(--mono);font-weight:700;font-size:13px;color:var(--orange);white-space:nowrap" title="N° cotización">#'+m.id+'</td><td style="font-size:11px;color:var(--muted)">'+fmtDDMM(m.fecha||todayStr())+'<br><span style="font-size:10px;color:var(--dim)">'+esc(extra.hora||m.hora||'—')+'</span></td><td style="font-weight:600;font-size:12px">'+esc(m.cliente_nombre||'—')+'</td><td>'+esc(m.telefono||'—')+' <a href="javascript:void(0)" onclick="openWhatsAppNumber(\''+telEsc+'\')" style="text-decoration:none">💬</a></td><td><span class="badge badge-orange">'+esc(m.tipo)+'</span></td><td style="font-size:11px">'+esc(detalle)+'</td>'+anioCellHtml+'<td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(extra.monto)+'</td><td style="font-family:var(--mono);font-size:13px;letter-spacing:.05em;'+vencClass+'">'+(venc||'—')+vencIcon+'</td><td><span class="badge '+(badges[m.estado]||'badge-gray')+'">'+esc(m.estado||'—')+'</span></td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="printMatQuote('+m.id+')">🧾</button><button class="btn btn-ghost btn-xs" onclick="openMatModal('+m.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delMat('+m.id+')">🗑</button></div></td></tr>';
+    tb.innerHTML+='<tr><td style="text-align:center;font-family:var(--mono);font-weight:700;font-size:13px;color:var(--orange);white-space:nowrap" title="N° cotización">#'+m.id+'</td><td style="font-size:11px;color:var(--muted)">'+fmtDDMM(m.fecha||todayStr())+'<br><span style="font-size:10px;color:var(--dim)">'+esc(extra.hora||m.hora||'—')+'</span></td><td style="font-weight:600;font-size:12px">'+esc(m.cliente_nombre||'—')+'</td><td>'+esc(m.telefono||'—')+' <a href="javascript:void(0)" onclick="openWhatsAppNumber(\''+telEsc+'\')" style="text-decoration:none">💬</a></td><td><span class="badge '+(tiposBadge[m.tipo]||'badge-orange')+'">'+esc(m.tipo)+'</span></td><td style="font-size:11px">'+esc(detalle)+'</td>'+anioCellHtml+'<td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(extra.monto)+'</td><td style="font-family:var(--mono);font-size:13px;letter-spacing:.05em;'+vencClass+'">'+(venc||'—')+vencIcon+'</td><td><span class="badge '+(badges[m.estado]||'badge-gray')+'">'+esc(m.estado||'—')+'</span></td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="printMatQuote('+m.id+')">🧾</button><button class="btn btn-ghost btn-xs" onclick="openMatModal('+m.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delMat('+m.id+')">🗑</button></div></td></tr>';
   });
   document.getElementById('matafuegos-empty').style.display=gastos.length?'none':'block';
 }
@@ -3396,7 +3629,7 @@ function openMatModal(id){
     document.getElementById('mmat-title').textContent='Editar Registro';
     cSel.value=m.cliente_id||'';
     document.getElementById('mmat-tel').value=m.telefono||'';
-    document.getElementById('mmat-tipo').value=m.tipo||'Cotización Recarga';
+    document.getElementById('mmat-tipo').value=m.tipo||'Recarga';
     document.getElementById('mmat-peso').value=m.peso||0;
     document.getElementById('mmat-serie').value=m.serie||'';
     document.getElementById('mmat-estado').value=m.estado||'Borrador';
@@ -3415,7 +3648,7 @@ function openMatModal(id){
   } else {
     document.getElementById('mmat-title').textContent='Nueva Cotización Matafuegos';
     ['tel','peso','serie','desc','monto','validez'].forEach(function(f){document.getElementById('mmat-'+f).value='';});
-    document.getElementById('mmat-tipo').value='Cotización Recarga';
+    document.getElementById('mmat-tipo').value='Recarga';
     document.getElementById('mmat-estado').value='Borrador';
     document.getElementById('mmat-anio-cliente').value='';
     var ac2=document.getElementById('mmat-anio-cliente2'); if(ac2) ac2.value='';
@@ -4378,7 +4611,18 @@ async function saveMl(){
   setSyncing(true);
   try{
     if(id){ await sbUpdate('ml_ventas', id, obj); }
-    else { await sbInsert('ml_ventas', obj); }
+    else {
+      // Generar id único basado en timestamp para evitar null constraint
+      var maxId=DB.ml_ventas.reduce(function(m,x){return Math.max(m,parseInt(x.id)||0);},0);
+      obj.id = maxId + 1;
+      try{
+        await sbInsert('ml_ventas', obj);
+      } catch(e2){
+        // Si falla con id, intentar sin él (tabla con auto-increment)
+        delete obj.id;
+        await sbInsert('ml_ventas', obj);
+      }
+    }
     await loadAll(); closeModal('modal-ml'); renderMLVentas(); toast('Guardado');
   } catch(e){toast('Error: '+e.message,'err');}
   setSyncing(null);
