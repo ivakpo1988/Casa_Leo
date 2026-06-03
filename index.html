@@ -2022,8 +2022,8 @@ function renderDash(){
     sc('Ganancia Hoy','green',fmt(ganDia),'Margen bruto','📈','reportes')+
     sc('Stock Bajo','red',low.length,'Bajo mínimo','⚠️','stock')+
     sc('Alquileres','blue',alqAct.length,'Activos','🔧','alquileres')+
-    sc('Clientes nos deben','yellow',fmt(deudaClientes),'Deuda de clientes','👥','clientes')+
-    sc('Debemos a proveedores','red',fmt(deudaProveedores),'Deuda a proveedores','🏭','proveedores');
+    sc('Clientes con Deuda','yellow',fmt(deudaClientes),'Lo que nos deben','👥','clientes')+
+    sc('Deuda a Proveedores','red',fmt(deudaProveedores),'Lo que debemos','🏭','proveedores');
 
   var nb=document.getElementById('nb-stock');
   nb.textContent=low.length; nb.style.display=low.length?'inline-block':'none';
