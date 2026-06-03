@@ -848,7 +848,10 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
     <div class="section" id="tab-matafuegos">
       <div class="ph">
         <div><div class="ph-title">Gestión de Matafuegos y CO2</div><div class="ph-sub">Cotizaciones, recambios y recargas</div></div>
-        <div class="ph-actions"><button class="btn btn-primary btn-sm" onclick="openMatModal()">➕ Nueva Cotización</button></div>
+        <div class="ph-actions">
+          <input id="mat-search-cliente" type="text" placeholder="🔍 Buscar por cliente…" oninput="renderMatafuegos()" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:var(--surface);color:var(--text);min-width:200px;">
+          <button class="btn btn-primary btn-sm" onclick="openMatModal()">➕ Nueva Cotización</button>
+        </div>
       </div>
       <div class="caja-grid" id="matafuegos-summary"></div>
       <div class="tbl-wrap">
@@ -3512,7 +3515,12 @@ function renderMatafuegos(){
   var hoySort=mesActual();
   var hoyMMYY=mesActualMMYY();
   var proxSort=mesSiguienteSort(hoySort);
-  var gastos=DB.matafuegos.slice().sort(function(a,b){
+  var searchEl=document.getElementById('mat-search-cliente');
+  var searchQ=searchEl?(searchEl.value||'').toLowerCase().trim():'';
+  var gastos=DB.matafuegos.slice().filter(function(m){
+    if(!searchQ) return true;
+    return (m.cliente_nombre||'').toLowerCase().includes(searchQ);
+  }).sort(function(a,b){
     if(_matSort==='fecha'){
       // Ordenar por fecha+hora descendente, todos sin excepción
       var bdt=matSortKey(b);
