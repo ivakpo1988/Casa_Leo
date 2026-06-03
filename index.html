@@ -663,7 +663,7 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
       </div>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>Cliente</th><th>Teléfono</th><th>Dirección</th><th>Compras</th><th>Límite CC</th><th>Deuda CC</th><th>Último pedido</th><th></th></tr></thead>
+          <thead><tr><th>Cliente</th><th>Teléfono</th><th>Dirección</th><th>Compras</th><th>Deuda CC</th><th>Último pedido</th><th></th></tr></thead>
           <tbody id="cli-tbody"></tbody>
         </table>
         <div id="cli-empty" class="empty-row">Sin clientes.</div>
@@ -944,7 +944,7 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
       <input type="hidden" id="mcli-id"/>
       <div class="fr2"><div class="field"><label>Nombre</label><input type="text" id="mcli-nombre"/></div><div class="field"><label>Teléfono</label><input type="text" id="mcli-tel"/></div></div>
       <div class="field"><label>Dirección</label><input type="text" id="mcli-dir"/></div>
-      <div class="fr2"><div class="field"><label>Email</label><input type="text" id="mcli-email"/></div><div class="field"><label>Límite CC ($)</label><input type="number" id="mcli-cc" min="0"/></div></div>
+      <div class="fr2"><div class="field"><label>Email</label><input type="text" id="mcli-email"/></div><div class="field"><label>Deuda ($)</label><input type="number" id="mcli-deuda" min="0" step="0.01"/></div></div>
       <div id="mcli-deuda-info" style="color:var(--muted);font-size:11px;margin-top:8px"></div>
     </div>
     <div class="mfooter"><button class="btn btn-ghost btn-sm" onclick="closeModal('modal-cliente')">Cancelar</button><button class="btn btn-primary btn-sm" onclick="saveCliente()">Guardar</button></div>
@@ -2011,7 +2011,8 @@ function renderDash(){
     },0);
   },0);
   var low=DB.productos.filter(function(p){return p.stock<=p.min;});
-  var deuda=(DB.clientes.reduce(function(s,c){return s+(c.deuda_cc||0);},0))+(DB.proveedores.reduce(function(s,p){return s+(p.deuda||0);},0));
+  var deudaClientes=DB.clientes.reduce(function(s,c){return s+(c.deuda_cc||0);},0);
+  var deudaProveedores=DB.proveedores.reduce(function(s,p){return s+(p.deuda||0);},0);
   var alqAct=DB.alquileres.filter(function(a){return a.estado==='Activo';});
 
   document.getElementById('dash-stats').innerHTML=
@@ -2019,7 +2020,8 @@ function renderDash(){
     sc('Ganancia Hoy','green',fmt(ganDia),'Margen bruto','📈','reportes')+
     sc('Stock Bajo','red',low.length,'Bajo mínimo','⚠️','stock')+
     sc('Alquileres','blue',alqAct.length,'Activos','🔧','alquileres')+
-    sc('Deuda Total','yellow',fmt(deuda),'CC + proveedores','📋','clientes');
+    sc('Clientes nos deben','yellow',fmt(deudaClientes),'Deuda de clientes','👥','clientes')+
+    sc('Debemos a proveedores','red',fmt(deudaProveedores),'Deuda a proveedores','🏭','proveedores');
 
   var nb=document.getElementById('nb-stock');
   nb.textContent=low.length; nb.style.display=low.length?'inline-block':'none';
@@ -2477,7 +2479,7 @@ function renderClientes(){
   var tb=document.getElementById('cli-tbody'); tb.innerHTML='';
   filtered.forEach(function(c){
     var telEsc = (c.tel||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    tb.innerHTML+='<tr data-id="'+c.id+'"><td><div style="font-weight:600;font-size:12px">'+esc(c.nombre)+'</div><div style="color:var(--muted);font-size:10px">'+esc(c.email||'')+'</div></td><td style="font-family:var(--mono);font-size:12px">'+esc(c.tel||'—')+'</td><td style="color:var(--muted);font-size:11px">'+esc(c.dir||'—')+'</td><td style="font-family:var(--mono)">'+(c.compras||0)+'</td><td style="font-family:var(--mono);color:var(--muted)">'+fmt(c.cc||0)+'</td><td style="font-family:var(--mono);'+(c.deuda_cc>0?'color:var(--red);font-weight:700':'color:var(--muted)')+'">'+fmt(c.deuda_cc||0)+'</td><td style="color:var(--muted);font-size:11px">'+(c.ultimo_pedido||'—')+'</td><td><div class="act"><button class="btn btn-primary btn-xs" onclick="openClientePagoModal('+c.id+')">💰</button><a href="javascript:void(0)" onclick="openWhatsAppNumber(\''+telEsc+'\')" class="btn btn-green btn-xs">💬</a><button class="btn btn-ghost btn-xs" onclick="openClienteModal('+c.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delCliente('+c.id+')">🗑</button></div></td></tr>';
+    tb.innerHTML+='<tr data-id="'+c.id+'"><td><div style="font-weight:600;font-size:12px">'+esc(c.nombre)+'</div><div style="color:var(--muted);font-size:10px">'+esc(c.email||'')+'</div></td><td style="font-family:var(--mono);font-size:12px">'+esc(c.tel||'—')+'</td><td style="color:var(--muted);font-size:11px">'+esc(c.dir||'—')+'</td><td style="font-family:var(--mono)">'+(c.compras||0)+'</td><td style="font-family:var(--mono);'+(c.deuda_cc>0?'color:var(--red);font-weight:700':'color:var(--muted)')+'">'+fmt(c.deuda_cc||0)+'</td><td style="color:var(--muted);font-size:11px">'+(c.ultimo_pedido||'—')+'</td><td><div class="act"><button class="btn btn-primary btn-xs" onclick="openClientePagoModal('+c.id+')">💰</button><a href="javascript:void(0)" onclick="openWhatsAppNumber(\''+telEsc+'\')" class="btn btn-green btn-xs">💬</a><button class="btn btn-ghost btn-xs" onclick="openClienteModal('+c.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delCliente('+c.id+')">🗑</button></div></td></tr>';
   });
   document.getElementById('cli-empty').style.display=filtered.length?'none':'block';
   renderCliPagoHistorial();
@@ -2492,10 +2494,10 @@ function openClienteModal(id){
     document.getElementById('mcli-tel').value=c.tel||'';
     document.getElementById('mcli-dir').value=c.dir||'';
     document.getElementById('mcli-email').value=c.email||'';
-    document.getElementById('mcli-cc').value=c.cc||0;
+    document.getElementById('mcli-deuda').value=c.deuda_cc||0;
   } else {
     document.getElementById('mcli-title').textContent='Nuevo Cliente';
-    ['nombre','tel','dir','email','cc'].forEach(function(f){document.getElementById('mcli-'+f).value='';});
+    ['nombre','tel','dir','email','deuda'].forEach(function(f){document.getElementById('mcli-'+f).value='';});
   }
   openModal('modal-cliente');
 }
@@ -2504,10 +2506,10 @@ async function saveCliente(){
   var nombre=document.getElementById('mcli-nombre').value.trim();
   if(!nombre){toast('Ingresá el nombre','err');return;}
   var id=parseInt(document.getElementById('mcli-id').value)||0;
-  var obj={nombre:nombre,tel:document.getElementById('mcli-tel').value.trim(),dir:document.getElementById('mcli-dir').value.trim(),email:document.getElementById('mcli-email').value.trim(),cc:parseFloat(document.getElementById('mcli-cc').value)||0};
+  var obj={nombre:nombre,tel:document.getElementById('mcli-tel').value.trim(),dir:document.getElementById('mcli-dir').value.trim(),email:document.getElementById('mcli-email').value.trim(),deuda_cc:parseFloat(document.getElementById('mcli-deuda').value)||0};
   setSyncing(true);
   try {
-    if(id){await sbUpdate('clientes',id,obj);}else{await sbInsert('clientes',{...obj,deuda_cc:0,compras:0,ultimo_pedido:todayStr()});}
+    if(id){await sbUpdate('clientes',id,obj);}else{await sbInsert('clientes',{...obj,compras:0,ultimo_pedido:todayStr()});}
     await loadAll(); closeModal('modal-cliente'); renderClientes(); toast('Cliente guardado');
   } catch(e){toast('Error: '+e.message,'err');}
   setSyncing(null);
