@@ -251,6 +251,13 @@ tbody tr:hover td:last-child{background:var(--s3)}
   thead th,tbody td{padding:8px 10px}
   .act{gap:4px}
   .act .btn-xs{min-width:30px;justify-content:center}
+  /* Stat cards compactas en mobile */
+  .stat-card{padding:7px 10px}
+  .sc-icon{font-size:14px;top:7px;right:8px}
+  .sc-label{font-size:9px;margin-bottom:3px;letter-spacing:.05em}
+  .sc-val{font-size:15px}
+  .sc-sub{font-size:10px;margin-top:3px}
+  .caja-grid{gap:6px}
 }
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:var(--bg)}
@@ -355,7 +362,7 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
 </div>
 
 <div id="sidebar">
-  <div class="logo">
+  <div class="logo" onclick="toggleSidebarMobile()" style="cursor:pointer" title="Abrir/cerrar menú">
     <div class="logo-icon">🔨</div>
     <div><div class="logo-text">Casa Leo</div><div class="logo-sub">Supabase</div></div>
   </div>
@@ -696,7 +703,7 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
       </div>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>Empresa</th><th>Contacto</th><th>Teléfono</th><th>Última compra</th><th>Deuda</th><th>Pedido pend.</th><th></th></tr></thead>
+          <thead><tr><th>Empresa</th><th>Contacto</th><th>Teléfono</th><th>Alias / CBU</th><th>Última compra</th><th>Deuda</th><th>Pedido pend.</th><th></th></tr></thead>
           <tbody id="prov-tbody"></tbody>
         </table>
         <div id="prov-empty" class="empty-row">Sin proveedores.</div>
@@ -984,7 +991,8 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
       <input type="hidden" id="mprov-id"/>
       <div class="fr2"><div class="field"><label>Empresa</label><input type="text" id="mprov-nombre"/></div><div class="field"><label>Contacto</label><input type="text" id="mprov-contacto"/></div></div>
       <div class="fr2"><div class="field"><label>Teléfono</label><input type="text" id="mprov-tel"/></div><div class="field"><label>Rubro</label><input type="text" id="mprov-rubro"/></div></div>
-      <div class="fr2"><div class="field"><label>Deuda ($)</label><input type="number" id="mprov-deuda" step="0.01" min="0"/></div><div class="field"><label>Pedido pendiente</label><select id="mprov-pedido"><option value="false">No</option><option value="true">Sí</option></select></div></div>
+      <div class="fr2"><div class="field"><label>Alias / CBU para pago</label><input type="text" id="mprov-alias" placeholder="Ej: empresa.nombre o 0000000…"/></div><div class="field"><label>Deuda ($)</label><input type="number" id="mprov-deuda" step="0.01" min="0"/></div></div>
+      <div class="fr2"><div class="field"><label>Pedido pendiente</label><select id="mprov-pedido"><option value="false">No</option><option value="true">Sí</option></select></div></div>
     </div>
     <div class="mfooter"><button class="btn btn-ghost btn-sm" onclick="closeModal('modal-prov')">Cancelar</button><button class="btn btn-primary btn-sm" onclick="saveProv()">Guardar</button></div>
   </div>
@@ -1122,7 +1130,7 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
             <button type="button" class="btn btn-green btn-sm" onclick="toggleDtvNewCli()" title="Agregar nuevo cliente" style="flex-shrink:0;padding:7px 10px">➕</button>
           </div>
         </div>
-        <div class="field"><label>Tipo</label><select id="mdtv-tipo"><option>Instalación</option><option>Reparación</option><option>Repuesto</option><option>Mantenimiento</option></select></div>
+        <div class="field"><label>Tipo</label><select id="mdtv-tipo" onchange="onDtvTipoChange()"><option>Instalación</option><option>Reparación</option><option>Repuesto</option><option>Mantenimiento</option></select></div>
       </div>
       <div id="mdtv-new-cli-box" style="display:none;background:var(--s3);border:1px solid var(--border);border-radius:var(--r2);padding:12px;margin-bottom:8px">
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--orange);margin-bottom:8px">Nuevo Cliente</div>
@@ -1137,10 +1145,66 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
         </div>
       </div>
       <div class="field"><label>Descripción</label><input type="text" id="mdtv-desc"/></div>
-      <div class="fr2"><div class="field"><label>Técnico</label><input type="text" id="mdtv-tec"/></div><div class="field"><label>Monto ($)</label><input type="number" id="mdtv-monto" step="0.01" min="0"/></div></div>
+
+      <!-- Selector de productos del stock para DirecTV -->
+      <div class="field" style="margin-top:10px">
+        <label style="margin-bottom:8px;display:block;font-weight:600">Productos del Stock</label>
+        <div style="background:var(--s2);border:1px solid var(--border);border-radius:5px;padding:10px;margin-bottom:8px">
+          <div style="display:flex;gap:6px;margin-bottom:6px;align-items:flex-end">
+            <div style="flex:1;position:relative">
+              <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Buscar producto</label>
+              <input type="text" id="mdtv-prod-search" placeholder="Nombre o código…" style="width:100%" oninput="updateDtvProductSearch()"/>
+              <div id="mdtv-prod-dropdown" style="display:none;background:var(--s1);border:1px solid var(--border);border-radius:5px;max-height:180px;overflow-y:auto;margin-top:4px;position:absolute;width:100%;z-index:10">
+                <div id="mdtv-prod-list"></div>
+              </div>
+            </div>
+            <div style="width:70px">
+              <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Cant.</label>
+              <input type="number" id="mdtv-prod-qty" placeholder="1" min="1" value="1" style="width:100%;text-align:center"/>
+            </div>
+            <button type="button" class="btn btn-primary btn-sm" onclick="addDtvItemFromSearch()" style="margin-bottom:0">➕ Agregar</button>
+          </div>
+          <div id="mdtv-prod-stock-info" style="font-size:10px;color:var(--muted);min-height:16px"></div>
+        </div>
+      </div>
+
+      <!-- Tabla ítems DirecTV -->
+      <div id="mdtv-items-wrap" style="display:none;margin-top:6px;margin-bottom:8px">
+        <table style="width:100%;font-size:12px;border-collapse:collapse">
+          <thead><tr style="color:var(--muted);border-bottom:1px solid var(--border)">
+            <th style="text-align:left;padding:4px 6px">Producto</th>
+            <th style="text-align:center;padding:4px 6px">Cant.</th>
+            <th style="text-align:right;padding:4px 6px">Precio u.</th>
+            <th style="text-align:right;padding:4px 6px">Subtotal</th>
+            <th style="padding:4px 6px"></th>
+          </tr></thead>
+          <tbody id="mdtv-items-tbody"></tbody>
+        </table>
+        <div style="display:flex;justify-content:flex-end;gap:8px;align-items:center;margin-top:8px;padding-top:6px;border-top:1px solid var(--border)">
+          <span style="font-size:12px;color:var(--muted)">Subtotal productos:</span>
+          <span id="mdtv-items-total" style="font-family:var(--mono);font-weight:700;color:var(--green);font-size:15px">$0</span>
+        </div>
+      </div>
+      <div id="mdtv-stock-warn" style="display:none;background:rgba(255,170,0,.12);border:1px solid var(--yellow);border-radius:5px;padding:8px 12px;font-size:11px;color:var(--yellow);margin-bottom:8px"></div>
+      <div class="fr2">
+        <div class="field"><label>Técnico</label><input type="text" id="mdtv-tec"/></div>
+        <div class="field" id="mdtv-monto-normal-box"><label>Monto cobro ($)</label><input type="number" id="mdtv-monto" step="0.01" min="0" oninput="calcDtvTotal()"/></div>
+      </div>
+      <div id="mdtv-instalacion-box" style="display:none;background:var(--s3);border:1px solid var(--border);border-radius:var(--r2);padding:10px">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--orange);margin-bottom:6px">💰 Cobro de instalación</div>
+        <div class="field"><label>Mano de obra / instalación ($)</label><input type="number" id="mdtv-monto-inst" step="0.01" min="0" placeholder="0" oninput="calcDtvTotal()"/></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">Se suma automáticamente al total.</div>
+      </div>
+      <!-- Total general DirecTV -->
+      <div id="mdtv-total-box" style="display:none;background:var(--s3);border:1px solid var(--green);border-radius:var(--r2);padding:10px;margin-top:4px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:12px;color:var(--muted)">Total general (productos + cobro):</span>
+          <span id="mdtv-total-display" style="font-family:var(--mono);font-weight:700;color:var(--green);font-size:18px">$0</span>
+        </div>
+      </div>
       <div class="fr2"><div class="field"><label>Fecha</label><input type="date" id="mdtv-fecha"/></div><div class="field"><label>Estado</label><select id="mdtv-estado"><option>Pendiente</option><option>En proceso</option><option>Completado</option><option>Cancelado</option></select></div></div>
     </div>
-    <div class="mfooter"><button class="btn btn-ghost btn-sm" onclick="closeModal('modal-dtv')">Cancelar</button><button class="btn btn-primary btn-sm" onclick="saveDtv()">Guardar</button></div>
+    <div class="mfooter"><button class="btn btn-ghost btn-sm" onclick="closeModal('modal-dtv')">Cancelar</button><button class="btn btn-primary btn-sm" onclick="saveDtv(false)">💾 Guardar</button><button class="btn btn-success btn-sm" id="mdtv-btn-stock" onclick="saveDtv(true)" style="background:var(--green);color:#fff">✅ Guardar y descontar stock</button></div>
   </div>
 </div>
 
@@ -1354,8 +1418,57 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
           <button type="button" class="btn btn-green btn-sm" onclick="saveRepNewCli()">✔ Crear y seleccionar</button>
         </div>
       </div>
-      <div class="fr2" style="display:none"><!-- spacer cierre fr2 original -->
-        <div class="field"><label>Monto ($)</label><input type="number" id="mrep-monto" step="0.01" min="0"/></div>
+      <div class="fr2">
+        <div class="field"><label>Monto cobro / mano de obra ($)</label><input type="number" id="mrep-monto" step="0.01" min="0" oninput="calcRepTotal()"/></div>
+      </div>
+
+      <!-- Selector de productos del stock para Reparaciones -->
+      <div class="field" style="margin-top:4px">
+        <label style="margin-bottom:8px;display:block;font-weight:600">Repuestos / Productos del Stock</label>
+        <div style="background:var(--s2);border:1px solid var(--border);border-radius:5px;padding:10px;margin-bottom:8px">
+          <div style="display:flex;gap:6px;margin-bottom:6px;align-items:flex-end">
+            <div style="flex:1;position:relative">
+              <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Buscar producto</label>
+              <input type="text" id="mrep-prod-search" placeholder="Nombre o código…" style="width:100%" oninput="updateRepProductSearch()"/>
+              <div id="mrep-prod-dropdown" style="display:none;background:var(--s1);border:1px solid var(--border);border-radius:5px;max-height:180px;overflow-y:auto;margin-top:4px;position:absolute;width:100%;z-index:10">
+                <div id="mrep-prod-list"></div>
+              </div>
+            </div>
+            <div style="width:70px">
+              <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Cant.</label>
+              <input type="number" id="mrep-prod-qty" placeholder="1" min="1" value="1" style="width:100%;text-align:center"/>
+            </div>
+            <button type="button" class="btn btn-primary btn-sm" onclick="addRepItemFromSearch()" style="margin-bottom:0">➕ Agregar</button>
+          </div>
+          <div id="mrep-prod-stock-info" style="font-size:10px;color:var(--muted);min-height:16px"></div>
+        </div>
+      </div>
+
+      <!-- Tabla ítems Reparaciones -->
+      <div id="mrep-items-wrap" style="display:none;margin-top:6px;margin-bottom:8px">
+        <table style="width:100%;font-size:12px;border-collapse:collapse">
+          <thead><tr style="color:var(--muted);border-bottom:1px solid var(--border)">
+            <th style="text-align:left;padding:4px 6px">Producto</th>
+            <th style="text-align:center;padding:4px 6px">Cant.</th>
+            <th style="text-align:right;padding:4px 6px">Precio u.</th>
+            <th style="text-align:right;padding:4px 6px">Subtotal</th>
+            <th style="padding:4px 6px"></th>
+          </tr></thead>
+          <tbody id="mrep-items-tbody"></tbody>
+        </table>
+        <div style="display:flex;justify-content:flex-end;gap:8px;align-items:center;margin-top:8px;padding-top:6px;border-top:1px solid var(--border)">
+          <span style="font-size:12px;color:var(--muted)">Subtotal repuestos:</span>
+          <span id="mrep-items-total" style="font-family:var(--mono);font-weight:700;color:var(--green);font-size:15px">$0</span>
+        </div>
+      </div>
+      <div id="mrep-stock-warn" style="display:none;background:rgba(255,170,0,.12);border:1px solid var(--yellow);border-radius:5px;padding:8px 12px;font-size:11px;color:var(--yellow);margin-bottom:8px"></div>
+
+      <!-- Total general Reparaciones -->
+      <div id="mrep-total-box" style="display:none;background:var(--s3);border:1px solid var(--green);border-radius:var(--r2);padding:10px;margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:12px;color:var(--muted)">Total general (repuestos + mano de obra):</span>
+          <span id="mrep-total-display" style="font-family:var(--mono);font-weight:700;color:var(--green);font-size:18px">$0</span>
+        </div>
       </div>
       <div class="field"><label>Descripción de la reparación</label><input type="text" id="mrep-desc" placeholder="Ej: Reparación bomba de agua, cambio de rodamiento…"/></div>
       <div class="field"><label>Estado</label><select id="mrep-estado"><option>Pendiente</option><option>En Taller</option><option>Listo</option><option>Entregado</option><option>Cancelado</option></select></div>
@@ -1375,7 +1488,7 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
         </div>
       </div>
     </div>
-    <div class="mfooter"><button class="btn btn-ghost btn-sm" onclick="closeModal('modal-reparacion')">Cancelar</button><button class="btn btn-primary btn-sm" onclick="saveRep()">Guardar</button></div>
+    <div class="mfooter"><button class="btn btn-ghost btn-sm" onclick="closeModal('modal-reparacion')">Cancelar</button><button class="btn btn-primary btn-sm" onclick="saveRep(false)">💾 Guardar</button><button class="btn btn-success btn-sm" id="mrep-btn-stock" onclick="saveRep(true)" style="background:var(--green);color:#fff">✅ Guardar y descontar stock</button></div>
   </div>
 </div>
 
@@ -2810,7 +2923,7 @@ function renderProveedores(){
   var tb=document.getElementById('prov-tbody'); tb.innerHTML='';
   DB.proveedores.forEach(function(p){
     var pagoBtn=p.deuda>0?'<button class="btn btn-primary btn-xs" onclick="openProvPagoModal('+p.id+')">💰 Abonar</button>':'<button class="btn btn-ghost btn-xs" disabled title="Sin deuda pendiente">✓ Sin deuda</button>';
-    tb.innerHTML+='<tr data-id="'+p.id+'"><td style="font-weight:600;font-size:12px">'+esc(p.nombre)+'</td><td>'+esc(p.contacto||'—')+'</td><td style="font-family:var(--mono);font-size:12px">'+esc(p.tel||'—')+'</td><td style="color:var(--muted);font-size:11px">'+esc(p.ultima_compra||'—')+'</td><td style="font-family:var(--mono);'+(p.deuda>0?'color:var(--red);font-weight:700':'color:var(--muted)')+'">'+fmt(p.deuda||0)+'</td><td>'+(p.pedido_pend?'<span class="badge badge-yellow">⏳ Sí</span>':'<span style="color:var(--dim)">No</span>')+'</td><td><div class="act">'+pagoBtn+'<button class="btn btn-ghost btn-xs" onclick="openProvModal('+p.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delProv('+p.id+')">🗑</button></div></td></tr>';
+    tb.innerHTML+='<tr data-id="'+p.id+'"><td style="font-weight:600;font-size:12px">'+esc(p.nombre)+'</td><td>'+esc(p.contacto||'—')+'</td><td style="font-family:var(--mono);font-size:12px">'+esc(p.tel||'—')+'</td><td style="font-size:11px">'+(p.alias?'<span style="font-family:var(--mono);color:var(--blue)">'+esc(p.alias)+'</span>':'<span style="color:var(--dim)">—</span>')+'</td><td style="color:var(--muted);font-size:11px">'+esc(p.ultima_compra||'—')+'</td><td style="font-family:var(--mono);'+(p.deuda>0?'color:var(--red);font-weight:700':'color:var(--muted)')+'">'+fmt(p.deuda||0)+'</td><td>'+(p.pedido_pend?'<span class="badge badge-yellow">⏳ Sí</span>':'<span style="color:var(--dim)">No</span>')+'</td><td><div class="act">'+pagoBtn+'<button class="btn btn-ghost btn-xs" onclick="openProvModal('+p.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delProv('+p.id+')">🗑</button></div></td></tr>';
   });
   document.getElementById('prov-empty').style.display=DB.proveedores.length?'none':'block';
   renderProvHistorial();
@@ -2825,11 +2938,12 @@ function openProvModal(id){
     document.getElementById('mprov-contacto').value=p.contacto||'';
     document.getElementById('mprov-tel').value=p.tel||'';
     document.getElementById('mprov-rubro').value=p.rubro||'';
+    document.getElementById('mprov-alias').value=p.alias||'';
     document.getElementById('mprov-deuda').value=p.deuda||0;
     document.getElementById('mprov-pedido').value=p.pedido_pend?'true':'false';
   } else {
     document.getElementById('mprov-title').textContent='Nuevo Proveedor';
-    ['nombre','contacto','tel','rubro','deuda'].forEach(function(f){document.getElementById('mprov-'+f).value='';});
+    ['nombre','contacto','tel','rubro','deuda','alias'].forEach(function(f){document.getElementById('mprov-'+f).value='';});
     document.getElementById('mprov-pedido').value='false';
   }
   openModal('modal-prov');
@@ -2839,7 +2953,7 @@ async function saveProv(){
   var nombre=document.getElementById('mprov-nombre').value.trim();
   if(!nombre){toast('Ingresá el nombre','err');return;}
   var id=parseInt(document.getElementById('mprov-id').value)||0;
-  var obj={nombre:nombre,contacto:document.getElementById('mprov-contacto').value.trim(),tel:document.getElementById('mprov-tel').value.trim(),rubro:document.getElementById('mprov-rubro').value.trim(),ultima_compra:todayStr(),deuda:parseFloat(document.getElementById('mprov-deuda').value)||0,pedido_pend:document.getElementById('mprov-pedido').value==='true'};
+  var obj={nombre:nombre,contacto:document.getElementById('mprov-contacto').value.trim(),tel:document.getElementById('mprov-tel').value.trim(),rubro:document.getElementById('mprov-rubro').value.trim(),alias:document.getElementById('mprov-alias').value.trim(),ultima_compra:todayStr(),deuda:parseFloat(document.getElementById('mprov-deuda').value)||0,pedido_pend:document.getElementById('mprov-pedido').value==='true'};
   setSyncing(true);
   try {
     if(id){await sbUpdate('proveedores',id,obj);}else{await sbInsert('proveedores',obj);}
@@ -3307,9 +3421,124 @@ function renderDtv(){
   document.getElementById('dtv-empty').style.display=DB.directv.length?'none':'block';
 }
 
+// ══════════════════════════════════════════
+// DirecTV — productos del stock
+// ══════════════════════════════════════════
+var _dtvItems = [];
+var _dtvSelectedProdId = null;
+
+function dtvItemsTotal(){
+  return _dtvItems.reduce(function(s,i){return s+(i.qty*i.precio);},0);
+}
+
+function renderDtvItems(){
+  var tbody=document.getElementById('mdtv-items-tbody');
+  var wrap=document.getElementById('mdtv-items-wrap');
+  var warnEl=document.getElementById('mdtv-stock-warn');
+  if(!tbody) return;
+  if(!_dtvItems.length){
+    wrap.style.display='none';
+    if(warnEl) warnEl.style.display='none';
+    calcDtvTotal(); return;
+  }
+  wrap.style.display='block';
+  tbody.innerHTML=_dtvItems.map(function(item,idx){
+    var prod=DB.productos.find(function(p){return p.id===item.prod_id;})||{};
+    var warn=item.qty>(prod.stock||0)?' ⚠️':'';
+    return '<tr style="border-bottom:1px solid var(--border)">'+
+      '<td style="padding:4px 6px">'+esc(item.nombre)+warn+'<div style="font-size:9px;color:var(--muted)">Stock: '+(prod.stock!==undefined?prod.stock:'?')+'</div></td>'+
+      '<td style="text-align:center;padding:4px 6px"><input type="number" min="1" value="'+item.qty+'" style="width:55px;text-align:center" onchange="updateDtvItemQty('+idx+',this.value)"/></td>'+
+      '<td style="text-align:right;padding:4px 6px;font-family:var(--mono)">'+fmt(item.precio)+'</td>'+
+      '<td style="text-align:right;padding:4px 6px;font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(item.qty*item.precio)+'</td>'+
+      '<td style="padding:4px 6px"><button type="button" class="btn btn-danger btn-xs" onclick="removeDtvItem('+idx+')">✕</button></td>'+
+      '</tr>';
+  }).join('');
+  document.getElementById('mdtv-items-total').textContent=fmt(dtvItemsTotal());
+  var warns=_dtvItems.filter(function(i){var p=DB.productos.find(function(x){return x.id===i.prod_id;});return p&&i.qty>p.stock;});
+  if(warnEl){
+    if(warns.length){warnEl.style.display='block';warnEl.innerHTML='⚠️ Stock insuficiente: '+warns.map(function(i){var p=DB.productos.find(function(x){return x.id===i.prod_id;})||{stock:0};return esc(i.nombre)+' (necesitás '+i.qty+', hay '+p.stock+')';}).join(', ');}
+    else{warnEl.style.display='none';}
+  }
+  calcDtvTotal();
+}
+
+function updateDtvItemQty(idx,val){_dtvItems[idx].qty=Math.max(1,parseInt(val)||1);renderDtvItems();}
+function removeDtvItem(idx){_dtvItems.splice(idx,1);renderDtvItems();}
+
+function updateDtvProductSearch(){
+  var q=(document.getElementById('mdtv-prod-search').value||'').toLowerCase().trim();
+  var dropdown=document.getElementById('mdtv-prod-dropdown');
+  var list=document.getElementById('mdtv-prod-list');
+  var info=document.getElementById('mdtv-prod-stock-info');
+  if(!q){dropdown.style.display='none';info.textContent='';_dtvSelectedProdId=null;return;}
+  var filtered=DB.productos.filter(function(p){return (p.nombre.toLowerCase().includes(q)||(p.cod||'').toLowerCase().includes(q))&&p.stock>0;});
+  if(!filtered.length){
+    list.innerHTML='<div style="padding:10px 12px;color:var(--muted);font-size:11px;text-align:center">Sin productos disponibles</div>';
+    dropdown.style.display='block';info.textContent='';_dtvSelectedProdId=null;return;
+  }
+  list.innerHTML=filtered.slice(0,10).map(function(p){
+    return '<div style="padding:10px 12px;border-bottom:1px solid var(--border);cursor:pointer" onclick="selectDtvProduct('+p.id+',\''+esc(p.nombre).replace(/'/g,"\\'")+'\',' +p.precio+')" onmouseover="this.style.background=\'var(--s3)\'" onmouseout="this.style.background=\'\'">'+
+      '<div style="font-weight:600;font-size:12px">'+esc(p.nombre)+'</div>'+
+      '<div style="font-size:10px;color:var(--muted);margin-top:3px">Cod: '+esc(p.cod||'—')+' | Stock: '+p.stock+' '+esc(p.unidad||'u.')+' | $'+fmt(p.precio)+'</div>'+
+      '</div>';
+  }).join('');
+  dropdown.style.display='block';
+}
+
+function selectDtvProduct(prodId,prodName,prodPrice){
+  _dtvSelectedProdId=prodId;
+  document.getElementById('mdtv-prod-search').value=prodName;
+  document.getElementById('mdtv-prod-dropdown').style.display='none';
+  var prod=DB.productos.find(function(p){return p.id===prodId;});
+  document.getElementById('mdtv-prod-stock-info').innerHTML='<strong>'+esc(prod.nombre)+'</strong> · Stock: '+prod.stock+' '+esc(prod.unidad||'u.')+' · $'+fmt(prodPrice)+'<br><em style="color:var(--dim)">Ingresá cantidad y hacé clic en ➕ Agregar</em>';
+  document.getElementById('mdtv-prod-qty').focus();
+}
+
+function addDtvItemFromSearch(){
+  var prodId=_dtvSelectedProdId;
+  if(!prodId){toast('Seleccioná un producto primero','err');return;}
+  var qty=parseInt(document.getElementById('mdtv-prod-qty').value)||1;
+  if(qty<1){toast('Cantidad debe ser al menos 1','err');return;}
+  var prod=DB.productos.find(function(p){return p.id===prodId;});
+  if(!prod){toast('Producto no encontrado','err');return;}
+  if(qty>prod.stock){toast('Stock insuficiente para '+esc(prod.nombre)+'. Disponible: '+prod.stock,'err');return;}
+  var existing=_dtvItems.findIndex(function(i){return i.prod_id===prodId;});
+  if(existing>=0){_dtvItems[existing].qty+=qty;toast('Cantidad actualizada de '+esc(prod.nombre));}
+  else{_dtvItems.push({prod_id:prodId,nombre:prod.nombre,qty:qty,precio:prod.precio||0});toast('✅ '+esc(prod.nombre)+' agregado');}
+  document.getElementById('mdtv-prod-search').value='';
+  document.getElementById('mdtv-prod-qty').value='1';
+  document.getElementById('mdtv-prod-stock-info').textContent='';
+  document.getElementById('mdtv-prod-dropdown').style.display='none';
+  _dtvSelectedProdId=null;
+  document.getElementById('mdtv-prod-search').focus();
+  renderDtvItems();
+}
+
+function onDtvTipoChange(){
+  var tipo=document.getElementById('mdtv-tipo').value;
+  var instBox=document.getElementById('mdtv-instalacion-box');
+  if(instBox) instBox.style.display=(tipo==='Instalación')?'block':'none';
+  if(tipo!=='Instalación') document.getElementById('mdtv-monto-inst').value='';
+  calcDtvTotal();
+}
+
+function calcDtvTotal(){
+  var prodTotal=dtvItemsTotal();
+  var cobro=parseFloat(document.getElementById('mdtv-monto').value)||0;
+  var inst=parseFloat(document.getElementById('mdtv-monto-inst').value)||0;
+  var total=prodTotal+cobro+inst;
+  var totalBox=document.getElementById('mdtv-total-box');
+  var totalDisp=document.getElementById('mdtv-total-display');
+  if(totalBox&&totalDisp){
+    if(prodTotal>0||inst>0){totalBox.style.display='block';totalDisp.textContent='$'+fmt(total);}
+    else{totalBox.style.display='none';}
+  }
+}
+
 function openDtvModal(id){
   var cSel=document.getElementById('mdtv-cli'); cSel.innerHTML='<option value="">— Sin cliente —</option>';
   DB.clientes.forEach(function(c){cSel.innerHTML+='<option value="'+c.id+'">'+esc(c.nombre)+'</option>';});
+  _dtvItems=[];
   document.getElementById('mdtv-id').value=id||'';
   if(id){
     var d=DB.directv.find(function(x){return x.id===id;});
@@ -3319,28 +3548,62 @@ function openDtvModal(id){
     document.getElementById('mdtv-desc').value=d.descripcion||'';
     document.getElementById('mdtv-tec').value=d.tecnico||'';
     document.getElementById('mdtv-monto').value=d.monto||0;
+    document.getElementById('mdtv-monto-inst').value=d.monto_inst||0;
     document.getElementById('mdtv-fecha').value=d.fecha||todayStr();
     document.getElementById('mdtv-estado').value=d.estado||'Pendiente';
+    if(d.items&&d.items.length) _dtvItems=JSON.parse(JSON.stringify(d.items));
   } else {
     document.getElementById('mdtv-title').textContent='Nuevo Servicio';
     ['desc','tec','monto'].forEach(function(f){document.getElementById('mdtv-'+f).value='';});
+    document.getElementById('mdtv-monto-inst').value='';
     document.getElementById('mdtv-fecha').value=todayStr();
     document.getElementById('mdtv-estado').value='Pendiente';
   }
+  document.getElementById('mdtv-prod-search').value='';
+  document.getElementById('mdtv-prod-qty').value=1;
+  document.getElementById('mdtv-prod-stock-info').textContent='';
+  document.getElementById('mdtv-prod-dropdown').style.display='none';
+  _dtvSelectedProdId=null;
   var dBox=document.getElementById('mdtv-new-cli-box'); if(dBox) dBox.style.display='none';
+  onDtvTipoChange();
+  renderDtvItems();
   openModal('modal-dtv');
 }
 
-async function saveDtv(){
+async function saveDtv(descontarStock){
   var desc=document.getElementById('mdtv-desc').value.trim();
   if(!desc){toast('Ingresá descripción','err');return;}
   var id=parseInt(document.getElementById('mdtv-id').value)||0;
   var cliId=parseInt(document.getElementById('mdtv-cli').value)||null;
   var cn=cliId?(DB.clientes.find(function(c){return c.id===cliId;})||{nombre:'Sin cliente'}).nombre:'Sin cliente';
-  var obj={cliente_id:cliId,cliente_nombre:cn,tipo:document.getElementById('mdtv-tipo').value,descripcion:desc,tecnico:document.getElementById('mdtv-tec').value.trim(),monto:parseFloat(document.getElementById('mdtv-monto').value)||0,fecha:document.getElementById('mdtv-fecha').value||todayStr(),estado:document.getElementById('mdtv-estado').value};
+  var tipo=document.getElementById('mdtv-tipo').value;
+  var cobro=parseFloat(document.getElementById('mdtv-monto').value)||0;
+  var inst=parseFloat(document.getElementById('mdtv-monto-inst').value)||0;
+  var prodTotal=dtvItemsTotal();
+  var monto=cobro+inst+prodTotal;
+  var obj={cliente_id:cliId,cliente_nombre:cn,tipo:tipo,descripcion:desc,tecnico:document.getElementById('mdtv-tec').value.trim(),monto:monto,monto_inst:inst,items:_dtvItems.length?_dtvItems:null,fecha:document.getElementById('mdtv-fecha').value||todayStr(),estado:document.getElementById('mdtv-estado').value};
   setSyncing(true);
   try {
-    if(id){await sbUpdate('directv',id,obj);}else{await sbInsert('directv',obj);}
+    try {
+      if(id){await sbUpdate('directv',id,obj);}else{await sbInsert('directv',obj);}
+    } catch(e1){
+      // Fallback: si falla por columnas nuevas inexistentes, reintentamos sin ellas
+      if(e1.message&&(e1.message.indexOf('items')!==-1||e1.message.indexOf('monto_inst')!==-1)){
+        var objSin=Object.assign({},obj); delete objSin.items; delete objSin.monto_inst;
+        if(id){await sbUpdate('directv',id,objSin);}else{await sbInsert('directv',objSin);}
+      } else { throw e1; }
+    }
+    if(descontarStock&&_dtvItems.length){
+      for(var i=0;i<_dtvItems.length;i++){
+        var it=_dtvItems[i];
+        var prod=DB.productos.find(function(p){return p.id===it.prod_id;});
+        if(prod){
+          var newStock=Math.max(0,(prod.stock||0)-it.qty);
+          await sbUpdate('productos',it.prod_id,{stock:newStock});
+        }
+      }
+      toast('Stock descontado ✅');
+    }
     await loadAll(); closeModal('modal-dtv'); renderDtv(); toast('Servicio guardado');
   } catch(e){toast('Error: '+e.message,'err');}
   setSyncing(null);
@@ -4372,9 +4635,115 @@ function renderReparaciones(){
   document.getElementById('rep-empty').style.display=filtered.length?'none':'block';
 }
 
+// ══════════════════════════════════════════
+// Reparaciones — productos del stock
+// ══════════════════════════════════════════
+var _repItems = [];
+var _repSelectedProdId = null;
+
+function repItemsTotal(){
+  return _repItems.reduce(function(s,i){return s+(i.qty*i.precio);},0);
+}
+
+function renderRepItems(){
+  var tbody=document.getElementById('mrep-items-tbody');
+  var wrap=document.getElementById('mrep-items-wrap');
+  var warnEl=document.getElementById('mrep-stock-warn');
+  if(!tbody) return;
+  if(!_repItems.length){
+    wrap.style.display='none';
+    if(warnEl) warnEl.style.display='none';
+    calcRepTotal(); return;
+  }
+  wrap.style.display='block';
+  tbody.innerHTML=_repItems.map(function(item,idx){
+    var prod=DB.productos.find(function(p){return p.id===item.prod_id;})||{};
+    var warn=item.qty>(prod.stock||0)?' ⚠️':'';
+    return '<tr style="border-bottom:1px solid var(--border)">'+
+      '<td style="padding:4px 6px">'+esc(item.nombre)+warn+'<div style="font-size:9px;color:var(--muted)">Stock: '+(prod.stock!==undefined?prod.stock:'?')+'</div></td>'+
+      '<td style="text-align:center;padding:4px 6px"><input type="number" min="1" value="'+item.qty+'" style="width:55px;text-align:center" onchange="updateRepItemQty('+idx+',this.value)"/></td>'+
+      '<td style="text-align:right;padding:4px 6px;font-family:var(--mono)">'+fmt(item.precio)+'</td>'+
+      '<td style="text-align:right;padding:4px 6px;font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(item.qty*item.precio)+'</td>'+
+      '<td style="padding:4px 6px"><button type="button" class="btn btn-danger btn-xs" onclick="removeRepItem('+idx+')">✕</button></td>'+
+      '</tr>';
+  }).join('');
+  document.getElementById('mrep-items-total').textContent=fmt(repItemsTotal());
+  var warns=_repItems.filter(function(i){var p=DB.productos.find(function(x){return x.id===i.prod_id;});return p&&i.qty>p.stock;});
+  if(warnEl){
+    if(warns.length){warnEl.style.display='block';warnEl.innerHTML='⚠️ Stock insuficiente: '+warns.map(function(i){var p=DB.productos.find(function(x){return x.id===i.prod_id;})||{stock:0};return esc(i.nombre)+' (necesitás '+i.qty+', hay '+p.stock+')';}).join(', ');}
+    else{warnEl.style.display='none';}
+  }
+  calcRepTotal();
+}
+
+function updateRepItemQty(idx,val){_repItems[idx].qty=Math.max(1,parseInt(val)||1);renderRepItems();}
+function removeRepItem(idx){_repItems.splice(idx,1);renderRepItems();}
+
+function updateRepProductSearch(){
+  var q=(document.getElementById('mrep-prod-search').value||'').toLowerCase().trim();
+  var dropdown=document.getElementById('mrep-prod-dropdown');
+  var list=document.getElementById('mrep-prod-list');
+  var info=document.getElementById('mrep-prod-stock-info');
+  if(!q){dropdown.style.display='none';info.textContent='';_repSelectedProdId=null;return;}
+  var filtered=DB.productos.filter(function(p){return (p.nombre.toLowerCase().includes(q)||(p.cod||'').toLowerCase().includes(q))&&p.stock>0;});
+  if(!filtered.length){
+    list.innerHTML='<div style="padding:10px 12px;color:var(--muted);font-size:11px;text-align:center">Sin productos disponibles</div>';
+    dropdown.style.display='block';info.textContent='';_repSelectedProdId=null;return;
+  }
+  list.innerHTML=filtered.slice(0,10).map(function(p){
+    return '<div style="padding:10px 12px;border-bottom:1px solid var(--border);cursor:pointer" onclick="selectRepProduct('+p.id+',\''+esc(p.nombre).replace(/'/g,"\\'")+'\',' +p.precio+')" onmouseover="this.style.background=\'var(--s3)\'" onmouseout="this.style.background=\'\'">'+
+      '<div style="font-weight:600;font-size:12px">'+esc(p.nombre)+'</div>'+
+      '<div style="font-size:10px;color:var(--muted);margin-top:3px">Cod: '+esc(p.cod||'—')+' | Stock: '+p.stock+' '+esc(p.unidad||'u.')+' | $'+fmt(p.precio)+'</div>'+
+      '</div>';
+  }).join('');
+  dropdown.style.display='block';
+}
+
+function selectRepProduct(prodId,prodName,prodPrice){
+  _repSelectedProdId=prodId;
+  document.getElementById('mrep-prod-search').value=prodName;
+  document.getElementById('mrep-prod-dropdown').style.display='none';
+  var prod=DB.productos.find(function(p){return p.id===prodId;});
+  document.getElementById('mrep-prod-stock-info').innerHTML='<strong>'+esc(prod.nombre)+'</strong> · Stock: '+prod.stock+' '+esc(prod.unidad||'u.')+' · $'+fmt(prodPrice)+'<br><em style="color:var(--dim)">Ingresá cantidad y hacé clic en ➕ Agregar</em>';
+  document.getElementById('mrep-prod-qty').focus();
+}
+
+function addRepItemFromSearch(){
+  var prodId=_repSelectedProdId;
+  if(!prodId){toast('Seleccioná un producto primero','err');return;}
+  var qty=parseInt(document.getElementById('mrep-prod-qty').value)||1;
+  if(qty<1){toast('Cantidad debe ser al menos 1','err');return;}
+  var prod=DB.productos.find(function(p){return p.id===prodId;});
+  if(!prod){toast('Producto no encontrado','err');return;}
+  if(qty>prod.stock){toast('Stock insuficiente para '+esc(prod.nombre)+'. Disponible: '+prod.stock,'err');return;}
+  var existing=_repItems.findIndex(function(i){return i.prod_id===prodId;});
+  if(existing>=0){_repItems[existing].qty+=qty;toast('Cantidad actualizada de '+esc(prod.nombre));}
+  else{_repItems.push({prod_id:prodId,nombre:prod.nombre,qty:qty,precio:prod.precio||0});toast('✅ '+esc(prod.nombre)+' agregado');}
+  document.getElementById('mrep-prod-search').value='';
+  document.getElementById('mrep-prod-qty').value='1';
+  document.getElementById('mrep-prod-stock-info').textContent='';
+  document.getElementById('mrep-prod-dropdown').style.display='none';
+  _repSelectedProdId=null;
+  document.getElementById('mrep-prod-search').focus();
+  renderRepItems();
+}
+
+function calcRepTotal(){
+  var prodTotal=repItemsTotal();
+  var manoObra=parseFloat(document.getElementById('mrep-monto').value)||0;
+  var total=prodTotal+manoObra;
+  var totalBox=document.getElementById('mrep-total-box');
+  var totalDisp=document.getElementById('mrep-total-display');
+  if(totalBox&&totalDisp){
+    if(prodTotal>0){totalBox.style.display='block';totalDisp.textContent='$'+fmt(total);}
+    else{totalBox.style.display='none';}
+  }
+}
+
 function openRepModal(id){
   var cSel=document.getElementById('mrep-cli'); cSel.innerHTML='<option value="">— Sin cliente —</option>';
   DB.clientes.forEach(function(c){cSel.innerHTML+='<option value="'+c.id+'">'+esc(c.nombre)+'</option>';});
+  _repItems=[];
   document.getElementById('mrep-id').value=id||'';
   if(id){
     var r=DB.reparaciones.find(function(x){return x.id===id;});
@@ -4387,6 +4756,7 @@ function openRepModal(id){
     document.getElementById('mrep-desc').value=r.descripcion||'';
     document.getElementById('mrep-estado').value=r.estado||'Pendiente';
     setRepPhotoPreview(r.foto||'');
+    if(r.items&&r.items.length) _repItems=JSON.parse(JSON.stringify(r.items));
   } else {
     document.getElementById('mrep-title').textContent='Nueva Reparación';
     document.getElementById('mrep-fecha').value=todayStr();
@@ -4396,9 +4766,17 @@ function openRepModal(id){
     document.getElementById('mrep-estado').value='Pendiente';
     clearRepPhoto();
   }
+  document.getElementById('mrep-prod-search').value='';
+  document.getElementById('mrep-prod-qty').value=1;
+  document.getElementById('mrep-prod-stock-info').textContent='';
+  document.getElementById('mrep-prod-dropdown').style.display='none';
+  _repSelectedProdId=null;
   var rBox=document.getElementById('mrep-new-cli-box'); if(rBox) rBox.style.display='none';
+  renderRepItems();
   openModal('modal-reparacion');
 }
+
+
 
 function setRepPhotoPreview(dataUrl){
   var input=document.getElementById('mrep-foto');
@@ -4435,7 +4813,7 @@ function readRepPhoto(input){
   reader.readAsDataURL(file);
 }
 
-async function saveRep(){
+async function saveRep(descontarStock){
   var id=parseInt(document.getElementById('mrep-id').value)||0;
   var cliId=parseInt(document.getElementById('mrep-cli').value)||null;
   var cn=cliId?(DB.clientes.find(function(c){return c.id===cliId;})||{nombre:'Sin cliente'}).nombre:'Sin cliente';
@@ -4446,21 +4824,44 @@ async function saveRep(){
     try{foto=await uploadStorageImage('reparaciones-fotos',foto,'reparacion');}
     catch(e){console.warn('Storage reparaciones no disponible:',e);}
   }
+  var manoObra=parseFloat(document.getElementById('mrep-monto').value)||0;
+  var prodTotal=repItemsTotal();
+  var monto=manoObra+prodTotal;
   var obj={
     fecha:document.getElementById('mrep-fecha').value||todayStr(),
     tecnico:document.getElementById('mrep-tec').value,
     cliente_id:cliId,
     cliente_nombre:cn,
     descripcion:desc,
-    monto:parseFloat(document.getElementById('mrep-monto').value)||0,
+    monto:monto,
+    items:_repItems.length?_repItems:null,
     estado:document.getElementById('mrep-estado').value,
     foto:foto
   };
   setSyncing(true);
   try {
-    if(id){await sbUpdate('reparaciones',id,obj);}else{await sbInsert('reparaciones',obj);}
+    try {
+      if(id){await sbUpdate('reparaciones',id,obj);}else{await sbInsert('reparaciones',obj);}
+    } catch(e1){
+      // Fallback: si falla por columna 'items' inexistente, reintentamos sin ella
+      if(e1.message&&e1.message.indexOf('items')!==-1){
+        var objSin=Object.assign({},obj); delete objSin.items;
+        if(id){await sbUpdate('reparaciones',id,objSin);}else{await sbInsert('reparaciones',objSin);}
+      } else { throw e1; }
+    }
+    if(descontarStock&&_repItems.length){
+      for(var i=0;i<_repItems.length;i++){
+        var it=_repItems[i];
+        var prod=DB.productos.find(function(p){return p.id===it.prod_id;});
+        if(prod){
+          var newStock=Math.max(0,(prod.stock||0)-it.qty);
+          await sbUpdate('productos',it.prod_id,{stock:newStock});
+        }
+      }
+      toast('Stock descontado ✅');
+    }
     await loadAll(); closeModal('modal-reparacion'); renderReparaciones(); toast('Reparación guardada');
-  } catch(e){toast('Error: '+e.message+'. Asegurate de crear la tabla reparaciones en Supabase.','err');}
+  } catch(e){toast('Error: '+e.message,'err');}
   setSyncing(null);
 }
 
