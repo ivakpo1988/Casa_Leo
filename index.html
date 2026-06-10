@@ -242,22 +242,23 @@ tbody tr:hover td:last-child{background:var(--s3)}
   #sidebar{width:48px}
   .logo-text,.logo-sub,.nav-label,.nav-item span,.user-name,.user-role{display:none}
   #main{margin-left:48px}
-  #content{padding:12px}
+  #content{padding:8px}
   .sale-layout{grid-template-columns:1fr}
-  .dash-grid{grid-template-columns:1fr}
+  .dash-grid{grid-template-columns:1fr 1fr;gap:6px}
   .fr2,.fr3{grid-template-columns:1fr}
   .tbl-wrap{margin-left:-4px;margin-right:-4px;border-radius:6px}
   table{min-width:820px}
   thead th,tbody td{padding:8px 10px}
   .act{gap:4px}
   .act .btn-xs{min-width:30px;justify-content:center}
-  /* Stat cards compactas en mobile */
-  .stat-card{padding:7px 10px}
-  .sc-icon{font-size:14px;top:7px;right:8px}
-  .sc-label{font-size:9px;margin-bottom:3px;letter-spacing:.05em}
-  .sc-val{font-size:15px}
-  .sc-sub{font-size:10px;margin-top:3px}
-  .caja-grid{gap:6px}
+  /* Stat cards mini en mobile */
+  .stat-card{padding:5px 7px;border-radius:5px}
+  .sc-icon{display:none}
+  .sc-label{font-size:8px;margin-bottom:2px;letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sc-val{font-size:13px;line-height:1.1}
+  .sc-sub{font-size:9px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .caja-grid{grid-template-columns:1fr 1fr;gap:5px;margin-bottom:10px}
+  .dash-grid{margin-bottom:10px}
 }
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:var(--bg)}
@@ -1327,8 +1328,27 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
     <div class="mbody">
       <input type="hidden" id="mren-id"/>
       <div class="fr2">
-        <div class="field"><label>Cliente</label><select id="mren-cli"><option value="">— Seleccionar —</option></select></div>
+        <div class="field">
+          <label>Cliente</label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <select id="mren-cli" style="flex:1"><option value="">— Seleccionar —</option></select>
+            <button type="button" class="btn btn-green btn-sm" onclick="toggleRenovNewCli()" title="Agregar nuevo cliente" style="flex-shrink:0;padding:7px 10px">➕</button>
+          </div>
+        </div>
         <div class="field"><label>Tipo de Trabajo</label><select id="mren-tipo"><option>Panel Solar</option><option>Bomba Solar</option><option>Termo Solar</option><option>Instalación</option><option>Otro</option></select></div>
+      </div>
+      <!-- Box nuevo cliente -->
+      <div id="mren-new-cli-box" style="display:none;background:var(--s3);border:1px solid var(--border);border-radius:var(--r2);padding:12px;margin-bottom:8px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--orange);margin-bottom:8px">Nuevo Cliente</div>
+        <div class="fr2">
+          <div class="field" style="margin-bottom:8px"><label>Nombre *</label><input type="text" id="mren-new-nombre" placeholder="Nombre completo"/></div>
+          <div class="field" style="margin-bottom:8px"><label>Teléfono</label><input type="text" id="mren-new-tel" placeholder="Ej: 2235001122"/></div>
+        </div>
+        <div class="field" style="margin-bottom:8px"><label>Email</label><input type="email" id="mren-new-email" placeholder="cliente@email.com"/></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="toggleRenovNewCli()">Cancelar</button>
+          <button type="button" class="btn btn-green btn-sm" onclick="saveRenovNewCli()">✔ Crear y seleccionar</button>
+        </div>
       </div>
       <div class="field"><label>Descripción / Instalación</label><input type="text" id="mren-desc" placeholder="Ej: Termo 200L atmosférico en Santa Clara…"/></div>
       <div class="field"><label>Tiempo estimado de obra</label><input type="text" id="mren-tiempo" placeholder="Ej: 2 días, 1 semana…"/></div>
@@ -1375,8 +1395,21 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
       </div>
 
       <div class="fr2" style="margin-top:8px">
-        <div class="field"><label>Monto Total ($) <span style="font-size:10px;color:var(--muted)">(editable)</span></label><input type="number" id="mren-monto" step="0.01" min="0"/></div>
+        <div class="field"><label>Monto Total ($) <span style="font-size:10px;color:var(--muted)">(editable)</span></label><input type="number" id="mren-monto" step="0.01" min="0" oninput="calcRenovTotal()"/></div>
         <div class="field"><label>Estado</label><select id="mren-estado"><option>Borrador</option><option>Enviada</option><option>Aprobada</option><option>Rechazada</option></select></div>
+      </div>
+      <!-- Cobro de instalación -->
+      <div style="background:var(--s3);border:1px solid var(--border);border-radius:var(--r2);padding:10px;margin-top:4px">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--orange);margin-bottom:6px">💰 Cobro de instalación</div>
+        <div class="field"><label>Mano de obra / instalación ($)</label><input type="number" id="mren-monto-inst" step="0.01" min="0" placeholder="0" oninput="calcRenovTotal()"/></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">Se suma automáticamente al total.</div>
+      </div>
+      <!-- Total general -->
+      <div id="mren-total-box" style="display:none;background:var(--s3);border:1px solid var(--green);border-radius:var(--r2);padding:10px;margin-top:6px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:12px;color:var(--muted)">Total general (productos + instalación):</span>
+          <span id="mren-total-display" style="font-family:var(--mono);font-weight:700;color:var(--green);font-size:18px">$0</span>
+        </div>
       </div>
       <div id="mren-stock-warn" style="display:none;background:var(--red-glow);border:1px solid #ef444430;border-radius:5px;padding:7px 10px;font-size:11px;color:var(--red);margin-top:4px"></div>
     </div>
@@ -2392,15 +2425,15 @@ function renderCaja(){
   var totalMl=ml.reduce(function(s,x){return s+(parseFloat(x.neto)||0);},0);
 
   document.getElementById('caja-stats').innerHTML=
-    sc('Total Ventas','orange',fmt(total),v.length+' ventas','💰')+
-    sc('Efectivo','green',fmt(por['Efectivo']||0),'','💵')+
-    sc('Transferencia','blue',fmt(por['Transferencia']||0),'','📲')+
-    sc('Tarjetas','yellow',fmt((por['Débito']||0)+(por['Crédito']||0)),'','💳')+
-    sc('Matafuegos y CO2','red',fmt(totalMat),mat.length+' cotizaciones','🧯')+
-    sc('ML Ventas','blue',fmt(totalMl),ml.length+' ventas','🛒')+
-    sc('Alquileres','blue',fmt(totalAlq),alq.length+' alquileres','🔧')+
-    sc('Energía Renovable','green',fmt(totalRen),ren.length+' cotizaciones','☀️')+
-    sc('DirecTV','yellow',fmt(totalDtv),dtv.length+' servicios','📡');
+    sc('Total Ventas','orange',fmt(total),v.length+' ventas','💰','ventas')+
+    sc('Efectivo','green',fmt(por['Efectivo']||0),'en efectivo hoy','💵','ventas')+
+    sc('Transferencia','blue',fmt(por['Transferencia']||0),'por transferencia hoy','📲','ventas')+
+    sc('Tarjetas','yellow',fmt((por['Débito']||0)+(por['Crédito']||0)),'débito + crédito','💳','ventas')+
+    sc('Matafuegos y CO2','red',fmt(totalMat),mat.length+' cotizaciones','🧯','matafuegos')+
+    sc('ML Ventas','blue',fmt(totalMl),ml.length+' ventas','🛒','ventas')+
+    sc('Alquileres','blue',fmt(totalAlq),alq.length+' alquileres','🔧','alquileres')+
+    sc('Energía Renovable','green',fmt(totalRen),ren.length+' cotizaciones','☀️','renovable')+
+    sc('DirecTV','yellow',fmt(totalDtv),dtv.length+' servicios','📡','directv');
 
   var tb=document.getElementById('caja-tbody'); tb.innerHTML='';
 
@@ -4112,6 +4145,45 @@ function saveRenovLocal(id, obj){
 }
 
 // Renovables: item list state
+// ── Energía Renovable: nuevo cliente inline ──
+function toggleRenovNewCli(){
+  var box=document.getElementById('mren-new-cli-box');
+  box.style.display=box.style.display==='none'?'block':'none';
+  if(box.style.display==='block') document.getElementById('mren-new-nombre').focus();
+}
+async function saveRenovNewCli(){
+  var nombre=document.getElementById('mren-new-nombre').value.trim();
+  if(!nombre){toast('Ingresá el nombre','err');return;}
+  var obj={nombre:nombre,tel:document.getElementById('mren-new-tel').value.trim(),email:document.getElementById('mren-new-email').value.trim(),fecha_alta:todayStr()};
+  setSyncing(true);
+  try{
+    var res=await sbInsert('clientes',obj);
+    await loadAll();
+    var cSel=document.getElementById('mren-cli');
+    cSel.innerHTML='<option value="">— Seleccionar —</option>';
+    DB.clientes.forEach(function(c){cSel.innerHTML+='<option value="'+c.id+'">'+esc(c.nombre)+'</option>';});
+    if(res&&res.id) cSel.value=res.id;
+    document.getElementById('mren-new-cli-box').style.display='none';
+    ['mren-new-nombre','mren-new-tel','mren-new-email'].forEach(function(f){document.getElementById(f).value='';});
+    toast('Cliente creado ✅');
+  }catch(e){toast('Error: '+e.message,'err');}
+  setSyncing(null);
+}
+
+// ── Energía Renovable: total con instalación ──
+function calcRenovTotal(){
+  var prodTotal=renovItemsTotal();
+  var monto=parseFloat(document.getElementById('mren-monto').value)||0;
+  var inst=parseFloat(document.getElementById('mren-monto-inst').value)||0;
+  var total=prodTotal+monto+inst;
+  var box=document.getElementById('mren-total-box');
+  var disp=document.getElementById('mren-total-display');
+  if(box&&disp){
+    if(prodTotal>0||inst>0){box.style.display='block';disp.textContent='$'+fmt(total);}
+    else{box.style.display='none';}
+  }
+}
+
 var _renovItems = [];
 
 function renovItemsTotal(){
@@ -4122,7 +4194,7 @@ function renderRenovItems(){
   var tbody=document.getElementById('mren-items-tbody');
   var wrap=document.getElementById('mren-items-wrap');
   if(!tbody) return;
-  if(!_renovItems.length){wrap.style.display='none'; document.getElementById('mren-stock-warn').style.display='none'; return;}
+  if(!_renovItems.length){wrap.style.display='none'; document.getElementById('mren-stock-warn').style.display='none'; calcRenovTotal(); return;}
   wrap.style.display='block';
   tbody.innerHTML=_renovItems.map(function(item,idx){
     var prod=DB.productos.find(function(p){return p.id===item.prod_id;})||{};
@@ -4137,6 +4209,7 @@ function renderRenovItems(){
       '</tr>';
   }).join('');
   document.getElementById('mren-items-total').textContent=fmt(renovItemsTotal());
+  // Actualiza monto base con subtotal de productos, respetando instalación
   document.getElementById('mren-monto').value=renovItemsTotal().toFixed(2);
   var warns=_renovItems.filter(function(i){var p=DB.productos.find(function(x){return x.id===i.prod_id;});return p&&i.qty>p.stock;});
   var wEl=document.getElementById('mren-stock-warn');
@@ -4144,6 +4217,7 @@ function renderRenovItems(){
     wEl.style.display='block';
     wEl.innerHTML='\u26A0\uFE0F Stock insuficiente: '+warns.map(function(i){var p=DB.productos.find(function(x){return x.id===i.prod_id;})||{stock:0};return esc(i.nombre)+' (necesit\u00E1s '+i.qty+', hay '+p.stock+')';}).join(', ');
   } else {wEl.style.display='none';}
+  calcRenovTotal();
 }
 
 function addRenovItem(){
@@ -4261,19 +4335,21 @@ function openRenovModal(id){
   if(id){
     var r=DB.renovables.find(function(x){return x.id===id;});
     if(!r){toast('No encontrado','err');return;}
-    document.getElementById('mren-title').textContent='Editar Cotizaci\u00F3n';
+    document.getElementById('mren-title').textContent='Editar Cotización';
     cSel.value=r.cliente_id||'';
     document.getElementById('mren-tipo').value=r.tipo||'Panel Solar';
     document.getElementById('mren-desc').value=r.descripcion||'';
     document.getElementById('mren-tiempo').value=r.tiempo_obra||'';
     document.getElementById('mren-garantia').value=r.garantia||'';
     document.getElementById('mren-monto').value=r.monto||0;
+    document.getElementById('mren-monto-inst').value=r.monto_inst||0;
     document.getElementById('mren-estado').value=r.estado||'Borrador';
     if(r.items&&r.items.length) _renovItems=JSON.parse(JSON.stringify(r.items));
   } else {
-    document.getElementById('mren-title').textContent='Nueva Cotizaci\u00F3n Renovable';
+    document.getElementById('mren-title').textContent='Nueva Cotización Renovable';
     cSel.value='';
     ['desc','monto','tiempo','garantia'].forEach(function(f){document.getElementById('mren-'+f).value='';});
+    document.getElementById('mren-monto-inst').value='';
     document.getElementById('mren-tipo').value='Panel Solar';
     document.getElementById('mren-estado').value='Borrador';
   }
@@ -4281,6 +4357,8 @@ function openRenovModal(id){
   document.getElementById('mren-prod-qty').value=1;
   document.getElementById('mren-prod-stock-info').textContent='';
   document.getElementById('mren-prod-dropdown').style.display='none';
+  document.getElementById('mren-new-cli-box').style.display='none';
+  var tb=document.getElementById('mren-total-box'); if(tb) tb.style.display='none';
   _renovSelectedProdId=null;
   document.getElementById('mren-stock-warn').style.display='none';
   renderRenovItems();
@@ -4295,6 +4373,9 @@ async function saveRenov(descontarStock){
     var insuf=_renovItems.filter(function(i){var p=DB.productos.find(function(x){return x.id===i.prod_id;});return p&&i.qty>p.stock;});
     if(insuf.length){toast('Stock insuficiente: '+insuf.map(function(i){return i.nombre;}).join(', '),'err');return;}
   }
+  var montoBase=parseFloat(document.getElementById('mren-monto').value)||0;
+  var montoInst=parseFloat(document.getElementById('mren-monto-inst').value)||0;
+  var montoTotal=montoBase+montoInst;
   var obj={
     fecha: todayStr(),
     cliente_id: cliId,
@@ -4303,15 +4384,26 @@ async function saveRenov(descontarStock){
     descripcion: document.getElementById('mren-desc').value.trim(),
     tiempo_obra: document.getElementById('mren-tiempo').value.trim(),
     garantia: document.getElementById('mren-garantia').value.trim(),
-    monto: parseFloat(document.getElementById('mren-monto').value)||0,
+    monto: montoTotal,
+    monto_inst: montoInst,
     estado: descontarStock?'Aprobada':document.getElementById('mren-estado').value,
     items: _renovItems.length?JSON.parse(JSON.stringify(_renovItems)):[]
   };
   setSyncing(true);
   try {
-    if(id<0){saveRenovLocal(id,obj);}
-    else if(id){await sbUpdate('renovables_cotizaciones',id,obj);}
-    else{await sbInsert('renovables_cotizaciones',obj);}
+    // Fallback si monto_inst no existe como columna
+    try {
+      if(id<0){saveRenovLocal(id,obj);}
+      else if(id){await sbUpdate('renovables_cotizaciones',id,obj);}
+      else{await sbInsert('renovables_cotizaciones',obj);}
+    } catch(e1){
+      if(e1.message&&e1.message.indexOf('monto_inst')!==-1){
+        var objSin=Object.assign({},obj); delete objSin.monto_inst;
+        if(id<0){saveRenovLocal(id,objSin);}
+        else if(id){await sbUpdate('renovables_cotizaciones',id,objSin);}
+        else{await sbInsert('renovables_cotizaciones',objSin);}
+      } else { throw e1; }
+    }
     if(descontarStock && _renovItems.length){
       for(var i=0;i<_renovItems.length;i++){
         var item=_renovItems[i];
