@@ -111,6 +111,7 @@ nav{flex:1 1 auto;min-height:0;min-width:0;padding:18px 12px 12px;overflow-y:aut
 /* TABLE */
 .tbl-wrap{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);overflow:auto;-webkit-overflow-scrolling:touch;position:relative}
 .tbl-wrap::after{content:'';position:absolute;top:0;right:0;bottom:0;width:18px;pointer-events:none;background:linear-gradient(90deg,transparent,var(--s2))}
+@media(max-width:760px){.tbl-wrap::after{display:none}}
 table{width:100%;min-width:820px;border-collapse:collapse}
 thead th{background:var(--s3);color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:9px 13px;text-align:left;white-space:nowrap;border-bottom:1px solid var(--border)}
 tbody td{padding:9px 13px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
