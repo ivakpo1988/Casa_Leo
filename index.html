@@ -251,11 +251,16 @@ tbody tr:hover td:last-child{background:var(--s3)}
   .sale-layout{grid-template-columns:1fr}
   .dash-grid{grid-template-columns:1fr 1fr;gap:6px}
   .fr2,.fr3{grid-template-columns:1fr}
-  .tbl-wrap{margin-left:-4px;margin-right:-4px;border-radius:6px}
-  table{min-width:820px}
-  thead th,tbody td{padding:8px 10px}
-  .act{gap:4px}
-  .act .btn-xs{min-width:30px;justify-content:center}
+  .tbl-wrap{margin-left:-4px;margin-right:-4px;border-radius:6px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  /* Tablas ultra-comprimidas */
+  .tbl-wrap table{font-size:10px;min-width:0 !important;width:100%}
+  .tbl-wrap thead th{font-size:9px;padding:5px 6px;letter-spacing:0;white-space:nowrap}
+  .tbl-wrap tbody td{padding:5px 6px;white-space:nowrap}
+  .col-hide-mobile{display:none !important}
+  /* Badges y botones chicos */
+  .badge{font-size:8px !important;padding:2px 4px !important}
+  .act{gap:3px}
+  .act .btn-xs{padding:3px 5px !important;font-size:9px !important;min-width:22px !important}
   /* Stat cards mini en mobile */
   .stat-card{padding:5px 7px;border-radius:5px}
   .sc-icon{display:none}
@@ -566,7 +571,7 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
       <div class="caja-grid" id="caja-stats"></div>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>#</th><th>Hora</th><th>Cliente</th><th>Items</th><th>Método</th><th>Total</th><th></th></tr></thead>
+          <thead><tr><th class="col-hide-mobile">#</th><th>Hora</th><th>Cliente</th><th class="col-hide-mobile">Items</th><th class="col-hide-mobile">Método</th><th>Total</th><th></th></tr></thead>
           <tbody id="caja-tbody"></tbody>
         </table>
         <div id="caja-empty" class="empty-row">No hay ventas hoy.</div>
@@ -593,7 +598,7 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
       </div>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>Ticket</th><th>Fecha</th><th>Cliente</th><th>Items</th><th>Método</th><th>Desc.</th><th>Total</th><th></th></tr></thead>
+          <thead><tr><th>Ticket</th><th class="col-hide-mobile">Fecha</th><th>Cliente</th><th class="col-hide-mobile">Items</th><th class="col-hide-mobile">Método</th><th class="col-hide-mobile">Desc.</th><th>Total</th><th></th></tr></thead>
           <tbody id="hist-tbody"></tbody>
         </table>
         <div id="hist-empty" class="empty-row">Sin resultados.</div>
@@ -676,7 +681,7 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
       </div>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>Cliente</th><th>Teléfono</th><th>Dirección</th><th>Compras</th><th>Deuda CC</th><th>Último pedido</th><th></th></tr></thead>
+          <thead><tr><th>Cliente</th><th>Teléfono</th><th class="col-hide-mobile">Dirección</th><th class="col-hide-mobile">Compras</th><th>Deuda CC</th><th class="col-hide-mobile">Último pedido</th><th></th></tr></thead>
           <tbody id="cli-tbody"></tbody>
         </table>
         <div id="cli-empty" class="empty-row">Sin clientes.</div>
@@ -709,7 +714,7 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
       </div>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>Empresa</th><th>Contacto</th><th>Teléfono</th><th>Alias / CBU</th><th>Última compra</th><th>Deuda</th><th>Pedido pend.</th><th></th></tr></thead>
+          <thead><tr><th>Empresa</th><th class="col-hide-mobile">Contacto</th><th>Teléfono</th><th class="col-hide-mobile">Alias / CBU</th><th class="col-hide-mobile">Última compra</th><th>Deuda</th><th class="col-hide-mobile">Pedido pend.</th><th></th></tr></thead>
           <tbody id="prov-tbody"></tbody>
         </table>
         <div id="prov-empty" class="empty-row">Sin proveedores.</div>
@@ -757,7 +762,7 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
       </div>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>Máquina</th><th>Cliente</th><th style="min-width:70px">Salida</th><th style="min-width:70px">Devolución</th><th>Días</th><th>$/día</th><th>Seña</th><th>Total</th><th>Saldo</th><th style="min-width:80px">N° Pagaré</th><th style="min-width:110px">Estado</th><th></th></tr></thead>
+          <thead><tr><th>Máquina</th><th>Cliente</th><th class="col-hide-mobile">Salida</th><th class="col-hide-mobile">Devolución</th><th class="col-hide-mobile">Días</th><th class="col-hide-mobile">$/día</th><th class="col-hide-mobile">Seña</th><th>Total</th><th>Saldo</th><th class="col-hide-mobile">N° Pagaré</th><th>Estado</th><th></th></tr></thead>
           <tbody id="alq-tbody"></tbody>
         </table>
         <div id="alq-empty" class="empty-row">Sin alquileres.</div>
@@ -801,7 +806,7 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
       </div>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>Fecha</th><th>Cliente</th><th>Tipo</th><th>Descripción</th><th>Técnico</th><th>Monto</th><th>Estado</th><th></th></tr></thead>
+          <thead><tr><th>Fecha</th><th>Cliente</th><th>Tipo</th><th class="col-hide-mobile">Descripción</th><th class="col-hide-mobile">Técnico</th><th>Monto</th><th>Estado</th><th></th></tr></thead>
           <tbody id="dtv-tbody"></tbody>
         </table>
         <div id="dtv-empty" class="empty-row">Sin servicios.</div>
@@ -851,7 +856,7 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
       </div>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>Fecha</th><th>Cliente</th><th>Técnico</th><th>Descripción</th><th>Foto</th><th>Monto</th><th>Estado</th><th></th></tr></thead>
+          <thead><tr><th class="col-hide-mobile">Fecha</th><th>Cliente</th><th class="col-hide-mobile">Técnico</th><th>Descripción</th><th class="col-hide-mobile">Foto</th><th>Monto</th><th>Estado</th><th></th></tr></thead>
           <tbody id="rep-tbody"></tbody>
         </table>
         <div id="rep-empty" class="empty-row">No hay reparaciones registradas.</div>
@@ -869,7 +874,7 @@ html.light-mode .stat-card{background:var(--s2);border-color:var(--border)}
       <div class="caja-grid" id="matafuegos-summary"></div>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th style="text-align:center;color:var(--orange)">#</th><th style="cursor:pointer;user-select:none" onclick="setMatSort('fecha')" title="Ordenar por fecha">Fecha ↕</th><th>Cliente</th><th>Teléfono</th><th>Trabajo</th><th>Detalle</th><th>Foto</th><th style="text-align:center">Año Mat.</th><th>Monto</th><th style="cursor:pointer;user-select:none" onclick="setMatSort('venc')" title="Ordenar por vencimiento">Vencimiento ↕</th><th style="min-width:120px">Estado</th><th></th></tr></thead>
+          <thead><tr><th class="col-hide-mobile" style="text-align:center;color:var(--orange)">#</th><th onclick="setMatSort('fecha')" style="cursor:pointer;user-select:none">Fecha ↕</th><th>Cliente</th><th class="col-hide-mobile">Teléfono</th><th>Trabajo</th><th class="col-hide-mobile">Detalle</th><th class="col-hide-mobile">Foto</th><th class="col-hide-mobile">Año Mat.</th><th>Monto</th><th class="col-hide-mobile" onclick="setMatSort('venc')" style="cursor:pointer;user-select:none">Vencimiento ↕</th><th>Estado</th><th></th></tr></thead>
           <tbody id="matafuegos-tbody"></tbody>
         </table>
         <div id="matafuegos-empty" class="empty-row">No hay registros de matafuegos.</div>
@@ -2445,7 +2450,7 @@ function renderCaja(){
   // Filas de ventas
   v.forEach(function(x){
     var cn=x.cliente_id?(DB.clientes.find(function(c){return c.id===x.cliente_id;})||{nombre:'—'}).nombre:'Consumidor final';
-    tb.innerHTML+='<tr><td style="font-family:var(--mono);color:var(--muted);font-size:11px">#'+esc(x.ticket)+'</td><td>'+x.hora+'</td><td>'+esc(cn)+'</td><td>'+(Array.isArray(x.items)?x.items.length:0)+' items</td><td><span class="badge '+(x.metodo==='Efectivo'?'badge-green':x.metodo==='Transferencia'?'badge-blue':'badge-yellow')+'">'+x.metodo+'</span></td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(x.total)+'</td><td><button class="btn btn-ghost btn-xs" onclick=\'showTicket('+JSON.stringify(x).replace(/'/g,"&#39;")+')\'">🧾</button></td></tr>';
+    tb.innerHTML+='<tr><td style="font-family:var(--mono);color:var(--muted);font-size:11px">#'+esc(x.ticket)+'</td><td>'+x.hora+'</td><td>'+esc(cn)+'</td><td class="col-hide-mobile">'+(Array.isArray(x.items)?x.items.length:0)+' items</td><td><span class="badge '+(x.metodo==='Efectivo'?'badge-green':x.metodo==='Transferencia'?'badge-blue':'badge-yellow')+'">'+x.metodo+'</span></td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(x.total)+'</td><td><button class="btn btn-ghost btn-xs" onclick=\'showTicket('+JSON.stringify(x).replace(/'/g,"&#39;")+')\'">🧾</button></td></tr>';
   });
 
   // Separador + filas de Matafuegos
@@ -2507,7 +2512,7 @@ function renderHistorial(){
   var tb=document.getElementById('hist-tbody'); tb.innerHTML='';
   filtered.forEach(function(v){
     var cn=v.cliente_id?(DB.clientes.find(function(c){return c.id===v.cliente_id;})||{nombre:'—'}).nombre:'Consumidor final';
-    tb.innerHTML+='<tr><td style="font-family:var(--mono);color:var(--orange)">#'+esc(v.ticket)+'</td><td style="color:var(--muted);font-size:11px">'+v.fecha+' '+v.hora+'</td><td>'+esc(cn)+'</td><td>'+(Array.isArray(v.items)?v.items.length:0)+'</td><td><span class="badge '+(v.metodo==='Efectivo'?'badge-green':v.metodo==='Transferencia'?'badge-blue':'badge-yellow')+'">'+v.metodo+'</span></td><td>'+(v.desc_pct?'<span class="badge badge-red">-'+v.desc_pct+'%</span>':'<span style="color:var(--dim)">—</span>')+'</td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(v.total)+'</td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="openEditVenta('+v.id+')">✏</button><button class="btn btn-ghost btn-xs" onclick="exportSalePDF('+v.id+')"><span class="badge badge-red" style="font-size:11px;padding:0 4px;line-height:1.2">PDF</span></button><button class="btn btn-ghost btn-xs" onclick=\'showTicket('+JSON.stringify(v).replace(/'/g,"&#39;")+')\'">🧾</button></div></td></tr>';
+    tb.innerHTML+='<tr><td style="font-family:var(--mono);color:var(--orange)">#'+esc(v.ticket)+'</td><td style="color:var(--muted);font-size:11px">'+v.fecha+' '+v.hora+'</td><td>'+esc(cn)+'</td><td class="col-hide-mobile">'+(Array.isArray(v.items)?v.items.length:0)+'</td><td><span class="badge '+(v.metodo==='Efectivo'?'badge-green':v.metodo==='Transferencia'?'badge-blue':'badge-yellow')+'">'+v.metodo+'</span></td><td class=\"col-hide-mobile\">'+(v.desc_pct?'<span class="badge badge-red">-'+v.desc_pct+'%</span>':'<span style="color:var(--dim)">—</span>')+'</td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(v.total)+'</td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="openEditVenta('+v.id+')">✏</button><button class="btn btn-ghost btn-xs" onclick="exportSalePDF('+v.id+')"><span class="badge badge-red" style="font-size:11px;padding:0 4px;line-height:1.2">PDF</span></button><button class="btn btn-ghost btn-xs" onclick=\'showTicket('+JSON.stringify(v).replace(/'/g,"&#39;")+')\'">🧾</button></div></td></tr>';
   });
   document.getElementById('hist-empty').style.display=filtered.length?'none':'block';
 }
@@ -2961,7 +2966,7 @@ function renderProveedores(){
   var tb=document.getElementById('prov-tbody'); tb.innerHTML='';
   DB.proveedores.forEach(function(p){
     var pagoBtn=p.deuda>0?'<button class="btn btn-primary btn-xs" onclick="openProvPagoModal('+p.id+')">💰 Abonar</button>':'<button class="btn btn-ghost btn-xs" disabled title="Sin deuda pendiente">✓ Sin deuda</button>';
-    tb.innerHTML+='<tr data-id="'+p.id+'"><td style="font-weight:600;font-size:12px">'+esc(p.nombre)+'</td><td>'+esc(p.contacto||'—')+'</td><td style="font-family:var(--mono);font-size:12px">'+esc(p.tel||'—')+'</td><td style="font-size:11px">'+(p.alias?'<span style="font-family:var(--mono);color:var(--blue)">'+esc(p.alias)+'</span>':'<span style="color:var(--dim)">—</span>')+'</td><td style="color:var(--muted);font-size:11px">'+esc(p.ultima_compra||'—')+'</td><td style="font-family:var(--mono);'+(p.deuda>0?'color:var(--red);font-weight:700':'color:var(--muted)')+'">'+fmt(p.deuda||0)+'</td><td>'+(p.pedido_pend?'<span class="badge badge-yellow">⏳ Sí</span>':'<span style="color:var(--dim)">No</span>')+'</td><td><div class="act">'+pagoBtn+'<button class="btn btn-ghost btn-xs" onclick="openProvModal('+p.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delProv('+p.id+')">🗑</button></div></td></tr>';
+    tb.innerHTML+='<tr data-id="'+p.id+'"><td style="font-weight:600;font-size:12px">'+esc(p.nombre)+'</td><td class="col-hide-mobile">'+esc(p.contacto||'—')+'</td><td style="font-family:var(--mono);font-size:12px">'+esc(p.tel||'—')+'</td><td class="col-hide-mobile" style="font-size:11px">'+(p.alias?'<span style="font-family:var(--mono);color:var(--blue)">'+esc(p.alias)+'</span>':'<span style="color:var(--dim)">—</span>')+'</td><td class="col-hide-mobile" style="color:var(--muted);font-size:11px">'+esc(p.ultima_compra||'—')+'</td><td style="font-family:var(--mono);'+(p.deuda>0?'color:var(--red);font-weight:700':'color:var(--muted)')+'">'+fmt(p.deuda||0)+'</td><td class="col-hide-mobile">'+(p.pedido_pend?'<span class="badge badge-yellow">⏳ Sí</span>':'<span style="color:var(--dim)">No</span>')+'</td><td><div class="act">'+pagoBtn+'<button class="btn btn-ghost btn-xs" onclick="openProvModal('+p.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delProv('+p.id+')">🗑</button></div></td></tr>';
   });
   document.getElementById('prov-empty').style.display=DB.proveedores.length?'none':'block';
   renderProvHistorial();
@@ -3021,7 +3026,7 @@ function renderAlquileres(){
     var pagareVal=String(_njR.pagare||a.Npagare||a.pagare||'').trim();
     var dias=Math.max(1,Math.round((new Date(a.devol)-(new Date(a.salida)))/(1000*60*60*24)));
     var alqIdArg=(typeof a.id==='string'?a.id.replace(/'/g,"\\'"):a.id);
-    tb.innerHTML+='<tr'+(over?' style="background:rgba(220,38,38,.08)"':'')+'>'+'<td style="font-weight:600;font-size:12px">'+esc(a.maq_nombre)+'</td>'+'<td>'+esc(a.cliente_nombre||'—')+'</td>'+'<td style="font-family:var(--mono);font-size:11px;min-width:65px;white-space:nowrap">'+fmtDDMM(a.salida)+'</td>'+'<td style="font-family:var(--mono);font-size:11px;min-width:65px;white-space:nowrap;'+(over?'color:var(--red);font-weight:700':'')+'">'+fmtDDMM(a.devol)+(over?' ⚠️':'')+'</td>'+'<td style="text-align:center">'+dias+'</td>'+'<td style="font-family:var(--mono);color:var(--muted)">'+fmt(a.precio_dia||0)+'</td>'+'<td style="font-family:var(--mono)">'+fmt(a.sena||0)+'</td>'+'<td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(a.total||0)+'</td>'+'<td style="font-family:var(--mono);color:'+((a.total-a.sena)>0?'var(--orange)':'var(--muted)')+';font-weight:'+((a.total-a.sena)>0?'700':'400')+'">'+fmt((a.total||0)-(a.sena||0))+'</td>'+'<td style="font-family:var(--mono);font-size:11px;color:var(--blue);min-width:80px">'+esc(pagareVal||'—')+'</td>'+'<td style="min-width:110px;white-space:nowrap"><span class="badge '+(a.estado==="Activo"?'badge-green':a.estado==="Entregado"?'badge-gray':'badge-yellow')+'" title="'+esc(a.estado||'—')+'" style="font-size:9px;padding:2px 5px">'+esc(a.estado||'—')+'</span></td>'+'<td><div class="act">'+(foto?'<button class="btn btn-ghost btn-xs" onclick="verFotoAlqById(\''+alqIdArg+'\',\'equipo\')" title="Foto equipo">📷</button>':'')+(dniUrl?'<button class="btn btn-ghost btn-xs" onclick="verFotoAlqById(\''+alqIdArg+'\',\'dni\')" title="Ver DNI">🪪</button>':'')+(a.estado==='Activo'?'<button class="btn btn-green btn-xs" onclick="confirmarDevolucion(\''+alqIdArg+'\')" title="Marcar devuelto">✅ Devolver</button>':'')+'<button class="btn btn-ghost btn-xs" onclick="openAlqModal(\''+alqIdArg+'\')" title="Editar alquiler">✏</button>'+'<button class="btn btn-danger btn-xs" onclick="delAlq(\''+alqIdArg+'\')">🗑</button>'+'</div></td></tr>';
+    tb.innerHTML+='<tr'+(over?' style="background:rgba(220,38,38,.08)"':'')+'>'+'<td style="font-weight:600;font-size:12px">'+esc(a.maq_nombre)+'</td>'+'<td>'+esc(a.cliente_nombre||'—')+'</td>'+'<td style="font-family:var(--mono);font-size:11px;min-width:65px;white-space:nowrap">'+fmtDDMM(a.salida)+'</td>'+'<td class="col-hide-mobile" style="font-family:var(--mono);font-size:11px;min-width:65px;white-space:nowrap;'+(over?'color:var(--red);font-weight:700':'')+'">'+fmtDDMM(a.devol)+(over?' ⚠️':'')+'</td>'+'<td class="col-hide-mobile" style="text-align:center">'+dias+'</td>'+'<td class="col-hide-mobile" style="font-family:var(--mono);color:var(--muted)">'+fmt(a.precio_dia||0)+'</td>'+'<td class="col-hide-mobile" style="font-family:var(--mono)">'+fmt(a.sena||0)+'</td>'+'<td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(a.total||0)+'</td>'+'<td style="font-family:var(--mono);color:'+((a.total-a.sena)>0?'var(--orange)':'var(--muted)')+';font-weight:'+((a.total-a.sena)>0?'700':'400')+'">'+fmt((a.total||0)-(a.sena||0))+'</td>'+'<td class="col-hide-mobile" style="font-family:var(--mono);font-size:11px;color:var(--blue);min-width:80px">'+esc(pagareVal||'—')+'</td>'+'<td style="min-width:110px;white-space:nowrap"><span class="badge '+(a.estado==="Activo"?'badge-green':a.estado==="Entregado"?'badge-gray':'badge-yellow')+'" title="'+esc(a.estado||'—')+'" style="font-size:9px;padding:2px 5px">'+esc(a.estado||'—')+'</span></td>'+'<td><div class="act">'+(foto?'<button class="btn btn-ghost btn-xs" onclick="verFotoAlqById(\''+alqIdArg+'\',\'equipo\')" title="Foto equipo">📷</button>':'')+(dniUrl?'<button class="btn btn-ghost btn-xs" onclick="verFotoAlqById(\''+alqIdArg+'\',\'dni\')" title="Ver DNI">🪪</button>':'')+(a.estado==='Activo'?'<button class="btn btn-green btn-xs" onclick="confirmarDevolucion(\''+alqIdArg+'\')" title="Marcar devuelto">✅ Devolver</button>':'')+'<button class="btn btn-ghost btn-xs" onclick="openAlqModal(\''+alqIdArg+'\')" title="Editar alquiler">✏</button>'+'<button class="btn btn-danger btn-xs" onclick="delAlq(\''+alqIdArg+'\')">🗑</button>'+'</div></td></tr>';
   });
   document.getElementById('alq-empty').style.display=DB.alquileres.length?'none':'block';
   renderMaquinas();
@@ -3454,7 +3459,7 @@ function renderDtv(){
   var tb=document.getElementById('dtv-tbody'); tb.innerHTML='';
   var badges={Pendiente:'badge-yellow','En proceso':'badge-blue',Completado:'badge-green',Cancelado:'badge-red'};
   DB.directv.forEach(function(d){
-    tb.innerHTML+='<tr><td style="font-size:11px;color:var(--muted)">'+d.fecha+'</td><td style="font-weight:600;font-size:12px">'+esc(d.cliente_nombre||'—')+'</td><td><span class="badge badge-orange">'+esc(d.tipo)+'</span></td><td style="font-size:12px">'+esc(d.descripcion||'')+'</td><td style="color:var(--muted);font-size:11px">'+esc(d.tecnico||'—')+'</td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(d.monto)+'</td><td><span class="badge '+(badges[d.estado]||'badge-gray')+'">'+d.estado+'</span></td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="openDtvModal('+d.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delDtv('+d.id+')">🗑</button></div></td></tr>';
+    tb.innerHTML+='<tr><td class="col-hide-mobile" style="font-size:11px;color:var(--muted)">'+d.fecha+'</td><td style="font-weight:600;font-size:12px">'+esc(d.cliente_nombre||'—')+'</td><td><span class="badge badge-orange">'+esc(d.tipo)+'</span></td><td class="col-hide-mobile" style="font-size:12px">'+esc(d.descripcion||'')+'</td><td class="col-hide-mobile" style="color:var(--muted);font-size:11px">'+esc(d.tecnico||'—')+'</td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(d.monto)+'</td><td><span class="badge '+(badges[d.estado]||'badge-gray')+'">'+d.estado+'</span></td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="openDtvModal('+d.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delDtv('+d.id+')">🗑</button></div></td></tr>';
   });
   document.getElementById('dtv-empty').style.display=DB.directv.length?'none':'block';
 }
@@ -3862,7 +3867,7 @@ function renderMatafuegos(){
   gastos.forEach(function(m){
     var extra=matExtra(m);
     var detalle=quoteDetail(extra.descripcion||'',((m.peso?m.peso+' Kg':'')+(m.serie?' / Serie '+m.serie:'')));
-    var fotoCellHtml='<td style="text-align:center">'+(extra.foto?'<button class="btn btn-ghost btn-xs" onclick="verFotoMat('+m.id+')" title="Ver foto">🧯</button>':'—')+'</td>';
+    var fotoCellHtml='<td class="col-hide-mobile" style="text-align:center">'+(extra.foto?'<button class="btn btn-ghost btn-xs" onclick="verFotoMat('+m.id+')" title="Ver foto">🧯</button>':'—')+'</td>';
     var telEsc=(m.telefono||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
     var venc=extra.validez||m.validez||'';
     var vencS=vencToSort(venc);
@@ -3876,7 +3881,7 @@ function renderMatafuegos(){
     var anioCliM=extra.anio_cliente||m.anio_matafuego_cliente||null;
     var anioEntM=extra.anio_entregado||m.anio_matafuego_entregado||null;
     var modoM=tipoMat(m.tipo);
-    var anioCellHtml='<td style="text-align:center;font-family:var(--mono);font-size:12px">';
+    var anioCellHtml='<td class="col-hide-mobile" style="text-align:center;font-family:var(--mono);font-size:12px">';
     if(modoM==='recambio'&&anioCliM&&anioEntM){
       var diffM=parseInt(anioEntM)-parseInt(anioCliM);
       var diffLabel=diffM>=0?'(+'+diffM+')':'('+diffM+')';
@@ -3890,7 +3895,7 @@ function renderMatafuegos(){
       anioCellHtml+='<span style="color:var(--dim)">—</span>';
     }
     anioCellHtml+='</td>';
-    tb.innerHTML+='<tr><td style="text-align:center;font-family:var(--mono);font-weight:700;font-size:13px;color:var(--orange);white-space:nowrap" title="N° cotización">#'+m.id+'</td><td style="font-size:11px;color:var(--muted)">'+fmtDDMM(m.fecha||todayStr())+'<br><span style="font-size:10px;color:var(--dim)">'+esc(extra.hora||m.hora||'—')+'</span></td><td style="font-weight:600;font-size:12px">'+esc(m.cliente_nombre||'—')+'</td><td>'+esc(m.telefono||'—')+' <a href="javascript:void(0)" onclick="openWhatsAppNumber(\''+telEsc+'\')" style="text-decoration:none">💬</a></td><td><span class="badge '+matTipoBadge(m.tipo)+'">'+esc(m.tipo)+'</span></td><td style="font-size:11px">'+esc(detalle)+'</td>'+fotoCellHtml+anioCellHtml+'<td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(extra.monto)+'</td><td style="font-family:var(--mono);font-size:13px;letter-spacing:.05em;'+vencClass+'">'+(venc||'—')+vencIcon+'</td><td style="min-width:120px;white-space:nowrap"><span class="badge '+(badges[m.estado]||'badge-gray')+'" title="'+esc(m.estado||'—')+'">'+esc(m.estado||'—')+'</span></td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="printMatQuote('+m.id+')">🧾</button><button class="btn btn-ghost btn-xs" onclick="openMatModal('+m.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delMat('+m.id+')">🗑</button></div></td></tr>';
+    tb.innerHTML+='<tr><td class="col-hide-mobile" style="text-align:center;font-family:var(--mono);font-weight:700;font-size:13px;color:var(--orange);white-space:nowrap" title="N° cotización">#'+m.id+'</td><td style="font-size:11px;color:var(--muted)">'+fmtDDMM(m.fecha||todayStr())+'<br><span style="font-size:10px;color:var(--dim)">'+esc(extra.hora||m.hora||'—')+'</span></td><td style="font-weight:600;font-size:12px">'+esc(m.cliente_nombre||'—')+'</td><td class="col-hide-mobile">'+esc(m.telefono||'—')+' <a href="javascript:void(0)" onclick="openWhatsAppNumber(\''+telEsc+'\')" style="text-decoration:none">💬</a></td><td><span class="badge '+matTipoBadge(m.tipo)+'">'+esc(m.tipo)+'</span></td><td class="col-hide-mobile" style="font-size:11px">'+esc(detalle)+'</td>'+fotoCellHtml+anioCellHtml+'<td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(extra.monto)+'</td><td class="col-hide-mobile" style="font-family:var(--mono);font-size:13px;letter-spacing:.05em;'+vencClass+'">'+(venc||'—')+vencIcon+'</td><td style="min-width:120px;white-space:nowrap"><span class="badge '+(badges[m.estado]||'badge-gray')+'" title="'+esc(m.estado||'—')+'">'+esc(m.estado||'—')+'</span></td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="printMatQuote('+m.id+')">🧾</button><button class="btn btn-ghost btn-xs" onclick="openMatModal('+m.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delMat('+m.id+')">🗑</button></div></td></tr>';
   });
   document.getElementById('matafuegos-empty').style.display=gastos.length?'none':'block';
 }
@@ -4727,7 +4732,7 @@ function renderReparaciones(){
   var tb=document.getElementById('rep-tbody'); tb.innerHTML='';
   filtered.forEach(function(r){
     var fotoBtn=r.foto?'<button class="btn btn-ghost btn-xs" onclick="verFotoRep('+r.id+')" title="Ver foto">📷</button>':'<span style="color:var(--dim);font-size:11px">—</span>';
-    tb.innerHTML+='<tr><td style="font-size:11px;color:var(--muted)">'+esc(r.fecha||'')+'</td><td style="font-weight:600;font-size:12px">'+esc(r.cliente_nombre||'Sin cliente')+'</td><td><span class="badge badge-blue">'+esc(r.tecnico)+'</span></td><td style="font-size:11px">'+esc(r.descripcion||'')+'</td><td>'+fotoBtn+'</td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(r.monto)+'</td><td><span class="badge '+(badges[r.estado]||'badge-gray')+'">'+esc(r.estado||'—')+'</span></td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="printRepQuote('+r.id+')">🧾</button><button class="btn btn-ghost btn-xs" onclick="openRepModal('+r.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delRep('+r.id+')">🗑</button></div></td></tr>';
+    tb.innerHTML+='<tr><td class="col-hide-mobile" style="font-size:11px;color:var(--muted)">'+esc(r.fecha||'')+'</td><td style="font-weight:600;font-size:12px">'+esc(r.cliente_nombre||'Sin cliente')+'</td><td class="col-hide-mobile"><span class="badge badge-blue">'+esc(r.tecnico)+'</span></td><td style="font-size:11px">'+esc(r.descripcion||'')+'</td><td class="col-hide-mobile">'+fotoBtn+'</td><td style="font-family:var(--mono);color:var(--green);font-weight:700">'+fmt(r.monto)+'</td><td><span class="badge '+(badges[r.estado]||'badge-gray')+'">'+esc(r.estado||'—')+'</span></td><td><div class="act"><button class="btn btn-ghost btn-xs" onclick="printRepQuote('+r.id+')">🧾</button><button class="btn btn-ghost btn-xs" onclick="openRepModal('+r.id+')">✏</button><button class="btn btn-danger btn-xs" onclick="delRep('+r.id+')">🗑</button></div></td></tr>';
   });
   document.getElementById('rep-empty').style.display=filtered.length?'none':'block';
 }
